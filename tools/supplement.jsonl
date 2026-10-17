@@ -1,0 +1,64 @@
+{"id": "readle.zurück.x", "headword": "zurück", "pos": "adverb", "en": ["back"], "cefr": "A1"}
+{"id": "readle.dabei.x", "headword": "dabei", "pos": "adverb", "en": ["with it", "at the same time", "there"], "cefr": "A2"}
+{"id": "readle.dafür.x", "headword": "dafür", "pos": "adverb", "en": ["for it", "for that", "instead"], "cefr": "A2"}
+{"id": "readle.selbst.x", "headword": "selbst", "pos": "adverb", "en": ["oneself", "even"], "cefr": "A2"}
+{"id": "readle.ander.x", "headword": "ander", "pos": "adjective", "en": ["other", "different"], "cefr": "A1"}
+{"id": "readle.dazu.x", "headword": "dazu", "pos": "adverb", "en": ["to it", "in addition"], "cefr": "A2"}
+{"id": "readle.ab.x", "headword": "ab", "pos": "preposition", "en": ["from", "off"], "cefr": "A1"}
+{"id": "readle.davon.x", "headword": "davon", "pos": "adverb", "en": ["of it", "from it"], "cefr": "A2"}
+{"id": "readle.meiste.x", "headword": "meiste", "pos": "adjective", "en": ["most"], "cefr": "A2"}
+{"id": "readle.daran.x", "headword": "daran", "pos": "adverb", "en": ["on it", "about it"], "cefr": "A2"}
+{"id": "readle.still.x", "headword": "still", "pos": "adjective", "en": ["quiet", "silent", "still"], "cefr": "A2"}
+{"id": "readle.bekommen.v", "headword": "bekommen", "pos": "verb", "en": ["to get", "to receive"], "cefr": "A1"}
+{"id": "readle.darin.x", "headword": "darin", "pos": "adverb", "en": ["in it", "therein"], "cefr": "B1"}
+{"id": "readle.nennen.v", "headword": "nennen", "pos": "verb", "en": ["to call", "to name"], "cefr": "A2"}
+{"id": "readle.mal.n", "headword": "Mal", "pos": "noun", "en": ["time (occasion)"], "cefr": "A1", "gender": "das", "plural": "Male"}
+{"id": "readle.derselbe.x", "headword": "derselbe", "pos": "pronoun", "en": ["the same"], "cefr": "B1"}
+{"id": "readle.gleis.n", "headword": "Gleis", "pos": "noun", "en": ["track", "platform (railway)"], "cefr": "A2", "gender": "das", "plural": "Gleise"}
+{"id": "readle.mieter.n", "headword": "Mieter", "pos": "noun", "en": ["tenant"], "cefr": "B1", "gender": "der", "plural": "Mieter"}
+{"id": "readle.kübel.n", "headword": "Kübel", "pos": "noun", "en": ["bucket", "tub"], "cefr": "B2", "gender": "der", "plural": "Kübel"}
+{"id": "readle.brauerei.n", "headword": "Brauerei", "pos": "noun", "en": ["brewery"], "cefr": "B1", "gender": "die", "plural": "Brauereien"}
+{"id": "readle.gegend.n", "headword": "Gegend", "pos": "noun", "en": ["area", "region"], "cefr": "A2", "gender": "die", "plural": "Gegenden"}
+{"id": "readle.verlangen.v", "headword": "verlangen", "pos": "verb", "en": ["to demand", "to require"], "cefr": "B1"}
+{"id": "readle.meist.x", "headword": "meist", "pos": "adverb", "en": ["mostly", "usually"], "cefr": "A2"}
+{"id": "readle.gar.x", "headword": "gar", "pos": "adverb", "en": ["at all (gar nicht = not at all)"], "cefr": "A2"}
+{"id": "readle.je.x", "headword": "je", "pos": "adverb", "en": ["ever", "each", "the … the (je … desto)"], "cefr": "B1"}
+{"id": "readle.herein.x", "headword": "herein", "pos": "adverb", "en": ["in (towards the speaker)"], "cefr": "B1"}
+{"id": "readle.raum.n", "headword": "Raum", "pos": "noun", "en": ["room", "space"], "cefr": "A2", "gender": "der", "plural": "Räume"}
+{"id": "readle.solch.x", "headword": "solch", "pos": "pronoun", "en": ["such"], "cefr": "B1"}
+{"id": "readle.februar.n", "headword": "Februar", "pos": "noun", "en": ["February"], "cefr": "A1", "gender": "der"}
+{"id": "readle.hin.x", "headword": "hin", "pos": "adverb", "en": ["there (away from the speaker)"], "cefr": "A2"}
+{"id": "readle.wasserkocher.n", "headword": "Wasserkocher", "pos": "noun", "en": ["kettle"], "cefr": "A2", "gender": "der", "plural": "Wasserkocher"}
+{"id": "readle.café.n", "headword": "Café", "pos": "noun", "en": ["café"], "cefr": "A1", "gender": "das", "plural": "Cafés"}
+{"id": "readle.dahin.x", "headword": "dahin", "pos": "adverb", "en": ["there (to that place)"], "cefr": "A2"}
+{"id": "readle.darum.x", "headword": "darum", "pos": "adverb", "en": ["therefore", "that's why"], "cefr": "A2"}
+{"id": "readle.tulpe.n", "headword": "Tulpe", "pos": "noun", "en": ["tulip"], "cefr": "B1", "gender": "die", "plural": "Tulpen"}
+{"id": "readle.heraus.x", "headword": "heraus", "pos": "adverb", "en": ["out"], "cefr": "B1"}
+{"id": "readle.verkäuferin.n", "headword": "Verkäuferin", "pos": "noun", "en": ["shop assistant (female)"], "cefr": "A1", "gender": "die", "plural": "Verkäuferinnen"}
+{"id": "readle.verb.n", "headword": "Verb", "pos": "noun", "en": ["verb"], "cefr": "A2", "gender": "das", "plural": "Verben"}
+{"id": "readle.weg.x", "headword": "weg", "pos": "adverb", "en": ["away", "gone"], "cefr": "A1"}
+{"id": "readle.fensterladen.n", "headword": "Fensterladen", "pos": "noun", "en": ["window shutter"], "cefr": "B1", "gender": "der", "plural": "Fensterläden"}
+{"id": "readle.schweiz.n", "headword": "Schweiz", "pos": "noun", "en": ["Switzerland"], "cefr": "A1", "gender": "die"}
+{"id": "readle.europa.n", "headword": "Europa", "pos": "noun", "en": ["Europe"], "cefr": "A1", "gender": "das"}
+{"id": "readle.bayern.n", "headword": "Bayern", "pos": "noun", "en": ["Bavaria"], "cefr": "A1", "gender": "das"}
+{"id": "readle.rhein.n", "headword": "Rhein", "pos": "noun", "en": ["the Rhine"], "cefr": "A2", "gender": "der"}
+{"id": "readle.köln.n", "headword": "Köln", "pos": "noun", "en": ["Cologne"], "cefr": "A1", "gender": "das"}
+{"id": "readle.münchen.n", "headword": "München", "pos": "noun", "en": ["Munich"], "cefr": "A1", "gender": "das"}
+{"id": "readle.darauf.x", "headword": "darauf", "pos": "adverb", "en": ["on it", "afterwards"], "cefr": "A2"}
+{"id": "readle.damit.x", "headword": "damit", "pos": "adverb", "en": ["with it", "so that"], "cefr": "A2"}
+{"id": "readle.worauf.x", "headword": "worauf", "pos": "adverb", "en": ["on what", "what … for"], "cefr": "B1"}
+{"id": "readle.hinein.x", "headword": "hinein", "pos": "adverb", "en": ["in (away from the speaker)"], "cefr": "B1"}
+{"id": "readle.paar.x", "headword": "paar", "pos": "other", "en": ["a few (ein paar)", "pair"], "cefr": "A1"}
+{"id": "readle.deutsch.x", "headword": "deutsch", "pos": "adjective", "en": ["German"], "cefr": "A1"}
+{"id": "readle.fest.x", "headword": "fest", "pos": "adjective", "en": ["firm", "fixed", "solid"], "cefr": "A2"}
+{"id": "readle.bisschen.x", "headword": "bisschen", "pos": "other", "en": ["a little (ein bisschen)", "a bit"], "cefr": "A1"}
+{"id": "readle.reden.v", "headword": "reden", "pos": "verb", "en": ["to talk", "to speak"], "cefr": "A1"}
+{"id": "readle.klingen.v", "headword": "klingen", "pos": "verb", "en": ["to sound"], "cefr": "A2"}
+{"id": "readle.sorgen.v", "headword": "sorgen", "pos": "verb", "en": ["to take care (für)", "to worry (sich)"], "cefr": "A2"}
+{"id": "readle.ändern.v", "headword": "ändern", "pos": "verb", "en": ["to change"], "cefr": "A2"}
+{"id": "readle.aussehen.v", "headword": "aussehen", "pos": "verb", "en": ["to look (like)", "to appear"], "cefr": "A1"}
+{"id": "readle.wurst.n", "headword": "Wurst", "pos": "noun", "gender": "die", "plural": "Würste", "en": ["sausage"], "cefr": "A1"}
+{"id": "readle.wecker.n", "headword": "Wecker", "pos": "noun", "gender": "der", "plural": "Wecker", "en": ["alarm clock"], "cefr": "A2"}
+{"id": "readle.bahnsteig.n", "headword": "Bahnsteig", "pos": "noun", "gender": "der", "plural": "Bahnsteige", "en": ["platform (railway)"], "cefr": "A2"}
+{"id": "readle.region.n", "headword": "Region", "pos": "noun", "gender": "die", "plural": "Regionen", "en": ["region"], "cefr": "B1"}
+{"id": "readle.gemütlichkeit.n", "headword": "Gemütlichkeit", "pos": "noun", "gender": "die", "en": ["cosiness", "comfort"], "cefr": "B1"}

@@ -1,0 +1,117 @@
+import { useMemo, useState } from "react";
+import { imageUrl, loadLibrary } from "../lib/content";
+import { useAsync } from "../hooks";
+import { actions, streak, useStore } from "../lib/store";
+import { dayKey } from "../lib/dates";
+import { rng } from "../lib/quiz";
+import { LEVELS, type StoryMeta } from "../lib/types";
+import { href } from "../router";
+
+const COLLECTIONS: Record<string, string> = { all: "All", fiction: "Fiction", culture: "Culture", facts: "Facts" };
+
+export function Library() {
+  const lib = useAsync(loadLibrary, []);
+  const level = useStore((s) => s.settings.level);
+  const read = useStore((s) => s.read);
+  const days = useStore((s) => s.activeDays);
+  const [collection, setCollection] = useState("all");
+  const [query, setQuery] = useState("");
+  const [unreadOnly, setUnreadOnly] = useState(false);
+
+  const stories = lib.status === "ready" ? lib.value : [];
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return stories.filter(
+      (s) =>
+        (level === "all" || s.level === level) &&
+        (collection === "all" || s.collection === collection) &&
+        (!unreadOnly || !read[s.id]) &&
+        (!q || s.title.toLowerCase().includes(q) || s.teaser.toLowerCase().includes(q)),
+    );
+  }, [stories, level, collection, unreadOnly, query, read]);
+
+  const today = dayKey();
+  const daily = useMemo(() => storyOfTheDay(stories, level, read, today), [stories, level, read, today]);
+  const finishedToday = Object.values(read).filter((d) => d === today).length;
+
+  return (
+    <div className="page">
+      <header className="lib-head">
+        <div>
+          <p className="eyebrow">Guten Tag!</p>
+          <h1>Stories</h1>
+        </div>
+        <a className="streak-pill" href={href({ name: "me" })} title="Day streak">
+          🔥 {streak(days)}
+        </a>
+      </header>
+
+      {daily && (
+        <a className="daily" href={href({ name: "story", id: daily.id })}>
+          {daily.image && <img src={imageUrl(daily.image)} alt="" />}
+          <div className="daily-body">
+            <span className="eyebrow light">{finishedToday ? "Keep going — next up" : "Story of the day"}</span>
+            <h2>{daily.title}</h2>
+            <p>
+              <span className={`lvl lvl-${daily.level}`}>{daily.level}</span> {daily.minutes} min · {COLLECTIONS[daily.collection] ?? daily.collection}
+            </p>
+          </div>
+        </a>
+      )}
+
+      <div className="chips" role="group" aria-label="Level">
+        <button className={level === "all" ? "chip on" : "chip"} onClick={() => actions.updateSettings({ level: "all" })}>
+          All levels
+        </button>
+        {LEVELS.map((l) => (
+          <button key={l} className={level === l ? "chip on" : "chip"} onClick={() => actions.updateSettings({ level: l })}>
+            {l}
+          </button>
+        ))}
+      </div>
+      <div className="chips" role="group" aria-label="Collection">
+        {Object.entries(COLLECTIONS).map(([k, label]) => (
+          <button key={k} className={collection === k ? "chip on" : "chip"} onClick={() => setCollection(k)}>
+            {label}
+          </button>
+        ))}
+        <button className={unreadOnly ? "chip on" : "chip"} onClick={() => setUnreadOnly(!unreadOnly)}>
+          Unread
+        </button>
+      </div>
+      <input className="search" type="search" placeholder="Search stories…" value={query} onChange={(e) => setQuery(e.target.value)} />
+
+      {lib.status === "loading" && <p className="muted center">Loading stories…</p>}
+      {lib.status === "error" && <p className="muted center">Couldn't load stories. {lib.error}</p>}
+      {lib.status === "ready" && !visible.length && <p className="muted center">No stories match these filters.</p>}
+
+      <ul className="story-list">
+        {visible.map((s) => (
+          <li key={s.id}>
+            <a className="story-card" href={href({ name: "story", id: s.id })}>
+              <div className="thumb">{s.image ? <img src={imageUrl(s.image)} alt="" loading="lazy" /> : <span>📖</span>}</div>
+              <div className="story-body">
+                <h3>{s.title}</h3>
+                <p className="teaser">{s.teaserEn}</p>
+                <p className="meta">
+                  <span className={`lvl lvl-${s.level}`}>{s.level}</span>
+                  {s.minutes} min · {COLLECTIONS[s.collection] ?? s.collection}
+                  {read[s.id] && <span className="done">✓ Read</span>}
+                </p>
+              </div>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Same pick all day: the first unread story of the chosen level, shuffled by date. */
+export function storyOfTheDay(stories: StoryMeta[], level: string, read: Record<string, string>, today: string) {
+  const pool = stories.filter((s) => level === "all" || s.level === level);
+  if (!pool.length) return null;
+  const unread = pool.filter((s) => !read[s.id]);
+  const from = unread.length ? unread : pool;
+  return from[Math.floor(rng(today)() * from.length)];
+}
