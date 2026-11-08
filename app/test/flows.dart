@@ -32,11 +32,33 @@ Future<Harness> pumpApp(WidgetTester tester, {bool decodeInIsolate = false}) asy
   return Harness(state, speech);
 }
 
+/// Pump until [finder] matches: on a real device, loading and route transitions take wall time.
+Future<void> waitFor(WidgetTester tester, Finder finder, {Duration timeout = const Duration(seconds: 15)}) async {
+  final end = DateTime.now().add(timeout);
+  while (finder.evaluate().isEmpty && DateTime.now().isBefore(end)) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+  if (finder.evaluate().isEmpty) {
+    final onScreen = find.byType(Text).evaluate().map((e) => (e.widget as Text).data).whereType<String>().take(20);
+    fail('Timed out waiting for $finder. On screen: ${onScreen.join(' | ')}');
+  }
+}
+
+/// Type into the library search and put the soft keyboard away (on a device it shrinks the list).
+Future<void> search(WidgetTester tester, String text) async {
+  await tester.enterText(find.byKey(const Key('search')), text);
+  FocusManager.instance.primaryFocus?.unfocus();
+  await tester.pumpAndSettle();
+}
+
 Future<void> openBrot(WidgetTester tester) async {
-  await tester.enterText(find.byKey(const Key('search')), 'Brot ist hier');
+  await search(tester, 'Brot ist hier');
+  await waitFor(tester, find.byKey(const Key('story-brot')));
+  await tester.ensureVisible(find.byKey(const Key('story-brot')));
   await tester.pumpAndSettle();
   await tester.tap(find.byKey(const Key('story-brot')));
   await tester.pumpAndSettle();
+  await waitFor(tester, find.byKey(const Key('reader-list')));
   expect(find.text('Brot ist hier wichtig'), findsOneWidget);
 }
 
@@ -56,11 +78,9 @@ Future<void> tapWord(WidgetTester tester, String word) async {
 Future<void> libraryFilters(WidgetTester tester) async {
   await pumpApp(tester);
   expect(find.byKey(const Key('daily')), findsOneWidget);
-  await tester.enterText(find.byKey(const Key('search')), 'bread');
-  await tester.pumpAndSettle();
+  await search(tester, 'bread');
   expect(find.byKey(const Key('story-frisches-brot-in-der-baeckerei')), findsOneWidget);
-  await tester.enterText(find.byKey(const Key('search')), 'zzzz');
-  await tester.pumpAndSettle();
+  await search(tester, 'zzzz');
   expect(find.text('No stories match these filters.'), findsOneWidget);
 }
 
@@ -115,6 +135,7 @@ Future<void> quizAndProgress(WidgetTester tester) async {
   await reveal(tester, find.byKey(const Key('finish')), const Key('reader-list'));
   await tester.tap(find.byKey(const Key('finish')));
   await tester.pumpAndSettle();
+  await waitFor(tester, find.byKey(const Key('option-0')));
   for (var i = 0; i < 10 && find.byKey(const Key('option-0')).evaluate().isNotEmpty; i++) {
     await tester.tap(find.byKey(const Key('option-0')));
     await tester.pumpAndSettle();
@@ -127,6 +148,7 @@ Future<void> quizAndProgress(WidgetTester tester) async {
   expect(h.state.quiz.keys, contains('brot'));
   await tester.tap(find.byKey(const Key('next-story')));
   await tester.pumpAndSettle();
+  await waitFor(tester, find.byKey(const Key('story-brot')));
   expect(find.descendant(of: find.byKey(const Key('story-brot')), matching: find.text('✓ Read')), findsOneWidget);
   expect(find.descendant(of: find.byKey(const Key('streak')), matching: find.text('🔥 1')), findsOneWidget);
 }
@@ -158,6 +180,7 @@ Future<void> settingsAndReset(WidgetTester tester) async {
   h.state.finishStory('brot');
   await tester.tap(find.byKey(const Key('tab-progress')));
   await tester.pumpAndSettle();
+  await waitFor(tester, find.byKey(const Key('progress-list')));
   await reveal(tester, find.byKey(const Key('theme')), const Key('progress-list'));
   await tester.tap(find.byKey(const Key('theme')));
   await tester.pumpAndSettle();
