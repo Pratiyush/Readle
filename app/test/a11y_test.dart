@@ -2,6 +2,7 @@
 // guidelines (tap targets, labels, contrast) on the screens built from standard controls.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:readle/app.dart' show maxTextScale;
 import 'package:readle/state/app_state.dart';
 
 import 'flows.dart';
@@ -84,5 +85,28 @@ void main() {
     await tapWord(tester, 'gibt');
     await expectLater(tester, meetsGuideline(textContrastGuideline), reason: 'dark word sheet');
     handle.dispose();
+  });
+
+  testWidgets("iOS's largest text (310 %): capped at 200 %, nothing in the library clipped", (tester) async {
+    tester.view.physicalSize = const Size(1206, 2622); // iPhone 17 Pro, 402×874 pt
+    tester.view.devicePixelRatio = 3;
+    tester.platformDispatcher.textScaleFactorTestValue = 3.1;
+    addTearDown(() {
+      tester.view.reset();
+      tester.platformDispatcher.clearTextScaleFactorTestValue();
+    });
+    await pumpApp(tester);
+    final daily = find.byKey(const Key('daily'));
+    expect(MediaQuery.textScalerOf(tester.element(daily)).scale(10), 10 * maxTextScale);
+    expect(tester.takeException(), isNull);
+
+    bool inside(Rect inner, Rect outer) =>
+        inner.top >= outer.top - 0.5 && inner.bottom <= outer.bottom + 0.5 && inner.left >= outer.left - 0.5;
+    expect(inside(tester.getRect(find.byKey(const Key('daily-title'))), tester.getRect(daily)), isTrue,
+        reason: 'story-of-the-day title inside its card');
+    final chipRow = find.ancestor(of: find.text('All levels'), matching: find.byType(ListView)).first;
+    expect(inside(tester.getRect(find.text('All levels')), tester.getRect(chipRow)), isTrue, reason: 'chip label inside its row');
+    final heading = tester.getSize(find.byKey(const Key('library-heading')));
+    expect(heading.height, lessThan(28 * maxTextScale * 1.6), reason: '"Stories" on one line, not split mid-word');
   });
 }

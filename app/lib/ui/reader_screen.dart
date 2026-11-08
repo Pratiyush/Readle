@@ -6,6 +6,7 @@ import 'app_scope.dart';
 import 'quiz_screen.dart';
 import 'theme.dart';
 import 'word_sheet.dart';
+import 'whole_words_text.dart';
 
 const _scales = [0.9, 1.0, 1.15, 1.3, 1.5];
 
@@ -251,7 +252,7 @@ class _ReaderViewState extends State<_ReaderView> {
                     Text('${story.meta.minutes} min read · ${story.meta.words} words', style: TextStyle(color: palette.muted, fontSize: 13)),
                   ]),
                   const SizedBox(height: 8),
-                  Text(story.meta.title,
+                  WholeWordsText(story.meta.title,
                       style: const TextStyle(fontFamily: serif, fontFamilyFallback: serifFallback, fontSize: 30, fontWeight: FontWeight.w700, height: 1.15)),
                   const SizedBox(height: 6),
                   if (state.wordTipSeen)

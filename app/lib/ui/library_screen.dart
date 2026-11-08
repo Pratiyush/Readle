@@ -9,6 +9,7 @@ import '../logic/quiz.dart' show seedOf;
 import 'app_scope.dart';
 import 'reader_screen.dart';
 import 'theme.dart';
+import 'whole_words_text.dart';
 
 const collections = {'all': 'All', 'fiction': 'Fiction', 'culture': 'Culture', 'facts': 'Facts'};
 
@@ -89,7 +90,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     Expanded(
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text('GUTEN TAG!', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, letterSpacing: 1, fontSize: 12)),
-                        Text('Stories', style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.w800)),
+                        // One word: shrink to fit beside the streak chip rather than break mid-word.
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text('Stories',
+                              key: const Key('library-heading'),
+                              style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.w800)),
+                        ),
                       ]),
                     ),
                     Chip(key: const Key('streak'), label: Text('🔥 ${state.streakDays}', style: const TextStyle(fontWeight: FontWeight.w700))),
@@ -157,8 +165,9 @@ class _Chips extends StatelessWidget {
   final List<Widget> children;
 
   @override
+  // Grows with the text size, so labels are never cut off (48 at 100 %).
   Widget build(BuildContext context) => SizedBox(
-        height: 48,
+        height: MediaQuery.textScalerOf(context).scale(20) + 28,
         child: ListView(scrollDirection: Axis.horizontal, children: children),
       );
 }
@@ -193,7 +202,7 @@ class _ContinueCard extends StatelessWidget {
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text('CONTINUE READING', style: TextStyle(color: scheme.primary, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1)),
-                Text(story.title, style: const TextStyle(fontFamily: serif, fontFamilyFallback: serifFallback, fontSize: 18, fontWeight: FontWeight.w700)),
+                WholeWordsText(story.title, style: const TextStyle(fontFamily: serif, fontFamilyFallback: serifFallback, fontSize: 18, fontWeight: FontWeight.w700)),
               ]),
             ),
             Icon(Icons.play_circle_fill_rounded, color: scheme.primary, size: 36),
@@ -217,23 +226,26 @@ class _DailyCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => openStory(context, story.id),
-        child: AspectRatio(
-          aspectRatio: 16 / 9,
-          child: Stack(fit: StackFit.expand, children: [
-            if (image != null) Image(image: ResizeImage(image, width: 900), fit: BoxFit.cover),
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Colors.black87]),
+        // At least 16:9; taller when large text needs the room, so the title is never clipped.
+        child: LayoutBuilder(
+          builder: (context, c) => Stack(children: [
+            if (image != null) Positioned.fill(child: Image(image: ResizeImage(image, width: 900), fit: BoxFit.cover)),
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Colors.black87]),
+                ),
               ),
             ),
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 14,
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(
+              constraints: BoxConstraints(minHeight: c.maxWidth * 9 / 16),
+              alignment: Alignment.bottomLeft,
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
+              child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(keepGoing ? 'KEEP GOING — NEXT UP' : 'STORY OF THE DAY',
                     style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1)),
-                Text(story.title,
+                WholeWordsText(story.title,
+                    key: const Key('daily-title'),
                     style: const TextStyle(color: Colors.white, fontSize: 24, fontFamily: serif, fontFamilyFallback: serifFallback, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
                 Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
@@ -280,7 +292,7 @@ class _StoryCard extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(story.title,
+                WholeWordsText(story.title,
                     style: const TextStyle(fontFamily: serif, fontFamilyFallback: serifFallback, fontSize: 18, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
                 Text(story.teaserEn, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: palette.muted)),

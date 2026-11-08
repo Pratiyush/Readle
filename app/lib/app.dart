@@ -12,6 +12,9 @@ import 'ui/progress_screen.dart';
 import 'ui/theme.dart';
 import 'ui/words_screen.dart';
 
+/// The largest system text scale the app follows.
+const maxTextScale = 2.0;
+
 class ReadleApp extends StatelessWidget {
   const ReadleApp({super.key, required this.state, required this.content, required this.speech, required this.player, required this.ads, this.updates});
 
@@ -43,6 +46,9 @@ class ReadleApp extends StatelessWidget {
             ThemeChoice.dark => ThemeMode.dark,
             ThemeChoice.system => ThemeMode.system,
           },
+          // System text up to 200 % (WCAG 1.4.4). iOS accessibility sizes reach about 310 %, which
+          // splits headings mid-word and clips cards; the story text has its own size on top.
+          builder: (context, child) => MediaQuery.withClampedTextScaling(maxScaleFactor: maxTextScale, child: child!),
           home: const Shell(),
         ),
       ),
