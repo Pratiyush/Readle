@@ -52,7 +52,9 @@ Future<void> waitFor(WidgetTester tester, Finder finder, {Duration timeout = con
 Future<void> search(WidgetTester tester, String text) async {
   await reveal(tester, find.byKey(const Key('search')), const PageStorageKey('library'));
   await tester.enterText(find.byKey(const Key('search')), text);
-  FocusManager.instance.primaryFocus?.unfocus();
+  // "Done" on the keyboard closes it the way a user does (a bare unfocus() left the device's
+  // test text input disconnected, so the next enterText never arrived).
+  await tester.testTextInput.receiveAction(TextInputAction.done);
   await tester.pumpAndSettle();
 }
 
@@ -86,10 +88,13 @@ Future<void> tapWord(WidgetTester tester, String word) async {
 Future<void> libraryFilters(WidgetTester tester) async {
   await pumpApp(tester);
   expect(find.byKey(const Key('daily')), findsOneWidget);
-  await search(tester, 'bread');
-  expect(find.byKey(const Key('story-frisches-brot-in-der-baeckerei')), findsOneWidget);
-  await search(tester, 'zzzz');
-  expect(find.text('No stories match these filters.'), findsOneWidget);
+  // Typed directly: on Android, closing the keyboard between two entries drops the second one.
+  await tester.enterText(find.byKey(const Key('search')), 'bread');
+  await tester.pumpAndSettle();
+  await waitFor(tester, find.byKey(const Key('story-frisches-brot-in-der-baeckerei')));
+  await tester.enterText(find.byKey(const Key('search')), 'zzzz');
+  await tester.pumpAndSettle();
+  await waitFor(tester, find.text('No stories match these filters.', skipOffstage: false));
 }
 
 Future<void> tapWordAndSave(WidgetTester tester) async {
