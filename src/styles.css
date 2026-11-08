@@ -133,6 +133,7 @@ main.with-nav { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
 .story-text { font-family: var(--serif); font-size: calc(1.25rem * var(--reader-scale)); line-height: 1.85; }
 .sentence { border-radius: 6px; transition: background 0.2s; }
 .sentence.playing { background: var(--accent-soft); }
+.nw { white-space: nowrap; }
 .w { display: inline; padding: 0 1px; margin: 0; border: 0; background: none; font: inherit; border-radius: 4px; }
 .w:hover { background: var(--surface-2); }
 .w-saved { background: var(--saved); }

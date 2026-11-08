@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { imageUrl, loadDictionary, loadStory } from "../lib/content";
 import { useAsync } from "../hooks";
 import { actions, useStore } from "../lib/store";
 import { speak, speechAvailable, stopSpeaking } from "../lib/speech";
 import type { Dictionary, Story } from "../lib/types";
+import { glue } from "../lib/glue";
 import { go, href } from "../router";
 import { WordSheet, type Picked } from "./WordSheet";
 
@@ -35,6 +36,7 @@ function ReaderView({ story, dict }: { story: Story; dict: Dictionary }) {
   const [playing, setPlaying] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const playToken = useRef(0);
+  const units = useMemo(() => story.sentences.map((s) => glue(s.t)), [story]);
 
   useEffect(() => {
     const on = () => {
@@ -85,6 +87,12 @@ function ReaderView({ story, dict }: { story: Story; dict: Dictionary }) {
     actions.updateSettings({ fontScale: SCALES[(i + 1) % SCALES.length] });
   };
 
+  const translateButton = (i: number) => (
+    <button className="tr-btn" onClick={() => toggleSentence(i)} aria-label={`Translate sentence ${i + 1}`} aria-expanded={allShown || shown.has(i)}>
+      ⇄
+    </button>
+  );
+
   const finish = () => {
     stop();
     actions.finishStory(story.id);
@@ -124,23 +132,27 @@ function ReaderView({ story, dict }: { story: Story; dict: Dictionary }) {
         <div className="story-text" lang="de">
           {story.sentences.map((s, i) => (
             <span key={i} id={`s${i}`} className={playing === i ? "sentence playing" : "sentence"}>
-              {s.t.map((tok, j) => {
-                if (typeof tok === "string") return tok;
-                const [word, key, compound] = tok;
+              {units[i].map((unit, j, row) => {
+                if (typeof unit === "string") return unit;
+                const [word, key, compound] = unit.tok;
                 const savedHere = (key && saved[key]) || saved[`free:${word.toLowerCase()}`];
+                const last = j === row.length - 1;
                 return (
-                  <button
-                    key={j}
-                    className={`w${key ? "" : " w-unknown"}${savedHere ? " w-saved" : ""}`}
-                    onClick={() => setPicked({ word, key: key ?? null, compound: compound === 1, sentence: s.de, sentenceEn: s.en })}
-                  >
-                    {word}
-                  </button>
+                  <span key={j} className="nw">
+                    {unit.pre}
+                    <button
+                      className={`w${key ? "" : " w-unknown"}${savedHere ? " w-saved" : ""}`}
+                      onClick={() => setPicked({ word, key: key ?? null, compound: compound === 1, sentence: s.de, sentenceEn: s.en })}
+                    >
+                      {word}
+                    </button>
+                    {unit.post}
+                    {last && "\u00a0"}
+                    {last && translateButton(i)}
+                  </span>
                 );
-              })}{" "}
-              <button className="tr-btn" onClick={() => toggleSentence(i)} aria-label={`Translate sentence ${i + 1}`} aria-expanded={allShown || shown.has(i)}>
-                ⇄
-              </button>
+              })}
+              {typeof units[i].at(-1) === "string" && <> {translateButton(i)}</>}
               {(allShown || shown.has(i)) && (
                 <span className="translation" lang="en">
                   {s.en}
