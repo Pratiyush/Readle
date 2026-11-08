@@ -26,7 +26,7 @@ export function Library() {
         (level === "all" || s.level === level) &&
         (collection === "all" || s.collection === collection) &&
         (!unreadOnly || !read[s.id]) &&
-        (!q || s.title.toLowerCase().includes(q) || s.teaser.toLowerCase().includes(q)),
+        (!q || [s.title, s.teaser, s.teaserEn].some((t) => t.toLowerCase().includes(q))),
     );
   }, [stories, level, collection, unreadOnly, query, read]);
 
