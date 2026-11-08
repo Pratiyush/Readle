@@ -3,20 +3,22 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Learn German by reading short stories — a Readle-style reader built on Lernle's content.",
+  "description": "Learn German by reading short stories \u2014 a Readle-style reader built on Lernle's content.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc -b",
-    "content": "python3 tools/build_content.py ../lernle"
+    "content": "python3 tools/build_content.py ../lernle",
+    "e2e": "vite build && playwright test"
   },
   "dependencies": {
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.0",
     "@types/node": "^22.10.5",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
