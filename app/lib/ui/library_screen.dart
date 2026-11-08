@@ -172,7 +172,7 @@ class _ContinueCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = Palette.of(context);
     final scheme = Theme.of(context).colorScheme;
-    final image = AppScope.read(context).content.image(story.image);
+    final image = AppScope.read(context).content.image(story.thumb ?? story.image);
     return Card(
       key: const Key('continue-card'),
       clipBehavior: Clip.antiAlias,
@@ -257,7 +257,7 @@ class _StoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = Palette.of(context);
-    final image = AppScope.read(context).content.image(story.image);
+    final image = AppScope.read(context).content.image(story.thumb ?? story.image);
     return Card(
       key: Key('story-${story.id}'),
       clipBehavior: Clip.antiAlias,

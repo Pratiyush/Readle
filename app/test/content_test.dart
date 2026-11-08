@@ -63,6 +63,17 @@ void main() {
     }
   });
 
+  test('list cards get a small thumbnail, not the 1536 px hero', () async {
+    final pictured = library.where((s) => s.image != null).toList();
+    expect(pictured.where((s) => s.thumb == null), isEmpty);
+    var heroes = 0, thumbs = 0;
+    for (final s in pictured) {
+      heroes += (await rootBundle.load('assets/content/${s.image}')).lengthInBytes;
+      thumbs += (await rootBundle.load('assets/content/${s.thumb}')).lengthInBytes;
+    }
+    expect(thumbs, lessThan(heroes / 4), reason: 'thumbs $thumbs bytes vs heroes $heroes');
+  });
+
   test('a seed reproduces the same quiz', () {
     final a = buildQuiz(stories.first, dict, seed: 'x');
     final b = buildQuiz(stories.first, dict, seed: 'x');

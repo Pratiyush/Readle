@@ -10,6 +10,7 @@ class StoryMeta {
     required this.collection,
     required this.publishedAt,
     required this.image,
+    this.thumb,
     required this.teaser,
     required this.teaserEn,
     required this.words,
@@ -22,6 +23,9 @@ class StoryMeta {
   final String collection;
   final String publishedAt;
   final String? image;
+
+  /// A 320 px copy of [image] for list cards; null for downloaded stories (they use [image]).
+  final String? thumb;
   final String teaser;
   final String teaserEn;
   final int words;
@@ -34,6 +38,7 @@ class StoryMeta {
         collection: j['collection'] as String,
         publishedAt: j['publishedAt'] as String,
         image: j['image'] as String?,
+        thumb: j['thumb'] as String?,
         teaser: j['teaser'] as String,
         teaserEn: j['teaserEn'] as String,
         words: j['words'] as int,
@@ -47,6 +52,7 @@ class StoryMeta {
         'collection': collection,
         'publishedAt': publishedAt,
         'image': image,
+        'thumb': thumb,
         'teaser': teaser,
         'teaserEn': teaserEn,
         'words': words,

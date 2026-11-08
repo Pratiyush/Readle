@@ -8,6 +8,8 @@ export interface StoryMeta {
   collection: string;
   publishedAt: string;
   image: string | null;
+  /** 320 px copy of `image` for list cards (absent in older content). */
+  thumb?: string | null;
   teaser: string;
   teaserEn: string;
   words: number;

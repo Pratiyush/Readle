@@ -98,7 +98,7 @@ export function Library() {
         {visible.map((s) => (
           <li key={s.id}>
             <a className="story-card" href={href({ name: "story", id: s.id })}>
-              <div className="thumb">{s.image ? <img src={imageUrl(s.image)} alt="" loading="lazy" /> : <span>📖</span>}</div>
+              <div className="thumb">{s.image ? <img src={imageUrl(s.thumb ?? s.image)} alt="" loading="lazy" /> : <span>📖</span>}</div>
               <div className="story-body">
                 <h3 lang="de">{s.title}</h3>
                 <p className="teaser">{s.teaserEn}</p>

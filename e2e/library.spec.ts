@@ -20,6 +20,12 @@ test.describe("library", () => {
     await expect(page.locator(".story-card")).toHaveCount(107);
   });
 
+  test("list cards load 320 px thumbnails, not the full pictures", async ({ page }) => {
+    const srcs = await page.locator(".story-card .thumb img").evaluateAll((imgs) => imgs.map((i) => (i as HTMLImageElement).getAttribute("src")));
+    expect(srcs.length).toBeGreaterThan(100);
+    for (const src of srcs) expect(src).toMatch(/content\/thumbs\/.+\.webp$/);
+  });
+
   test("searches German titles and English teasers", async ({ page }) => {
     const search = page.getByPlaceholder("Search stories…");
     await search.fill("bread");

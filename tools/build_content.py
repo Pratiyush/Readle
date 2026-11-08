@@ -11,6 +11,7 @@ Reads the authored stories, lexicon and frequency aliases from Lernle's
                           dictionary keys so a tap needs no runtime lemmatiser
   dict.json               every dictionary entry some story links to
   images/<slug>.webp      story illustrations
+  thumbs/<slug>.webp      the same at 320 px wide, for library cards (needs cwebp)
   audio/<id>.mp3          the word's pronunciation, from Lernle's own clips
 
 and, for the Flutter app only, `app/assets/linker/`:
@@ -29,6 +30,7 @@ import json
 import pathlib
 import re
 import shutil
+import subprocess
 import sys
 import unicodedata
 
@@ -209,6 +211,16 @@ class Resolver:
         return None, False
 
 
+def make_thumb(src: pathlib.Path, dst: pathlib.Path) -> bool:
+    """A 320 px wide copy for the library list, which otherwise loads the 1536 px hero into a 92 px
+    slot. Skipped (the card falls back to the hero) when cwebp isn't installed."""
+    if not shutil.which("cwebp"):
+        return False
+    dst.parent.mkdir(exist_ok=True)
+    done = subprocess.run(["cwebp", "-quiet", "-q", "78", "-resize", "320", "0", str(src), "-o", str(dst)])
+    return done.returncode == 0
+
+
 def reading_minutes(words: int) -> int:
     """Minutes at a learner's pace (60 words a minute), rounded half up; the app uses the same rule
     for stories it downloads (ContentClient.storyMeta)."""
@@ -319,8 +331,10 @@ def main() -> None:
             sentences.append({"de": nfc(s["de"]), "en": s["en"], "t": toks})
         image = content / "stories" / "images" / story.get("image", "")
         has_image = image.is_file()
+        has_thumb = False
         if has_image:
             shutil.copyfile(image, OUT / "images" / f"{slug}.webp")
+            has_thumb = make_thumb(image, OUT / "thumbs" / f"{slug}.webp")
         text_words = sum(len(TOKEN_RE.findall(s["de"])) for s in story["sentences"])
         meta = {
             "id": slug,
@@ -329,6 +343,7 @@ def main() -> None:
             "collection": story.get("collection", "fiction"),
             "publishedAt": story.get("publishedAt", ""),
             "image": f"images/{slug}.webp" if has_image else None,
+            "thumb": f"thumbs/{slug}.webp" if has_thumb else None,
             "teaser": nfc(story["sentences"][0]["de"]),
             "teaserEn": story["sentences"][0]["en"],
             "words": text_words,

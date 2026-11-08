@@ -33,5 +33,6 @@ flutter:
     - assets/content/
     - assets/content/stories/
     - assets/content/images/
+    - assets/content/thumbs/
     - assets/content/audio/
     - assets/linker/
