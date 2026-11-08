@@ -48,7 +48,15 @@ function ReaderView({ story, dict }: { story: Story; dict: Dictionary }) {
     return () => window.removeEventListener("scroll", on);
   }, []);
 
-  useEffect(() => () => stopSpeaking(), []);
+  // Leaving the reader must silence it: bump the token first, because cancelling fires the
+  // utterance's end/error handler, which would otherwise go on to speak the next sentence.
+  useEffect(
+    () => () => {
+      playToken.current++;
+      stopSpeaking();
+    },
+    [],
+  );
 
   const play = useCallback(
     (from: number) => {
