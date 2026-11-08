@@ -24,9 +24,31 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// Word clips: an audio element asks for byte ranges and gets 206 partial responses, which the Cache
+// API can't store, so a clip heard online would never play offline. Fetch the whole clip (no Range
+// header, so 200), keep it, and answer the element with the full file, online or off.
+async function clip(event) {
+  const url = event.request.url;
+  try {
+    const response = await fetch(url);
+    if (response.status === 200) {
+      const copy = response.clone();
+      event.waitUntil(caches.open(CACHE).then((c) => c.put(url, copy)));
+    }
+    return response;
+  } catch {
+    return (await caches.match(url, { ignoreVary: true })) ?? Response.error();
+  }
+}
+
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) return;
+  const url = new URL(request.url);
+  if (request.method !== "GET" || url.origin !== self.location.origin) return;
+  if (url.pathname.includes("/content/audio/")) {
+    event.respondWith(clip(event));
+    return;
+  }
   // Network first so content updates arrive; the cache is the fallback.
   event.respondWith(
     fetch(request)

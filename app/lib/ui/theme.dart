@@ -50,8 +50,8 @@ class Palette extends ThemeExtension<Palette> {
 }
 
 const levelColors = {
-  'A1': Color(0xFF16A34A),
-  'A2': Color(0xFF0D9488),
+  'A1': Color(0xFF15803D),
+  'A2': Color(0xFF0F766E),
   'B1': Color(0xFF2563EB),
   'B2': Color(0xFF7C3AED),
   'C1': Color(0xFFB45309),

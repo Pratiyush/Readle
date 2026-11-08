@@ -60,7 +60,7 @@ export function Library() {
           {daily.image && <img src={imageUrl(daily.image)} alt="" />}
           <div className="daily-body">
             <span className="eyebrow light">{finishedToday ? "Keep going — next up" : "Story of the day"}</span>
-            <h2>{daily.title}</h2>
+            <h2 lang="de">{daily.title}</h2>
             <p>
               <span className={`lvl lvl-${daily.level}`}>{daily.level}</span> {daily.minutes} min · {COLLECTIONS[daily.collection] ?? daily.collection}
             </p>
@@ -100,7 +100,7 @@ export function Library() {
             <a className="story-card" href={href({ name: "story", id: s.id })}>
               <div className="thumb">{s.image ? <img src={imageUrl(s.image)} alt="" loading="lazy" /> : <span>📖</span>}</div>
               <div className="story-body">
-                <h3>{s.title}</h3>
+                <h3 lang="de">{s.title}</h3>
                 <p className="teaser">{s.teaserEn}</p>
                 <p className="meta">
                   <span className={`lvl lvl-${s.level}`}>{s.level}</span>

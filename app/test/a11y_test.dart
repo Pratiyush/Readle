@@ -2,6 +2,7 @@
 // guidelines (tap targets, labels, contrast) on the screens built from standard controls.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:readle/state/app_state.dart';
 
 import 'flows.dart';
 
@@ -58,6 +59,30 @@ void main() {
       await expectLater(tester, meetsGuideline(labeledTapTargetGuideline), reason: tab);
       await expectLater(tester, meetsGuideline(textContrastGuideline), reason: tab);
     }
+    handle.dispose();
+  });
+
+  testWidgets('dark theme: every tab, the reader and the word sheet meet the contrast guideline', (tester) async {
+    tester.view.physicalSize = const Size(1125, 2436);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final handle = tester.ensureSemantics();
+    final h = await pumpApp(tester);
+    h.state.updateSettings(h.state.settings.copyWith(theme: ThemeChoice.dark));
+    h.state.toggleWord(key: 'de.geben.v', word: 'geben', storyId: 'brot', context: 'Es gibt viele Brote.');
+    await tester.pumpAndSettle();
+    expect(Theme.of(tester.element(find.byKey(const Key('tab-stories')))).brightness, Brightness.dark);
+    for (final tab in ['tab-stories', 'tab-words', 'tab-progress']) {
+      await tester.tap(find.byKey(Key(tab)));
+      await tester.pumpAndSettle();
+      await expectLater(tester, meetsGuideline(textContrastGuideline), reason: 'dark $tab');
+    }
+    await tester.tap(find.byKey(const Key('tab-stories')));
+    await tester.pumpAndSettle();
+    await openBrot(tester);
+    await expectLater(tester, meetsGuideline(textContrastGuideline), reason: 'dark reader');
+    await tapWord(tester, 'gibt');
+    await expectLater(tester, meetsGuideline(textContrastGuideline), reason: 'dark word sheet');
     handle.dispose();
   });
 }
