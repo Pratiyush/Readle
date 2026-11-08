@@ -11,6 +11,7 @@ Reads the authored stories, lexicon and frequency aliases from Lernle's
                           dictionary keys so a tap needs no runtime lemmatiser
   dict.json               every dictionary entry some story links to
   images/<slug>.webp      story illustrations
+  audio/<id>.mp3          the word's pronunciation, from Lernle's own clips
 
 Harvested content (Lernle's `harvest/` and `lemmas/de_tobo.jsonl`) is never
 read: it is not ours to ship.
@@ -231,6 +232,35 @@ def dict_entry(row: dict) -> dict:
     return entry
 
 
+ASCII = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss", "Ä": "Ae", "Ö": "Oe", "Ü": "Ue"})
+
+
+def copy_word_audio(clip_dir: pathlib.Path, dictionary: dict[str, dict]) -> int:
+    """Copy Lernle's pronunciation clip for every linked entry that has one, and record its path
+    in the entry as "au". The clips are Lernle's own ElevenLabs recordings (64 kbps mono encodes
+    of content/audio/masters, see lernle/tools/gen_audio_eleven.py); nothing here calls a TTS API.
+    File names are made ASCII (de.realität.n → de.realitaet.n), which is safe in URLs and in
+    Flutter asset paths alike."""
+    if not clip_dir.is_dir():
+        print(f"word audio  none: {clip_dir} not found")
+        return 0
+    (OUT / "audio").mkdir()
+    taken: set[str] = set()
+    n = 0
+    for lid, entry in dictionary.items():
+        src = clip_dir / f"{lid}.mp3"
+        if not src.is_file():
+            continue
+        name = re.sub(r"[^A-Za-z0-9._-]", "_", lid.translate(ASCII))
+        while name in taken:
+            name += "_"
+        taken.add(name)
+        shutil.copyfile(src, OUT / "audio" / f"{name}.mp3")
+        entry["au"] = f"audio/{name}.mp3"
+        n += 1
+    return n
+
+
 def main() -> None:
     global OUT
     if len(sys.argv) not in (2, 3):
@@ -285,10 +315,12 @@ def main() -> None:
         json.dumps(library, ensure_ascii=False, indent=1), encoding="utf-8"
     )
     dictionary = {lid: dict_entry(lex[lid]) for lid in sorted(used)}
+    clips = copy_word_audio(content.parent / "app" / "assets" / "audio" / "de", dictionary)
     (OUT / "dict.json").write_text(
         json.dumps(dictionary, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
     )
     print(f"stories     {len(library)}")
+    print(f"word audio  {clips} clips for {len(dictionary)} entries")
     print(f"lexicon     {len(lex)} entries, {len(dictionary)} linked from stories")
     print(f"word tokens {words}, {linked} linked ({100 * linked / max(words, 1):.1f}%)")
 
