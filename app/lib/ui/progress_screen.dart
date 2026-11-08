@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:url_launcher/url_launcher.dart';
+
+import '../config.dart';
 import '../content/models.dart';
 import '../logic/srs.dart';
 import '../state/app_state.dart';
@@ -173,6 +176,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               trailing: const Icon(Icons.chevron_right),
               onTap: scope.ads.showPrivacyOptions,
             ),
+          ...legalTiles(),
           ListTile(
             key: const Key('licences'),
             contentPadding: EdgeInsets.zero,
@@ -210,3 +214,20 @@ class _ProgressScreenState extends State<ProgressScreen> {
     );
   }
 }
+
+/// Privacy policy and Impressum (DDG §5), both from the one slug in config.dart; hidden while it is
+/// empty so no build links to a page that doesn't exist yet.
+List<Widget> legalTiles({String slug = legalSlug}) => [
+      for (final (key, label, page) in [
+        (const Key('privacy-policy'), 'Privacy policy', 'privacy'),
+        (const Key('impressum'), 'Impressum', 'impressum'),
+      ])
+        if (legalPage(page, slug: slug) case final url?)
+          ListTile(
+            key: key,
+            contentPadding: EdgeInsets.zero,
+            title: Text(label),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => launchUrl(url, mode: LaunchMode.externalApplication),
+          ),
+    ];

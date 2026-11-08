@@ -213,6 +213,40 @@ Future<void> settingsAndReset(WidgetTester tester) async {
   expect(h.state.settings.theme, ThemeChoice.system);
 }
 
+Future<void> continueReading(WidgetTester tester) async {
+  final h = await pumpApp(tester);
+  expect(find.byKey(const Key('continue-card')), findsNothing, reason: 'nothing to continue on a fresh install');
+  await openBrot(tester);
+  await tester.drag(find.byKey(const Key('reader-list')), const Offset(0, -400));
+  await tester.pumpAndSettle();
+  expect(h.state.progress['brot'], greaterThan(0), reason: 'scrolling records how far you read');
+  await tester.tap(find.byKey(const Key('reader-back')));
+  await tester.pumpAndSettle();
+  await waitFor(tester, find.byKey(const Key('continue-card')));
+  expect(find.descendant(of: find.byKey(const Key('continue-card')), matching: find.text('Brot ist hier wichtig')), findsOneWidget);
+  await tester.tap(find.byKey(const Key('continue-card')));
+  await tester.pumpAndSettle();
+  await waitFor(tester, find.byKey(const Key('reader-list')));
+  final position = tester.state<ScrollableState>(
+      find.descendant(of: find.byKey(const Key('reader-list')), matching: find.byType(Scrollable)).first).position;
+  expect(position.pixels, greaterThan(0), reason: 'reopens where you left off');
+  h.state.finishStory('brot');
+  await tester.tap(find.byKey(const Key('reader-back')));
+  await tester.pumpAndSettle();
+  expect(find.byKey(const Key('continue-card')), findsNothing, reason: 'a finished story is not offered again');
+}
+
+Future<void> firstRunWordTip(WidgetTester tester) async {
+  final h = await pumpApp(tester);
+  await openBrot(tester);
+  expect(find.byKey(const Key('word-tip')), findsOneWidget, reason: 'first run: the one thing to learn');
+  await tapWord(tester, 'gibt');
+  await tester.tap(find.byTooltip('Close'));
+  await tester.pumpAndSettle();
+  expect(find.byKey(const Key('word-tip')), findsNothing);
+  expect(h.state.wordTipSeen, isTrue);
+}
+
 /// Every flow, by name, for both runners.
 final flows = <String, Future<void> Function(WidgetTester)>{
   'library search and story of the day': libraryFilters,
@@ -221,4 +255,6 @@ final flows = <String, Future<void> Function(WidgetTester)>{
   'finish a story, quiz, progress': quizAndProgress,
   'practice saved words with spaced repetition': practiceWords,
   'settings: dark theme and reset': settingsAndReset,
+  'continue reading: card, then back to the same place': continueReading,
+  'first run: the tap-a-word tip until the first tap': firstRunWordTip,
 };

@@ -106,6 +106,8 @@ class AppState extends ChangeNotifier {
   Map<String, SavedWord> words = {};
   List<String> activeDays = []; // sorted, unique
   Settings settings = const Settings();
+  String? lastStory; // the story opened most recently, for "Continue reading"
+  bool wordTipSeen = false; // the first-run "tap any word" cue has done its job
 
   String get today => _today();
 
@@ -131,6 +133,8 @@ class AppState extends ChangeNotifier {
     };
     activeDays = [for (final d in j['activeDays'] as List? ?? []) d as String];
     settings = Settings.fromJson(j['settings'] as Map<String, dynamic>? ?? {});
+    lastStory = j['lastStory'] as String?;
+    wordTipSeen = j['wordTipSeen'] as bool? ?? false;
   }
 
   Map<String, Object> toJson() => {
@@ -141,6 +145,8 @@ class AppState extends ChangeNotifier {
         'words': {for (final e in words.entries) e.key: e.value.toJson()},
         'activeDays': activeDays,
         'settings': settings.toJson(),
+        'lastStory': ?lastStory,
+        'wordTipSeen': wordTipSeen,
       };
 
   void _commit() {
@@ -159,7 +165,25 @@ class AppState extends ChangeNotifier {
   int get dueCount => words.values.where((w) => w.card.isDue(today)).length;
   bool isSaved(String key) => words.containsKey(key);
 
+  /// The story to offer as "Continue reading": opened last, started, not finished.
+  String? get continueStory {
+    final id = lastStory;
+    return id != null && !read.containsKey(id) && (progress[id] ?? 0) > 0 ? id : null;
+  }
+
   // ── actions ──
+  void openStory(String storyId) {
+    if (lastStory == storyId) return;
+    lastStory = storyId;
+    _commit();
+  }
+
+  void markWordTipSeen() {
+    if (wordTipSeen) return;
+    wordTipSeen = true;
+    _commit();
+  }
+
   void finishStory(String storyId) {
     read = {...read, storyId: read[storyId] ?? today};
     _markActive();
@@ -210,6 +234,8 @@ class AppState extends ChangeNotifier {
     words = {};
     activeDays = [];
     settings = const Settings();
+    lastStory = null;
+    wordTipSeen = false;
     _commit();
   }
 }

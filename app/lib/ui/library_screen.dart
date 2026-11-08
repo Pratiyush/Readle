@@ -64,6 +64,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   (q.isEmpty || [s.title, s.teaser, s.teaserEn].any((t) => t.toLowerCase().contains(q))))
               .toList();
           final daily = storyOfTheDay(stories, level, state.read, state.today);
+          final resumeId = state.continueStory;
+          final resume = resumeId == null ? null : stories.where((s) => s.id == resumeId).firstOrNull;
           // Ad placement map: an inline banner after the 6th story, then every 8, so a phone screen
           // never holds two (none when ads are off).
           final rows = <Widget>[];
@@ -91,6 +93,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     Chip(key: const Key('streak'), label: Text('🔥 ${state.streakDays}', style: const TextStyle(fontWeight: FontWeight.w700))),
                   ]),
                   const SizedBox(height: 12),
+                  if (resume != null) ...[_ContinueCard(story: resume), const SizedBox(height: 12)],
                   if (daily != null) _DailyCard(story: daily, keepGoing: state.readToday > 0),
                   const SizedBox(height: 12),
                   _Chips(children: [
@@ -152,6 +155,47 @@ class _Chips extends StatelessWidget {
         height: 48,
         child: ListView(scrollDirection: Axis.horizontal, children: children),
       );
+}
+
+/// The story the learner opened last and hasn't finished: one tap back to where they were.
+class _ContinueCard extends StatelessWidget {
+  const _ContinueCard({required this.story});
+  final StoryMeta story;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = Palette.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final image = AppScope.read(context).content.image(story.image);
+    return Card(
+      key: const Key('continue-card'),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => openStory(context, story.id),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 56,
+                height: 56,
+                child: image == null ? ColoredBox(color: palette.surface2) : Image(image: ResizeImage(image, width: 168), fit: BoxFit.cover),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('CONTINUE READING', style: TextStyle(color: scheme.primary, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1)),
+                Text(story.title, style: const TextStyle(fontFamily: serif, fontFamilyFallback: serifFallback, fontSize: 18, fontWeight: FontWeight.w700)),
+              ]),
+            ),
+            Icon(Icons.play_circle_fill_rounded, color: scheme.primary, size: 36),
+          ]),
+        ),
+      ),
+    );
+  }
 }
 
 class _DailyCard extends StatelessWidget {

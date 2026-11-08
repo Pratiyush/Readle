@@ -90,6 +90,19 @@ class _ReaderViewState extends State<_ReaderView> {
       final max = _scroll.position.maxScrollExtent;
       final p = max > 0 ? (_scroll.offset / max).clamp(0.0, 1.0) : 1.0;
       if ((p - _progress).abs() > 0.01) setState(() => _progress = p);
+      // Remember how far the learner has read (only ever grows, so this commits rarely).
+      if (_scroll.offset > 0) _scope.state.setProgress(story.id, (p * (story.sentences.length - 1)).round());
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = _scope.state;
+      final reached = state.progress[story.id] ?? 0;
+      state.openStory(story.id);
+      // Pick up where the learner left off, unless the story is finished (then start at the top).
+      if (reached > 0 && !state.read.containsKey(story.id) && _scroll.hasClients) {
+        final max = _scroll.position.maxScrollExtent;
+        _scroll.jumpTo((max * reached / (story.sentences.length - 1)).clamp(0.0, max));
+      }
     });
     _scope.speech.available().then((ok) {
       if (mounted) setState(() => _canSpeak = ok);
@@ -118,6 +131,7 @@ class _ReaderViewState extends State<_ReaderView> {
 
   void _openWord(Token t, Sentence s) {
     if (_playing != null) _stop(); // the word's own audio replaces the story reading
+    _scope.state.markWordTipSeen();
     final key = t.key;
     showWordSheet(
       context,
@@ -240,7 +254,24 @@ class _ReaderViewState extends State<_ReaderView> {
                   Text(story.meta.title,
                       style: const TextStyle(fontFamily: serif, fontFamilyFallback: serifFallback, fontSize: 30, fontWeight: FontWeight.w700, height: 1.15)),
                   const SizedBox(height: 6),
-                  Text('Tap any word for its meaning. Tap ⇄ for a sentence translation.', style: TextStyle(color: palette.muted, fontSize: 13)),
+                  if (state.wordTipSeen)
+                    Text('Tap any word for its meaning. Tap ⇄ for a sentence translation.', style: TextStyle(color: palette.muted, fontSize: 13))
+                  else
+                    // First run: the one thing to learn about this app, until the first tap.
+                    Container(
+                      key: const Key('word-tip'),
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      decoration: BoxDecoration(color: palette.accentSoft, borderRadius: BorderRadius.circular(12)),
+                      child: Row(children: [
+                        const Text('👆', style: TextStyle(fontSize: 20)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text('Tap any word to hear it and see what it means. Tap ⇄ to translate a sentence.',
+                              style: TextStyle(color: scheme.onSurface, fontWeight: FontWeight.w600)),
+                        ),
+                      ]),
+                    ),
                   const SizedBox(height: 14),
                   ..._storyText(context, state.words.keys.toSet(), state.settings.fontScale),
                   const SizedBox(height: 28),
