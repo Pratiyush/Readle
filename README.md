@@ -13,7 +13,7 @@ loaded, with no account and no ads.
 - **Story of the day** — the same pick all day, preferring stories you haven't read.
 - **Tap any word** for its meaning: article and plural for nouns, IPA, CEFR level, an example
   sentence, and a note when the word is an inflected form ("gibt is a form of geben") or a compound.
-  97% of the words in the stories link to a dictionary entry.
+  96% of the words in the stories link to a dictionary entry.
 - **Sentence translations** — tap ⇄ after a sentence, or **EN** to show them all.
 - **Listen** — the story is read aloud sentence by sentence with the current one highlighted,
   using the device's German voice. Single words can be played too.

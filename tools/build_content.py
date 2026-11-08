@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Compile Readle's bundled content from a Lernle checkout.
 
-    python3 tools/build_content.py ../lernle
+    python3 tools/build_content.py ../lernle [out-dir]
 
 Reads the authored stories, lexicon and frequency aliases from Lernle's
 `content/` and writes everything the web app loads to `public/content/`:
@@ -46,6 +46,12 @@ ADJ_ENDINGS = ("sten", "stem", "ster", "stes", "ste", "en", "em", "er", "es", "e
 NOUN_ENDINGS = ("en", "es", "n", "s", "e")
 # Strong-verb forms the frequency aliases fold onto the wrong lemma.
 EXTRA_FORMS = {"stand": "stehen", "standen": "stehen", "aussieht": "aussehen", "sieht": "sehen"}
+# Words that pass the compound test but must not be glossed by their last part.
+NOT_COMPOUNDS = {
+    "deutschland", "deutschlands", "gutenberg", "baumann", "würzburg",  # names
+    "lernende", "lernenden", "reisende", "reisenden",  # participles used as nouns, not -ende
+    "südwesten", "vorliebe", "kaffeesatz", "rollläden", "charakterzug",  # head misleads
+}
 POS_RANK = {"noun": 0, "verb": 1, "adjective": 2}
 
 
@@ -148,6 +154,15 @@ class Resolver:
             return (not noun_match, POS_RANK.get(pos, 3), self.lex[lid].get("freq_rank") or 99999)
         return min(ids, key=score)
 
+    def _is_modifier(self, head: str) -> bool:
+        """The front part of a compound must itself be a word (Haus-tür, Küchen-tisch, Königs-haus,
+        Schul-tag), so names and plain nouns are not split at random (Ter-rasse, Rönt-gen)."""
+        forms = {head, head + "e", head + "en"}
+        for link in ("s", "es", "n", "en", "e", "er"):
+            if head.endswith(link) and len(head) - len(link) >= 3:
+                forms.add(head[: -len(link)])
+        return any(f in self.index for f in forms)
+
     def resolve(self, word: str, sentence_initial: bool) -> tuple[str | None, bool]:
         """Returns (lemma id, is_compound_head)."""
         low = word.lower()
@@ -174,8 +189,10 @@ class Resolver:
             if ids:
                 return self._pick(ids, capitalised), False
         # compound nouns: resolve the head (Haustür → Tür)
-        if word[:1].isupper() and len(low) > 6:
+        if word[:1].isupper() and len(low) > 6 and low not in NOT_COMPOUNDS:
             for i in range(3, len(low) - 2):
+                if not self._is_modifier(low[:i]):
+                    continue
                 tail = low[i:]
                 ids = self.index.get(tail) or self.index.get(self.aliases.get(tail, ""))
                 if ids:
@@ -215,9 +232,12 @@ def dict_entry(row: dict) -> dict:
 
 
 def main() -> None:
-    if len(sys.argv) != 2:
+    global OUT
+    if len(sys.argv) not in (2, 3):
         sys.exit(__doc__)
     content = pathlib.Path(sys.argv[1]).resolve() / "content"
+    if len(sys.argv) == 3:  # optional output dir, for dry runs
+        OUT = pathlib.Path(sys.argv[2]).resolve()
     lex = load_lexicon(content)
     resolver = Resolver(lex, build_surface_index(content, lex), load_aliases(content))
 
