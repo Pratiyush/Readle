@@ -322,11 +322,28 @@ Future<void> contentUpdate(WidgetTester tester) async {
   expect(find.textContaining('Abbuchung'), findsWidgets, reason: 'a word only lexicon.json knows');
 }
 
+/// Listen from here: after checking a sentence's meaning, hear it read, then the rest of the story.
+Future<void> listenFromHere(WidgetTester tester) async {
+  final h = await pumpApp(tester);
+  await openBrot(tester);
+  await tester.tap(find.byKey(const Key('show-all-translations')));
+  await tester.pumpAndSettle();
+  await reveal(tester, find.byKey(const Key('listen-from-4')), const Key('reader-list'));
+  await tester.tap(find.byKey(const Key('listen-from-4')));
+  for (var i = 0; i < 8; i++) {
+    await tester.pump(const Duration(milliseconds: 150));
+  }
+  expect(h.speech.spoken.first, 'Das nennt man Abendbrot.', reason: 'starts at the chosen sentence');
+  expect(h.speech.spoken.length, 4, reason: 'then reads on to the end (sentences 5-8)');
+  expect(find.byTooltip('Listen'), findsOneWidget, reason: 'done: the app bar offers Listen again');
+}
+
 /// Every flow, by name, for both runners.
 final flows = <String, Future<void> Function(WidgetTester)>{
   'library search and story of the day': libraryFilters,
   'tap a word, save it, translations, names unglossed': tapWordAndSave,
   'listening reads every sentence and stops on leave': listenThenLeave,
+  'listen from here: one sentence, then on to the end': listenFromHere,
   'finish a story, quiz, progress': quizAndProgress,
   'practice saved words with spaced repetition': practiceWords,
   'settings: dark theme and reset': settingsAndReset,

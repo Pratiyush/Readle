@@ -350,7 +350,18 @@ class _ReaderViewState extends State<_ReaderView> {
             border: Border(left: BorderSide(color: Theme.of(context).colorScheme.primary, width: 3)),
             borderRadius: const BorderRadius.horizontal(right: Radius.circular(8)),
           ),
-          child: Text(s.en, style: TextStyle(color: palette.muted, fontSize: 15 * scale, height: 1.45)),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(child: Text(s.en, style: TextStyle(color: palette.muted, fontSize: 15 * scale, height: 1.45))),
+            // Listen from here: read this sentence and on to the end (the app bar's ■ stops it).
+            if (_canSpeak)
+              IconButton(
+                key: Key('listen-from-$i'),
+                tooltip: 'Listen from here',
+                visualDensity: VisualDensity.compact,
+                icon: Icon(_playing == i ? Icons.graphic_eq_rounded : Icons.volume_up_rounded, color: Theme.of(context).colorScheme.primary),
+                onPressed: () => _play(i),
+              ),
+          ]),
         ));
       }
     }
