@@ -19,6 +19,7 @@ earlier), fix in priority order with a test for each, then build the content cli
 | 5 | German quality: reading time (BUG-15) | All 107 stories said "1 min" (native 120 wpm) | A learner's 60 wpm: 40 stories 1 min, 55 stories 2 min, 12 stories 3 min | Content rebuild; only `minutes` changed |
 | 6 | Speed (BUG-10) | List cards loaded the 1536 px hero into a 92 px slot: 3.8 MB on the web, a full-size decode per card in the app | 320 px thumbnails, 580 KB for 105 | Playwright: every card loads a thumb; app content test: thumbs < ¼ of hero bytes |
 | 7 | Daily habit: new stories | Only the 107 bundled stories, ever | **Content client**: one manifest check a day, a "📚 N new stories" card only when the CDN has stories the app lacks, download on tap, verified and swapped in atomically. Downloaded stories are tappable: the app links their words with a Dart port of the builder's resolver | Golden test: all 107 bundled stories re-linked with 0 differences over 10,870 words. Unit tests (24 h + 304, hash refusal, rollback, `min_client`, offline), a UI flow (offer → install → read → tap a word only `lexicon.json` knows), E2E over HTTP through `content/tools/serve`, live smoke test (verifies the live A1 pack, >95% of its words linked) |
+| 8 | Feel: largest text on iOS (BUG-30, BUG-31) | At iOS's largest accessibility size (~310%) the heading split as "Storie/s", the story-of-the-day title was clipped, chips were cut off; at 200% "Sonntagsruhe" broke as "Sonntags / ruhe" | System text followed up to 200% (WCAG 1.4.4; story text keeps its own size), the daily card grows with its text, chip rows scale, titles shrink just enough to keep every word whole | iOS simulator before/after: [largest text, dark](better-log/loop2-ios-largest-text.jpg); a 310% test asserts nothing is clipped or split; WholeWordsText widget tests |
 
 **Devices.** Android sandbox emulator: the host's load average ran 150–510 (other sessions'
 emulators). The first flow passed, then the system server died (`Service package: not found`) and
@@ -30,7 +31,7 @@ CDN flow, and **the library banner with Google test ads rendered at 370×100**
 **Checked and fine:** dark mode on the web (contrast audit of every visible text), the reader at
 200% text, reading a whole story through the quiz (Playwright), offline library and stories.
 
-**Tests:** Playwright 40 green (was 32), Flutter 54 headless green + 1 live test (skipped by
+**Tests:** Playwright 40 green (was 32), Flutter 57 headless green + 1 live test (skipped by
 default), `flutter analyze` clean, iOS 9 flows + banner on the simulator.
 
 ## Loop 1 (2026-11-08): reading a story picks up where you left it
