@@ -39,10 +39,10 @@
 {"id": "readle.weg.x", "headword": "weg", "pos": "adverb", "en": ["away", "gone"], "cefr": "A1"}
 {"id": "readle.fensterladen.n", "headword": "Fensterladen", "pos": "noun", "en": ["window shutter"], "cefr": "B1", "gender": "der", "plural": "Fensterläden"}
 {"id": "readle.schweiz.n", "headword": "Schweiz", "pos": "noun", "en": ["Switzerland"], "cefr": "A1", "gender": "die"}
-{"id": "readle.europa.n", "headword": "Europa", "pos": "noun", "en": ["Europe"], "cefr": "A1", "gender": "das"}
-{"id": "readle.bayern.n", "headword": "Bayern", "pos": "noun", "en": ["Bavaria"], "cefr": "A1", "gender": "das"}
+{"id": "readle.europa.n", "headword": "Europa", "pos": "noun", "en": ["Europe"], "cefr": "A1", "note": "place name: neuter, but used without an article (in Köln, aus Bayern)"}
+{"id": "readle.bayern.n", "headword": "Bayern", "pos": "noun", "en": ["Bavaria"], "cefr": "A1", "note": "place name: neuter, but used without an article (in Köln, aus Bayern)"}
 {"id": "readle.rhein.n", "headword": "Rhein", "pos": "noun", "en": ["the Rhine"], "cefr": "A2", "gender": "der"}
-{"id": "readle.köln.n", "headword": "Köln", "pos": "noun", "en": ["Cologne"], "cefr": "A1", "gender": "das"}
+{"id": "readle.köln.n", "headword": "Köln", "pos": "noun", "en": ["Cologne"], "cefr": "A1", "note": "place name: neuter, but used without an article (in Köln, aus Bayern)"}
 {"id": "readle.münchen.n", "headword": "München", "pos": "noun", "en": ["Munich"], "cefr": "A1", "gender": "das"}
 {"id": "readle.darauf.x", "headword": "darauf", "pos": "adverb", "en": ["on it", "afterwards"], "cefr": "A2"}
 {"id": "readle.damit.x", "headword": "damit", "pos": "adverb", "en": ["with it", "so that"], "cefr": "A2"}
