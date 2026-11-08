@@ -64,12 +64,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   (q.isEmpty || [s.title, s.teaser, s.teaserEn].any((t) => t.toLowerCase().contains(q))))
               .toList();
           final daily = storyOfTheDay(stories, level, state.read, state.today);
-          // Ad placement map: a native row after the 6th story, then every 8 (none when ads are off).
+          // Ad placement map: an inline banner after the 6th story, then every 8, so a phone screen
+          // never holds two (none when ads are off).
           final rows = <Widget>[];
           for (var i = 0; i < visible.length; i++) {
             rows.add(_StoryCard(story: visible[i], read: state.read.containsKey(visible[i].id)));
             if (i == 5 || (i > 5 && (i - 5) % 8 == 0)) {
-              final ad = scope.ads.nativeRow();
+              final ad = scope.ads.listBanner();
               if (ad != null) rows.add(KeyedSubtree(key: ValueKey('ad-$i'), child: ad));
             }
           }

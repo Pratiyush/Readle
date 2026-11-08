@@ -148,8 +148,6 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ]);
           },
         ),
-        // Ad placement map: one native card here, away from the settings controls.
-        ?scope.ads.nativeRow(),
         const SizedBox(height: 12),
         panel([
           const Text('Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),

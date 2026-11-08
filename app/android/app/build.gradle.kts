@@ -27,13 +27,14 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        // Readle's AdMob app id: -PadmobAppId=ca-app-pub-5964569110696877~… once the hub supplies it.
-        manifestPlaceholders["admobAppId"] =
-            (project.findProperty("admobAppId") as String?) ?: "ca-app-pub-3940256099942544~3347511713"
+        // Debug and profile: Google's sample AdMob app id (the release build type sets Readle's).
+        manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
     }
 
     buildTypes {
         release {
+            // Readle's AdMob app (hub German/docs/admob-ids.json, verified 2026-11-08).
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-5964569110696877~7982698610"
             // Debug signing until the owner's upload key exists (status.json: H Release prep).
             signingConfig = signingConfigs.getByName("debug")
             // R8: plugins reached through JNI are kept by proguard-rules.pro (google_mobile_ads pulls in

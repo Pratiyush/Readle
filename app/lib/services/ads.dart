@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -17,8 +18,8 @@ abstract class Ads extends ChangeNotifier {
   bool get privacyOptionsRequired;
   Future<void> showPrivacyOptions();
 
-  /// A native ad styled as a list row, or null when there is none to show.
-  Widget? nativeRow();
+  /// An inline adaptive banner for the library list, or null when there is none to show.
+  Widget? listBanner();
 
   /// The learner finished a story and is leaving its results: maybe show a capped interstitial.
   Future<void> storyFinished();
@@ -32,14 +33,13 @@ class NoAds extends Ads {
   @override
   Future<void> showPrivacyOptions() async {}
   @override
-  Widget? nativeRow() => null;
+  Widget? listBanner() => null;
   @override
   Future<void> storyFinished() async {}
 }
 
 class AdMobAds extends Ads {
-  AdMobAds({required this.policy, AdUnits? units})
-      : units = units ?? (adsUseTestUnits ? (Platform.isIOS ? iosTestUnits : androidTestUnits) : (Platform.isIOS ? iosUnits : androidUnits));
+  AdMobAds({required this.policy, AdUnits? units}) : units = units ?? unitsFor(ios: Platform.isIOS, release: kReleaseMode);
 
   final AdUnits units;
   final InterstitialPolicy policy;
@@ -121,34 +121,39 @@ class AdMobAds extends Ads {
   }
 
   @override
-  Widget? nativeRow() => !_ready || units.native.isEmpty ? null : _NativeRow(unitId: units.native);
+  Widget? listBanner() => !_ready || units.banner.isEmpty ? null : _InlineBanner(unitId: units.banner);
 }
 
-/// A small native template, labelled by the SDK's ad badge, that hides itself if nothing loads.
-class _NativeRow extends StatefulWidget {
-  const _NativeRow({required this.unitId});
+/// An inline adaptive banner sized to the list's width; it takes no space until an ad loads.
+class _InlineBanner extends StatefulWidget {
+  const _InlineBanner({required this.unitId});
   final String unitId;
 
   @override
-  State<_NativeRow> createState() => _NativeRowState();
+  State<_InlineBanner> createState() => _InlineBannerState();
 }
 
-class _NativeRowState extends State<_NativeRow> {
-  NativeAd? _ad;
-  bool _loaded = false;
+class _InlineBannerState extends State<_InlineBanner> {
+  BannerAd? _ad;
+  AdSize? _size;
+  int? _width;
 
-  @override
-  void initState() {
-    super.initState();
-    _ad = NativeAd(
+  void _load(int width) {
+    _width = width;
+    _ad?.dispose();
+    _size = null;
+    _ad = BannerAd(
       adUnitId: widget.unitId,
       request: const AdRequest(),
-      nativeTemplateStyle: NativeTemplateStyle(templateType: TemplateType.small),
-      listener: NativeAdListener(
-        onAdLoaded: (_) => mounted ? setState(() => _loaded = true) : null,
+      size: AdSize.getCurrentOrientationInlineAdaptiveBannerAdSize(width),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) async {
+          final size = await (ad as BannerAd).getPlatformAdSize();
+          if (mounted && size != null) setState(() => _size = size);
+        },
         onAdFailedToLoad: (ad, _) {
           ad.dispose();
-          _ad = null;
+          if (identical(ad, _ad)) _ad = null;
         },
       ),
     )..load();
@@ -161,13 +166,15 @@ class _NativeRowState extends State<_NativeRow> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final ad = _ad;
-    if (!_loaded || ad == null) return const SizedBox.shrink();
-    // Clear space around the slot keeps it away from the story cards' tap targets.
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: ConstrainedBox(constraints: const BoxConstraints(minHeight: 90, maxHeight: 120), child: AdWidget(ad: ad)),
-    );
-  }
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, constraints) {
+        final width = constraints.maxWidth.truncate();
+        if (width != _width) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _load(width) : null);
+        final ad = _ad, size = _size;
+        if (ad == null || size == null) return const SizedBox.shrink();
+        // Clear space around the slot keeps it away from the story cards' tap targets.
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: SizedBox(width: size.width.toDouble(), height: size.height.toDouble(), child: AdWidget(ad: ad)),
+        );
+      });
 }

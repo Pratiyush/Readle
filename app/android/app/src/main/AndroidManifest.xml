@@ -4,8 +4,8 @@
         android:label="Readle"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        <!-- AdMob (behind ADS_ENABLED). The app id comes from the admobAppId Gradle property: Google's
-             sample id until the hub supplies Readle's (account pub-5964569110696877). -->
+        <!-- AdMob (behind ADS_ENABLED). admobAppId is set in build.gradle.kts: Readle's app for release,
+             Google's sample app for debug and profile. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="${admobAppId}" />
