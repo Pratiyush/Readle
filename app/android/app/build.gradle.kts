@@ -27,13 +27,20 @@ android {
         // flag during build.
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Readle's AdMob app id: -PadmobAppId=ca-app-pub-5964569110696877~… once the hub supplies it.
+        manifestPlaceholders["admobAppId"] =
+            (project.findProperty("admobAppId") as String?) ?: "ca-app-pub-3940256099942544~3347511713"
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Debug signing until the owner's upload key exists (status.json: H Release prep).
             signingConfig = signingConfigs.getByName("debug")
+            // R8: plugins reached through JNI are kept by proguard-rules.pro (google_mobile_ads pulls in
+            // WorkManager/Room, whose known release-build crash those rules prevent).
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }

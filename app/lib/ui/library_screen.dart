@@ -64,6 +64,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   (q.isEmpty || [s.title, s.teaser, s.teaserEn].any((t) => t.toLowerCase().contains(q))))
               .toList();
           final daily = storyOfTheDay(stories, level, state.read, state.today);
+          // Ad placement map: a native row after the 6th story, then every 8 (none when ads are off).
+          final rows = <Widget>[];
+          for (var i = 0; i < visible.length; i++) {
+            rows.add(_StoryCard(story: visible[i], read: state.read.containsKey(visible[i].id)));
+            if (i == 5 || (i > 5 && (i - 5) % 8 == 0)) {
+              final ad = scope.ads.nativeRow();
+              if (ad != null) rows.add(KeyedSubtree(key: ValueKey('ad-$i'), child: ad));
+            }
+          }
 
           return CustomScrollView(
             key: const PageStorageKey('library'),
@@ -115,9 +124,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                 sliver: SliverList.separated(
-                  itemCount: visible.length,
+                  itemCount: rows.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 12),
-                  itemBuilder: (context, i) => _StoryCard(story: visible[i], read: state.read.containsKey(visible[i].id)),
+                  itemBuilder: (context, i) => rows[i],
                 ),
               ),
             ],

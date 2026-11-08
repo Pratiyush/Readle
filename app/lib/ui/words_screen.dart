@@ -59,28 +59,24 @@ class _WordsScreenState extends State<WordsScreen> {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Row(children: [
-                  Expanded(
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(
-                        due > 0 ? '$due word${due == 1 ? '' : 's'} to review' : (total > 0 ? 'All caught up!' : 'No words yet'),
-                        key: const Key('words-summary'),
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        total > 0
-                            ? "$total saved · spaced repetition brings each word back just before you'd forget it."
-                            : 'Tap words while reading and save them here.',
-                        style: TextStyle(color: palette.muted, fontSize: 13),
-                      ),
-                    ]),
+                // Text above, button below: holds at any width and at large system text sizes.
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(
+                    due > 0 ? '$due word${due == 1 ? '' : 's'} to review' : (total > 0 ? 'All caught up!' : 'No words yet'),
+                    key: const Key('words-summary'),
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    total > 0
+                        ? "$total saved · spaced repetition brings each word back just before you'd forget it."
+                        : 'Tap words while reading and save them here.',
+                    style: TextStyle(color: palette.muted, fontSize: 13),
                   ),
                   if (due > 0) ...[
-                    const SizedBox(width: 12),
+                    const SizedBox(height: 12),
                     FilledButton(
                       key: const Key('practice'),
-                      style: FilledButton.styleFrom(minimumSize: const Size(110, 44)),
                       onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PracticeScreen())),
                       child: const Text('Practice'),
                     ),
@@ -104,7 +100,11 @@ class _WordsScreenState extends State<WordsScreen> {
                     ),
                 ]),
               ),
-            for (final w in list) _WordRow(word: w, entry: dict[w.key]),
+            for (final (i, w) in list.indexed) ...[
+              _WordRow(word: w, entry: dict[w.key]),
+              // Ad placement map: one native row after the 5th word, only on lists of 8+.
+              if (i == 4 && list.length >= 8) ?scope.ads.nativeRow(),
+            ],
           ]);
         },
       ),

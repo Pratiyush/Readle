@@ -173,7 +173,15 @@ class _QuizScreenState extends State<QuizScreen> {
             stat('🔥 ${state.streakDays}', 'day streak'),
           ]),
           const SizedBox(height: 24),
-          FilledButton(key: const Key('next-story'), onPressed: () => Navigator.of(context).pop(), child: const Text('Next story')),
+          FilledButton(
+            key: const Key('next-story'),
+            onPressed: () async {
+              // The natural break after a finished story: the only place an interstitial may show.
+              await AppScope.read(context).ads.storyFinished();
+              if (context.mounted) Navigator.of(context).pop();
+            },
+            child: const Text('Next story'),
+          ),
           const SizedBox(height: 10),
           if (pct < 80)
             OutlinedButton(

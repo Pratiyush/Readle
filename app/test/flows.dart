@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:readle/app.dart';
 import 'package:readle/content/content_repository.dart';
+import 'package:readle/services/ads.dart';
 import 'package:readle/services/speech.dart';
 import 'package:readle/services/word_player.dart';
 import 'package:readle/state/app_state.dart';
@@ -30,7 +31,7 @@ Future<Harness> pumpApp(WidgetTester tester, {bool decodeInIsolate = false}) asy
     await content.story('brot');
   });
   final player = RecordingWordPlayer();
-  await tester.pumpWidget(ReadleApp(state: state, content: content, speech: speech, player: player));
+  await tester.pumpWidget(ReadleApp(state: state, content: content, speech: speech, player: player, ads: NoAds()));
   await tester.pumpAndSettle();
   return Harness(state, speech, player);
 }
@@ -49,6 +50,7 @@ Future<void> waitFor(WidgetTester tester, Finder finder, {Duration timeout = con
 
 /// Type into the library search and put the soft keyboard away (on a device it shrinks the list).
 Future<void> search(WidgetTester tester, String text) async {
+  await reveal(tester, find.byKey(const Key('search')), const PageStorageKey('library'));
   await tester.enterText(find.byKey(const Key('search')), text);
   FocusManager.instance.primaryFocus?.unfocus();
   await tester.pumpAndSettle();
@@ -74,6 +76,9 @@ Future<void> reveal(WidgetTester tester, Finder target, Key list) async {
 }
 
 Future<void> tapWord(WidgetTester tester, String word) async {
+  // Bring the paragraph with the word on screen first (large text pushes it below the fold).
+  await tester.ensureVisible(find.textContaining(word, findRichText: true).first);
+  await tester.pumpAndSettle();
   await tester.tapOnText(find.textRange.ofSubstring(word).first);
   await tester.pumpAndSettle();
 }

@@ -232,9 +232,8 @@ class _ReaderViewState extends State<_ReaderView> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 680),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(children: [
+                  Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
                     LevelBadge(story.meta.level),
-                    const SizedBox(width: 8),
                     Text('${story.meta.minutes} min read · ${story.meta.words} words', style: TextStyle(color: palette.muted, fontSize: 13)),
                   ]),
                   const SizedBox(height: 8),

@@ -24,7 +24,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = AppScope.of(context).state;
+    final scope = AppScope.of(context);
+    final state = scope.state;
     final palette = Palette.of(context);
     final scheme = Theme.of(context).colorScheme;
     final today = state.today;
@@ -147,6 +148,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ]);
           },
         ),
+        // Ad placement map: one native card here, away from the settings controls.
+        ?scope.ads.nativeRow(),
         const SizedBox(height: 12),
         panel([
           const Text('Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
@@ -163,6 +166,21 @@ class _ProgressScreenState extends State<ProgressScreen> {
             title: const Text('Say words when tapped'),
             value: state.settings.autoPlayWords,
             onChanged: (v) => state.updateSettings(state.settings.copyWith(autoPlayWords: v)),
+          ),
+          if (scope.ads.privacyOptionsRequired)
+            ListTile(
+              key: const Key('privacy-options'),
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Privacy & ad choices'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: scope.ads.showPrivacyOptions,
+            ),
+          ListTile(
+            key: const Key('licences'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Licences'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => showLicensePage(context: context, applicationName: 'Readle'),
           ),
           const SizedBox(height: 8),
           OutlinedButton(

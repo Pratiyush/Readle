@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'content/content_repository.dart';
+import 'services/ads.dart';
 import 'services/speech.dart';
 import 'services/word_player.dart';
 import 'state/app_state.dart';
@@ -11,12 +12,13 @@ import 'ui/theme.dart';
 import 'ui/words_screen.dart';
 
 class ReadleApp extends StatelessWidget {
-  const ReadleApp({super.key, required this.state, required this.content, required this.speech, required this.player});
+  const ReadleApp({super.key, required this.state, required this.content, required this.speech, required this.player, required this.ads});
 
   final AppState state;
   final ContentRepository content;
   final Speech speech;
   final WordPlayer player;
+  final Ads ads;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +27,7 @@ class ReadleApp extends StatelessWidget {
       content: content,
       speech: speech,
       player: player,
+      ads: ads,
       child: ListenableBuilder(
         listenable: state,
         builder: (context, _) => MaterialApp(
