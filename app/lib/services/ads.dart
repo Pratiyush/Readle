@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
-import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:flutter/foundation.dart' show kReleaseMode, visibleForTesting;
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -75,6 +75,15 @@ class AdMobAds extends Ads {
     notifyListeners();
   }
 
+  /// Tests only (integration_test/ads_test.dart, debug builds with Google's test units): start the
+  /// SDK without the consent form so a device test can see an ad render. The app never calls this.
+  @visibleForTesting
+  Future<void> startForTest() async {
+    await MobileAds.instance.initialize();
+    _ready = true;
+    notifyListeners();
+  }
+
   @override
   bool get privacyOptionsRequired => _privacyRequired;
 
@@ -124,7 +133,10 @@ class AdMobAds extends Ads {
   Widget? listBanner() => !_ready || units.banner.isEmpty ? null : _InlineBanner(unitId: units.banner);
 }
 
-/// An inline adaptive banner sized to the list's width; it takes no space until an ad loads.
+/// Tallest the library banner may be (dp), so an ad never outweighs the stories around it.
+const maxBannerHeight = 120;
+
+/// A large banner (320×100) in the library list; it takes no space until an ad loads.
 class _InlineBanner extends StatefulWidget {
   const _InlineBanner({required this.unitId});
   final String unitId;
@@ -145,7 +157,9 @@ class _InlineBannerState extends State<_InlineBanner> {
     _ad = BannerAd(
       adUnitId: widget.unitId,
       request: const AdRequest(),
-      size: AdSize.getCurrentOrientationInlineAdaptiveBannerAdSize(width),
+      // A fixed 320×100 large banner, about one story card: an uncapped inline adaptive banner
+      // measured 379×316 on a phone, and the capped adaptive request was rejected (code 1).
+      size: AdSize.largeBanner,
       listener: BannerAdListener(
         onAdLoaded: (ad) async {
           final size = await (ad as BannerAd).getPlatformAdSize();
