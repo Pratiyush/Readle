@@ -32,8 +32,9 @@ npm test           # unit + content integrity tests
 npm run build      # static site in dist/
 ```
 
-Pushing to `main` builds and deploys to GitHub Pages (`.github/workflows/ci.yml`; enable Pages with
-source "GitHub Actions" in the repository settings).
+CI (`.github/workflows/ci.yml`) typechecks, tests and builds every push and pull request. Deploying
+to GitHub Pages is opt-in: enable Pages with source "GitHub Actions" and set the repository variable
+`DEPLOY_PAGES=true`; pushes to the default branch then deploy.
 
 ## Content
 

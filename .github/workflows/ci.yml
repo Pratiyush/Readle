@@ -1,8 +1,11 @@
 name: CI
 
+# Runs on every push and pull request, whatever the default branch is called (this repo started on
+# ccr-7aeb8ea1-63oetl, so a main-only filter meant CI never ran). Deploying to GitHub Pages is opt-in:
+# it needs Pages enabled (source "GitHub Actions") and the repository variable DEPLOY_PAGES=true,
+# and only happens for pushes to the default branch.
 on:
   push:
-    branches: [main]
   pull_request:
 
 permissions:
@@ -24,12 +27,12 @@ jobs:
       - run: npm test
       - run: npx vite build
       - uses: actions/upload-pages-artifact@v3
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch && vars.DEPLOY_PAGES == 'true'
         with:
           path: dist
 
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch && vars.DEPLOY_PAGES == 'true'
     needs: build
     runs-on: ubuntu-latest
     environment:
