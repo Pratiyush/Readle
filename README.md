@@ -29,8 +29,16 @@ loaded, with no account and no ads.
 npm install
 npm run dev        # http://localhost:5173
 npm test           # unit + content integrity tests
+npm run e2e        # Playwright end-to-end tests (phone + tablet) against the production build
 npm run build      # static site in dist/
 ```
+
+## Android + iOS
+
+The store app is a Flutter port in [`app/`](app/README.md) that ships the same compiled content
+(`app/assets/content` links to `public/content`). Its end-to-end flows run headless
+(`flutter test`) and on devices (`flutter test integration_test -d <device>`); CI runs both on an
+Android emulator and an iOS simulator (`.github/workflows/app.yml`).
 
 CI (`.github/workflows/ci.yml`) typechecks, tests and builds every push and pull request. Deploying
 to GitHub Pages is opt-in: enable Pages with source "GitHub Actions" and set the repository variable
