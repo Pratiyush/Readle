@@ -29,6 +29,15 @@ describe("content", () => {
       }
   });
 
+  it("every recorded pronunciation the dictionary names exists, for most entries", () => {
+    const withAudio = Object.values(dict).filter((e) => e.au);
+    expect(withAudio.length / Object.keys(dict).length).toBeGreaterThan(0.85);
+    for (const e of withAudio) {
+      expect(e.au, e.h).toMatch(/^audio\/[A-Za-z0-9._-]+\.mp3$/);
+      expect(existsSync(join(dir, e.au!)), e.au).toBe(true);
+    }
+  });
+
   it("links at least 95% of words to the dictionary", () => {
     let words = 0;
     let linked = 0;

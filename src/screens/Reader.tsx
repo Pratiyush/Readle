@@ -150,7 +150,10 @@ function ReaderView({ story, dict }: { story: Story; dict: Dictionary }) {
                     {unit.pre}
                     <button
                       className={`w${key ? "" : " w-unknown"}${savedHere ? " w-saved" : ""}`}
-                      onClick={() => setPicked({ word, key: key ?? null, compound: compound === 1, sentence: s.de, sentenceEn: s.en })}
+                      onClick={() => {
+                        if (playing !== null) stop(); // the word's own audio replaces the story reading
+                        setPicked({ word, key: key ?? null, compound: compound === 1, sentence: s.de, sentenceEn: s.en });
+                      }}
                     >
                       {word}
                     </button>

@@ -4,7 +4,7 @@ import { useAsync } from "../hooks";
 import { actions, useStore } from "../lib/store";
 import { isDue, isMastered } from "../lib/srs";
 import { dayKey } from "../lib/dates";
-import { speak } from "../lib/speech";
+import { playWord } from "../lib/wordAudio";
 import { href } from "../router";
 
 type Filter = "all" | "due" | "learning" | "mastered";
@@ -67,7 +67,7 @@ export function Words() {
           const e = d[w.key];
           return (
             <li key={w.key} className="word-row">
-              <button className="icon-btn" aria-label={`Pronounce ${w.word}`} onClick={() => speak(e?.h ?? w.word, rate)}>
+              <button className="icon-btn" aria-label={`Pronounce ${w.word}`} onClick={() => playWord(e, e?.h ?? w.word, rate)}>
                 🔊
               </button>
               <div className="word-main">

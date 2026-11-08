@@ -33,3 +33,17 @@ export async function openStory(page: Page, id: string) {
 }
 
 export const word = (page: Page, text: string) => page.locator("button.w", { hasText: new RegExp(`^${text}$`) }).first();
+
+/** Record what audio elements are asked to play instead of playing it. */
+export async function stubAudio(page: Page) {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __played: string[] };
+    w.__played = [];
+    HTMLMediaElement.prototype.play = function () {
+      w.__played.push(this.src);
+      return Promise.resolve();
+    };
+  });
+}
+
+export const played = (page: Page) => page.evaluate(() => (window as unknown as { __played: string[] }).__played);

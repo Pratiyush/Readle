@@ -114,6 +114,14 @@ export function Me() {
             <option value={1.05}>Fast</option>
           </select>
         </label>
+        <label className="toggle">
+          Say words when tapped
+          <input
+            type="checkbox"
+            checked={s.settings.autoPlayWords}
+            onChange={(e) => actions.updateSettings({ autoPlayWords: e.target.checked })}
+          />
+        </label>
         <button
           className="btn secondary danger"
           onClick={() => {

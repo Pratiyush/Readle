@@ -37,6 +37,7 @@ export interface DictEntry {
   cefr?: string;
   xd?: string; // example, German
   xe?: string; // example, English
+  au?: string; // recorded pronunciation, relative to the content root
 }
 
 export type Dictionary = Record<string, DictEntry>;

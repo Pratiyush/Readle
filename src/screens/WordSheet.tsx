@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { actions, useStore } from "../lib/store";
-import { speak } from "../lib/speech";
+import { playWord, stopWord } from "../lib/wordAudio";
 import type { DictEntry } from "../lib/types";
 
 const POS: Record<string, string> = {
@@ -26,6 +26,15 @@ export function WordSheet({ picked, entry, storyId, onClose }: { picked: Picked;
   const saveKey = picked.key ?? `free:${picked.word.toLowerCase()}`;
   const saved = useStore((s) => !!s.words[saveKey]);
   const rate = useStore((s) => s.settings.speechRate);
+  const autoPlay = useStore((s) => s.settings.autoPlayWords);
+  const say = () => playWord(entry, entry?.h ?? picked.word, rate);
+
+  // Tapping a word says it, like a dictionary pen; the setting turns that off.
+  useEffect(() => {
+    if (autoPlay) say();
+    return () => stopWord();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [picked]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -42,7 +51,7 @@ export function WordSheet({ picked, entry, storyId, onClose }: { picked: Picked;
           <div>
             <h2 className="headword">
               {headword}
-              <button className="icon-btn" aria-label="Pronounce" onClick={() => speak(entry?.h ?? picked.word, rate)}>
+              <button className="icon-btn" aria-label="Pronounce" onClick={say}>
                 🔊
               </button>
             </h2>

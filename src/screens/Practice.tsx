@@ -4,7 +4,7 @@ import { useAsync } from "../hooks";
 import { actions, getState, useStore } from "../lib/store";
 import { isDue } from "../lib/srs";
 import { dayKey } from "../lib/dates";
-import { speak } from "../lib/speech";
+import { playWord } from "../lib/wordAudio";
 import { href } from "../router";
 
 const SESSION_SIZE = 20;
@@ -83,7 +83,7 @@ export function Practice() {
           </>
         )}
       </button>
-      <button className="btn secondary" onClick={() => speak(e?.h ?? current.word, rate)}>
+      <button className="btn secondary" onClick={() => playWord(e, e?.h ?? current.word, rate)}>
         🔊 Listen
       </button>
 

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openStory, spoken, stubSpeech, word } from "./helpers";
+import { openStory, played, spoken, stubAudio, stubSpeech, word } from "./helpers";
 
 test.describe("reader", () => {
   test("tap a word: meaning, inflection note, save, close", async ({ page }) => {
@@ -70,5 +70,38 @@ test.describe("reader", () => {
     const atLeave = await spoken(page);
     await page.waitForTimeout(800);
     expect(await spoken(page)).toBe(atLeave);
+  });
+
+  test("tapping a word plays its recorded clip; words without one use the device voice", async ({ page }) => {
+    await stubAudio(page);
+    await stubSpeech(page);
+    await openStory(page, "brot");
+    await word(page, "gibt").click();
+    await expect.poll(() => played(page)).toHaveLength(1);
+    const [clip] = await played(page);
+    expect(clip).toMatch(/\/content\/audio\/de\.geben\.v\.mp3$/);
+    const res = await page.request.get(clip);
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toContain("audio/mpeg");
+    expect((await res.body()).length).toBeGreaterThan(1000);
+
+    await page.getByRole("dialog").getByRole("button", { name: "Pronounce" }).click();
+    await expect.poll(() => played(page)).toHaveLength(2);
+
+    await page.keyboard.press("Escape");
+    await word(page, "Deutschland").click(); // a name: no entry, no clip
+    await expect.poll(() => spoken(page)).toBe(1);
+    expect(await played(page)).toHaveLength(2);
+  });
+
+  test("'Say words when tapped' off: tapping stays silent", async ({ page }) => {
+    await stubAudio(page);
+    await page.goto("./#/me");
+    await page.getByLabel("Say words when tapped").uncheck();
+    await openStory(page, "brot");
+    await word(page, "gibt").click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.waitForTimeout(300);
+    expect(await played(page)).toHaveLength(0);
   });
 });

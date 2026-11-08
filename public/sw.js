@@ -31,7 +31,8 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        if (response.ok) {
+        // 200 only: audio elements may get 206 partial responses, which the Cache API rejects.
+        if (response.status === 200) {
           const copy = response.clone();
           event.waitUntil(caches.open(CACHE).then((c) => c.put(request, copy)));
         }

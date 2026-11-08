@@ -18,6 +18,7 @@ export interface Settings {
   theme: "system" | "light" | "dark";
   dailyGoal: number; // stories per day
   speechRate: number;
+  autoPlayWords: boolean; // say a word when it is tapped
 }
 
 export interface State {
@@ -39,7 +40,7 @@ export const defaultState = (): State => ({
   quiz: {},
   words: {},
   activeDays: [],
-  settings: { level: "all", fontScale: 1, theme: "system", dailyGoal: 1, speechRate: 0.9 },
+  settings: { level: "all", fontScale: 1, theme: "system", dailyGoal: 1, speechRate: 0.9, autoPlayWords: true },
 });
 
 function loadState(): State {

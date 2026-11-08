@@ -1,4 +1,4 @@
-import type { Dictionary, Story, StoryMeta } from "./types";
+import type { DictEntry, Dictionary, Story, StoryMeta } from "./types";
 
 /**
  * Everything the app reads — stories, their pictures and the dictionary — goes through one
@@ -11,6 +11,8 @@ export interface ContentSource {
   story(id: string): Promise<Story>;
   dictionary(): Promise<Dictionary>;
   imageUrl(path: string): string;
+  /** The recorded pronunciation of an entry, or null when there is none (callers fall back to TTS). */
+  audioUrl(entry: DictEntry | undefined): string | null;
 }
 
 /** Static JSON files under `base`, fetched once per path and memoised (failures are retried). */
@@ -33,6 +35,7 @@ export function bundledSource(base = `${import.meta.env.BASE_URL}content/`): Con
     story: (id) => load<Story>(`stories/${encodeURIComponent(id)}.json`),
     dictionary: () => load<Dictionary>("dict.json"),
     imageUrl: (path) => base + path,
+    audioUrl: (entry) => (entry?.au ? base + entry.au : null),
   };
 }
 
@@ -47,3 +50,4 @@ export const loadLibrary = () => source.library();
 export const loadStory = (id: string) => source.story(id);
 export const loadDictionary = () => source.dictionary();
 export const imageUrl = (path: string) => source.imageUrl(path);
+export const audioUrl = (entry: DictEntry | undefined) => source.audioUrl(entry);
