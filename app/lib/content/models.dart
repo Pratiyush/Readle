@@ -39,6 +39,19 @@ class StoryMeta {
         words: j['words'] as int,
         minutes: j['minutes'] as int,
       );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'level': level,
+        'collection': collection,
+        'publishedAt': publishedAt,
+        'image': image,
+        'teaser': teaser,
+        'teaserEn': teaserEn,
+        'words': words,
+        'minutes': minutes,
+      };
 }
 
 /// A run of plain text, or a word: optionally linked to a dictionary key, and flagged when the

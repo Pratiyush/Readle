@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../config.dart';
+import '../content/cdn/content_client.dart';
 import '../content/models.dart';
 import '../logic/srs.dart';
 import '../state/app_state.dart';
@@ -176,6 +177,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               trailing: const Icon(Icons.chevron_right),
               onTap: scope.ads.showPrivacyOptions,
             ),
+          if (scope.updates != null) _ContentCheckTile(updates: scope.updates!),
           ...legalTiles(),
           ListTile(
             key: const Key('licences'),
@@ -231,3 +233,33 @@ List<Widget> legalTiles({String slug = legalSlug}) => [
             onTap: () => launchUrl(url, mode: LaunchMode.externalApplication),
           ),
     ];
+
+/// Settings → New stories: the daily check runs on its own; this runs it now.
+class _ContentCheckTile extends StatelessWidget {
+  const _ContentCheckTile({required this.updates});
+  final ContentClient updates;
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = switch (updates.kind) {
+      UpdateKind.available => updates.newStories == 1 ? '1 new story: download it from Stories' : '${updates.newStories} new stories: download them from Stories',
+      UpdateKind.appTooOld => 'Update the app to get new stories',
+      UpdateKind.none => 'Checked once a day when you open the app',
+    };
+    return ListTile(
+      key: const Key('content-check'),
+      leading: const Icon(Icons.auto_stories_outlined),
+      title: const Text('New stories'),
+      subtitle: Text(subtitle),
+      trailing: updates.busy ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2)) : null,
+      onTap: () async {
+        final messenger = ScaffoldMessenger.maybeOf(context);
+        await updates.check(force: true);
+        if (updates.kind == UpdateKind.none) {
+          messenger?.showSnackBar(const SnackBar(content: Text('You have every story. Check again tomorrow.')));
+        }
+      },
+    );
+  }
+}
+

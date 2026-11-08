@@ -13,6 +13,11 @@ Reads the authored stories, lexicon and frequency aliases from Lernle's
   images/<slug>.webp      story illustrations
   audio/<id>.mp3          the word's pronunciation, from Lernle's own clips
 
+and, for the Flutter app only, `app/assets/linker/`:
+  linker.json             the resolver's tables, so the app links a story it downloads
+                          from the content CDN exactly as this builder links bundled ones
+  lexicon.json            dictionary entries for every other word the linker can reach
+
 Harvested content (Lernle's `harvest/` and `lemmas/de_tobo.jsonl`) is never
 read: it is not ours to ship.
 """
@@ -29,6 +34,7 @@ import unicodedata
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "public" / "content"
+LINKER_OUT = ROOT / "app" / "assets" / "linker"
 
 # Order matters: earlier sources win when two define the same id.
 LEXICON_GLOBS = [
@@ -203,6 +209,24 @@ class Resolver:
         return None, False
 
 
+def linker_data(resolver: Resolver) -> dict:
+    """The resolver's inputs as data: the app's Linker (app/lib/content/linker.dart) runs the same
+    rules over them, and a golden test checks it reproduces every bundled story's links."""
+    index = resolver.index
+    ids = sorted({lid for lids in index.values() for lid in lids})
+    return {
+        "schema": "readle/linker@1",
+        "adjEndings": list(ADJ_ENDINGS),
+        "nounEndings": list(NOUN_ENDINGS),
+        "notCompounds": sorted(NOT_COMPOUNDS),
+        "posRank": POS_RANK,
+        "lex": {lid: [resolver.lex[lid].get("pos", "other"), resolver.lex[lid].get("freq_rank") or 99999] for lid in ids},
+        "index": dict(sorted(index.items())),
+        # Only aliases whose lemma the index knows can ever produce a link.
+        "aliases": {form: lemma for form, lemma in sorted(resolver.aliases.items()) if lemma in index},
+    }
+
+
 def tokenise(text: str, resolver: Resolver, used: set[str]):
     tokens, pos, first = [], 0, True
     for m in TOKEN_RE.finditer(text):
@@ -319,9 +343,18 @@ def main() -> None:
     (OUT / "dict.json").write_text(
         json.dumps(dictionary, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
     )
+    link = linker_data(resolver)
+    if LINKER_OUT.exists():
+        shutil.rmtree(LINKER_OUT)
+    LINKER_OUT.mkdir(parents=True)
+    compact = {"ensure_ascii": False, "separators": (",", ":")}
+    (LINKER_OUT / "linker.json").write_text(json.dumps(link, **compact), encoding="utf-8")
+    lexicon = {lid: dict_entry(lex[lid]) for lid in link["lex"] if lid not in dictionary}
+    (LINKER_OUT / "lexicon.json").write_text(json.dumps(lexicon, **compact), encoding="utf-8")
     print(f"stories     {len(library)}")
     print(f"word audio  {clips} clips for {len(dictionary)} entries")
     print(f"lexicon     {len(lex)} entries, {len(dictionary)} linked from stories")
+    print(f"linker      {len(link['index'])} forms, {len(link['aliases'])} aliases, {len(lexicon)} more entries")
     print(f"word tokens {words}, {linked} linked ({100 * linked / max(words, 1):.1f}%)")
 
 

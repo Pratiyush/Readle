@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../content/cdn/content_client.dart';
 import '../content/content_repository.dart';
 import '../content/models.dart';
 import '../services/ads.dart';
@@ -7,8 +8,8 @@ import '../services/speech.dart';
 import '../services/word_player.dart';
 import '../state/app_state.dart';
 
-/// The app's dependencies, handed down the tree. Rebuilds dependants when [AppState] or [Ads]
-/// change (ads become ready after consent).
+/// The app's dependencies, handed down the tree. Rebuilds dependants when [AppState], [Ads]
+/// (ready after consent) or the content [updates] change.
 class AppScope extends InheritedNotifier<Listenable> {
   AppScope({
     super.key,
@@ -17,11 +18,15 @@ class AppScope extends InheritedNotifier<Listenable> {
     required this.speech,
     required this.player,
     required this.ads,
+    this.updates,
     required super.child,
-  }) : super(notifier: Listenable.merge([state, ads]));
+  }) : super(notifier: Listenable.merge([state, ads, ?updates]));
 
   final AppState state;
   final Ads ads;
+
+  /// New stories from the content CDN; null where the app runs without it (tests, previews).
+  final ContentClient? updates;
 
   final ContentRepository content;
   final Speech speech;

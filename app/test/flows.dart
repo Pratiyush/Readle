@@ -1,14 +1,22 @@
 // End-to-end flows shared by the headless widget tests (test/widget_test.dart) and the on-device
 // integration test (integration_test/app_test.dart), so both always check the same behaviour.
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:readle/app.dart';
+import 'package:readle/content/cdn/content_client.dart';
+import 'package:readle/content/cdn/content_store.dart';
 import 'package:readle/content/content_repository.dart';
+import 'package:readle/content/layered_repository.dart';
 import 'package:readle/services/ads.dart';
 import 'package:readle/services/speech.dart';
 import 'package:readle/services/word_player.dart';
 import 'package:readle/state/app_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'support/cdn_fixture.dart';
 
 class Harness {
   Harness(this.state, this.speech, this.player);
@@ -247,6 +255,65 @@ Future<void> firstRunWordTip(WidgetTester tester) async {
   expect(h.state.wordTipSeen, isTrue);
 }
 
+/// New stories from the content CDN: the library offers them (never downloads by itself), one tap
+/// installs them, and the new story opens with tappable words, linked on the device by the
+/// builder's own rules. The CDN is the in-memory fixture, so this runs the same on a device.
+Future<void> contentUpdate(WidgetTester tester) async {
+  SharedPreferences.setMockInitialValues({});
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.clear();
+  final state = await AppState.load(prefs);
+  late Directory root;
+  late ContentClient updates;
+  late LayeredContentRepository content;
+  await tester.runAsync(() async {
+    root = await Directory.systemTemp.createTemp('readle-flow');
+    final image = (await rootBundle.load('assets/content/images/brot.webp')).buffer.asUint8List();
+    final cdn = CdnFixture(image: image);
+    final store = ContentStore(root);
+    final bundled = AssetContentRepository();
+    content = LayeredContentRepository(bundled: bundled, store: store, cdn: Uri.parse('https://cdn.test/'));
+    await content.reload();
+    await content.dictionary();
+    updates = ContentClient(
+      fetcher: cdn.fetcher,
+      store: store,
+      prefs: prefs,
+      bundledIds: {for (final s in await bundled.library()) s.id},
+      base: Uri.parse('https://cdn.test/'),
+    );
+    await updates.check();
+  });
+  addTearDown(() => root.deleteSync(recursive: true));
+  final player = RecordingWordPlayer();
+  await tester.pumpWidget(ReadleApp(state: state, content: content, speech: RecordingSpeech(), player: player, ads: NoAds(), updates: updates));
+  await tester.pumpAndSettle();
+  expect(find.text('📚 1 new story to read'), findsOneWidget);
+  expect(find.text(newTitle), findsNothing, reason: 'nothing downloads before the tap');
+
+  await tester.runAsync(() async {
+    await tester.tap(find.byKey(const Key('content-update-button')));
+    for (var i = 0; i < 200 && (updates.busy || updates.installs == 0); i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+    expect(updates.installs, 1);
+    await Future<void>.delayed(const Duration(milliseconds: 300)); // the library reload after install
+    await content.story(newSlug); // read the file now, outside the fake clock
+  });
+  await tester.pumpAndSettle();
+  expect(find.byKey(const Key('content-update')), findsNothing);
+  await search(tester, 'Bäcker');
+  await tester.tap(find.text(newTitle).last);
+  await tester.pumpAndSettle();
+  await waitFor(tester, find.byKey(const Key('reader-list')));
+  await tapWord(tester, 'gibt');
+  expect(find.byKey(const Key('headword')), findsOneWidget);
+  await tester.tap(find.byTooltip('Close'));
+  await tester.pumpAndSettle();
+  await tapWord(tester, 'Abbuchung');
+  expect(find.textContaining('Abbuchung'), findsWidgets, reason: 'a word only lexicon.json knows');
+}
+
 /// Every flow, by name, for both runners.
 final flows = <String, Future<void> Function(WidgetTester)>{
   'library search and story of the day': libraryFilters,
@@ -257,4 +324,5 @@ final flows = <String, Future<void> Function(WidgetTester)>{
   'settings: dark theme and reset': settingsAndReset,
   'continue reading: card, then back to the same place': continueReading,
   'first run: the tap-a-word tip until the first tap': firstRunWordTip,
+  'new stories from the CDN: offer, install, read': contentUpdate,
 };

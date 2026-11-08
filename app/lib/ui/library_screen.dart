@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../content/cdn/content_client.dart';
+import '../content/layered_repository.dart';
 import '../content/models.dart';
 import '../logic/quiz.dart' show seedOf;
 import 'app_scope.dart';
@@ -93,6 +95,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     Chip(key: const Key('streak'), label: Text('🔥 ${state.streakDays}', style: const TextStyle(fontWeight: FontWeight.w700))),
                   ]),
                   const SizedBox(height: 12),
+                  if (scope.updates != null)
+                    _UpdateBanner(onInstalled: () => setState(() {
+                      _library = scope.content.library();
+                    })),
                   if (resume != null) ...[_ContinueCard(story: resume), const SizedBox(height: 12)],
                   if (daily != null) _DailyCard(story: daily, keepGoing: state.readToday > 0),
                   const SizedBox(height: 12),
@@ -289,6 +295,61 @@ class _StoryCard extends StatelessWidget {
               ]),
             ),
           ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// "New stories" from the content CDN: offered, never downloaded without a tap. Hidden when there
+/// is nothing new; asks for an app update when the CDN needs a newer client.
+class _UpdateBanner extends StatelessWidget {
+  const _UpdateBanner({required this.onInstalled});
+  final VoidCallback onInstalled;
+
+  @override
+  Widget build(BuildContext context) {
+    final scope = AppScope.of(context);
+    final updates = scope.updates!;
+    if (updates.kind == UpdateKind.none) return const SizedBox.shrink();
+    final tooOld = updates.kind == UpdateKind.appTooOld;
+    final n = updates.newStories;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Card(
+        key: const Key('content-update'),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              Text(
+                tooOld ? 'Update the app to get new stories.' : n == 1 ? '📚 1 new story to read' : '📚 $n new stories to read',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              if (!tooOld)
+                FilledButton(
+                  key: const Key('content-update-button'),
+                  onPressed: updates.busy
+                      ? null
+                      : () async {
+                          final messenger = ScaffoldMessenger.maybeOf(context);
+                          if (await updates.update()) {
+                            final content = scope.content;
+                            if (content is LayeredContentRepository) await content.reload();
+                            onInstalled();
+                          } else {
+                            messenger?.showSnackBar(const SnackBar(content: Text("Couldn't download the new stories. Try again later.")));
+                          }
+                        },
+                  child: updates.busy
+                      ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Text('Download'),
+                ),
+            ],
+          ),
         ),
       ),
     );
