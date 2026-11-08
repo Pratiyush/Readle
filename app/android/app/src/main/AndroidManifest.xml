@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <!-- New stories from the content CDN (and ads). Declared here, not left to a library merge. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="Readle"
         android:name="${applicationName}"

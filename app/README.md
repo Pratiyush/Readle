@@ -11,7 +11,12 @@ flutter test integration_test -d <device>    # the same flows on an emulator, si
 ```
 
 - `lib/content/`: models and `ContentRepository`, the only way screens read stories and the
-  dictionary (bundled assets today; the german-content CDN can be added behind it later)
+  dictionary. `LayeredContentRepository` puts stories installed from the german-content CDN
+  (`cdn/`: daily manifest check, verified staged download, atomic swap, rollback) over the bundled
+  ones; `linker.dart` makes their words tappable with the builder's own rules (tables in
+  `assets/linker/`, written by `../tools/build_content.py`). Point a debug build at a local CDN
+  with `--dart-define=CONTENT_CDN=http://10.0.2.2:8787/` and `../../content/tools/serve`.
+  Live smoke test: `flutter test --run-skipped --tags live test/cdn_live_test.dart`.
 - `lib/state/app_state.dart`: progress, saved words and settings, in the web app's JSON schema
 - `lib/services/speech.dart`: German TTS (`flutter_tts`); Listen is hidden without a German voice
 - `test/flows.dart`: end-to-end flows shared by `test/widget_test.dart` and

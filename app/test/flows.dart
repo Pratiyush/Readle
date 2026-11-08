@@ -212,6 +212,13 @@ Future<void> settingsAndReset(WidgetTester tester) async {
   await tester.pumpAndSettle();
   expect(h.state.settings.theme, ThemeChoice.dark);
   expect(Theme.of(tester.element(find.byKey(const Key('theme')))).brightness, Brightness.dark);
+  // Story level: the same choice as the library's level chips, so the list and story of the day follow it.
+  await reveal(tester, find.byKey(const Key('story-level')), const Key('progress-list'));
+  await tester.tap(find.byKey(const Key('story-level')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('A2 · elementary').last);
+  await tester.pumpAndSettle();
+  expect(h.state.settings.level, 'A2');
   await reveal(tester, find.byKey(const Key('reset')), const Key('progress-list'));
   await tester.tap(find.byKey(const Key('reset')));
   await tester.pumpAndSettle();
@@ -219,6 +226,7 @@ Future<void> settingsAndReset(WidgetTester tester) async {
   await tester.pumpAndSettle();
   expect(h.state.read, isEmpty);
   expect(h.state.settings.theme, ThemeChoice.system);
+  expect(h.state.settings.level, 'all');
 }
 
 Future<void> continueReading(WidgetTester tester) async {

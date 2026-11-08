@@ -54,16 +54,33 @@ class _ProgressScreenState extends State<ProgressScreen> {
         );
     Widget setting<T>(String label, T value, Map<T, String> options, ValueChanged<T> onChanged, Key key) => Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(children: [
-            Expanded(child: Text(label, style: const TextStyle(fontSize: 16))),
-            DropdownButton<T>(
-              key: key,
-              value: value,
-              underline: const SizedBox(),
-              items: [for (final o in options.entries) DropdownMenuItem(value: o.key, child: Text(o.value))],
-              onChanged: (v) => v == null ? null : onChanged(v),
+          // The choice sits beside its label, or under it when both don't fit (long level names,
+          // large text); a choice wider than the row is cut with an ellipsis instead of overflowing.
+          child: LayoutBuilder(
+            builder: (context, c) => Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 16)),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: c.maxWidth),
+                  child: IntrinsicWidth(
+                    child: DropdownButton<T>(
+                      key: key,
+                      value: value,
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      items: [
+                        for (final o in options.entries)
+                          DropdownMenuItem(value: o.key, child: Text(o.value, overflow: TextOverflow.ellipsis)),
+                      ],
+                      onChanged: (v) => v == null ? null : onChanged(v),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ]),
+          ),
         );
 
     return SafeArea(
@@ -155,6 +172,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
         const SizedBox(height: 12),
         panel([
           const Text('Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          setting<String>('Story level', state.settings.level,
+              {'all': 'All levels', 'A1': 'A1 · beginner', 'A2': 'A2 · elementary', 'B1': 'B1 · intermediate', 'B2': 'B2 · upper intermediate'},
+              (v) => state.updateSettings(state.settings.copyWith(level: v)), const Key('story-level')),
           setting<int>('Daily goal', goal, {1: '1 story', 2: '2 stories', 3: '3 stories', 5: '5 stories'},
               (v) => state.updateSettings(state.settings.copyWith(dailyGoal: v)), const Key('daily-goal')),
           setting<ThemeChoice>('Theme', state.settings.theme,
