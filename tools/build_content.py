@@ -209,6 +209,12 @@ class Resolver:
         return None, False
 
 
+def reading_minutes(words: int) -> int:
+    """Minutes at a learner's pace (60 words a minute), rounded half up; the app uses the same rule
+    for stories it downloads (ContentClient.storyMeta)."""
+    return max(1, int(words / 60 + 0.5))
+
+
 def linker_data(resolver: Resolver) -> dict:
     """The resolver's inputs as data: the app's Linker (app/lib/content/linker.dart) runs the same
     rules over them, and a golden test checks it reproduces every bundled story's links."""
@@ -326,7 +332,8 @@ def main() -> None:
             "teaser": nfc(story["sentences"][0]["de"]),
             "teaserEn": story["sentences"][0]["en"],
             "words": text_words,
-            "minutes": max(1, round(text_words / 120)),
+            # Learner reading speed with taps (~60 wpm), not native speed: 1–3 min, not "1 min" for all.
+            "minutes": reading_minutes(text_words),
         }
         library.append(meta)
         (OUT / "stories" / f"{slug}.json").write_text(

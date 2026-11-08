@@ -217,8 +217,8 @@ class ContentClient extends ChangeNotifier {
     }
   }
 
-  /// Library metadata for a CDN story, in the bundled `stories.json` shape (the same reading-time
-  /// formula as tools/build_content.py).
+  /// Library metadata for a CDN story, in the bundled `stories.json` shape (reading time at a
+  /// learner's 60 words a minute, as tools/build_content.py's reading_minutes).
   static Map<String, dynamic> storyMeta(Map<String, dynamic> s, String slug, String? image) {
     final sentences = (s['sentences'] as List).cast<Map<String, dynamic>>();
     final words = sentences.fold<int>(0, (n, x) => n + Linker.tokenRe.allMatches(x['de'] as String).length);
@@ -232,7 +232,7 @@ class ContentClient extends ChangeNotifier {
       'teaser': sentences.first['de'],
       'teaserEn': sentences.first['en'],
       'words': words,
-      'minutes': (words / 120).round().clamp(1, 1 << 30),
+      'minutes': (words / 60 + 0.5).floor().clamp(1, 1 << 30),
     };
   }
 }

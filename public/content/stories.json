@@ -9,7 +9,7 @@
   "teaser": "Mia und Tom fahren jeden Morgen zusammen zur Universität.",
   "teaserEn": "Mia and Tom cycle to the university together every morning.",
   "words": 95,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "was-ein-studium-wirklich-kostet",
@@ -21,7 +21,7 @@
   "teaser": "An den meisten deutschen Universitäten werden von den Studenten keine Gebühren verlangt.",
   "teaserEn": "At most German universities no fees are charged to students.",
   "words": 167,
-  "minutes": 1
+  "minutes": 3
  },
  {
   "id": "was-der-dolmetscher-nicht-sagte",
@@ -33,7 +33,7 @@
   "teaser": "Die Verhandlung lief seit zwei Stunden, und Herr Lang übersetzte jeden einzelnen Satz.",
   "teaserEn": "The negotiation had been running for two hours, and Mr Lang was translating every single sentence.",
   "words": 138,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "warum-hier-gelueftet-wird",
@@ -45,7 +45,7 @@
   "teaser": "In deutschen Wohnungen werden die Fenster nicht nur geöffnet, sondern weit aufgerissen.",
   "teaserEn": "In German flats the windows are not merely opened but flung wide.",
   "words": 149,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "warum-handwerker-monate-brauchen",
@@ -57,7 +57,7 @@
   "teaser": "Wer in Deutschland ein Bad neu machen lassen will, wartet oft ein halbes Jahr auf den Termin.",
   "teaserEn": "Anyone in Germany who wants a bathroom redone often waits half a year for the appointment.",
   "words": 151,
-  "minutes": 1
+  "minutes": 3
  },
  {
   "id": "warum-die-bahn-selten-puenktlich-ist",
@@ -69,7 +69,7 @@
   "teaser": "Über kaum ein Thema wird in Deutschland so oft geklagt wie über die Bahn.",
   "teaserEn": "There is hardly a subject people in Germany complain about as often as the railway.",
   "words": 156,
-  "minutes": 1
+  "minutes": 3
  },
  {
   "id": "schule-ist-sache-der-laender",
@@ -81,7 +81,7 @@
   "teaser": "Ein Kind, das im Sommer von Bayern nach Bremen zieht, wechselt nicht nur die Stadt.",
   "teaserEn": "A child moving from Bavaria to Bremen in the summer changes more than just the city.",
   "words": 160,
-  "minutes": 1
+  "minutes": 3
  },
  {
   "id": "roentgen-und-die-neuen-strahlen",
@@ -93,7 +93,7 @@
   "teaser": "Im November 1895 arbeitete Wilhelm Conrad Röntgen in Würzburg in seinem Labor.",
   "teaserEn": "In November 1895 Wilhelm Conrad Röntgen was working in his laboratory in Würzburg.",
   "words": 112,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "puenktlichkeit-als-bild-und-als-regel",
@@ -105,7 +105,7 @@
   "teaser": "Kaum ein Bild hält sich so hartnäckig wie das vom pünktlichen Deutschen.",
   "teaserEn": "Hardly any image holds on as stubbornly as that of the punctual German.",
   "words": 154,
-  "minutes": 1
+  "minutes": 3
  },
  {
   "id": "markt",
@@ -141,7 +141,7 @@
   "teaser": "Die deutsche Uhrzeit macht vielen Lernenden am Anfang Probleme.",
   "teaserEn": "German clock time causes many learners problems at first.",
   "words": 104,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "gutenberg-und-der-buchdruck",
@@ -153,7 +153,7 @@
   "teaser": "Um 1450 arbeitete Johannes Gutenberg in Mainz an einer neuen Idee.",
   "teaserEn": "Around 1450 Johannes Gutenberg was working on a new idea in Mainz.",
   "words": 106,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "grosse-buchstaben-fuer-nomen",
@@ -177,7 +177,7 @@
   "teaser": "Manche Wörter lassen sich nicht übersetzen, ohne dass unterwegs etwas verloren geht.",
   "teaserEn": "Some words cannot be translated without something being lost along the way.",
   "words": 144,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "fuer-alles-einen-verein",
@@ -189,7 +189,7 @@
   "teaser": "Für fast jede Tätigkeit gibt es in Deutschland einen eingetragenen Verein.",
   "teaserEn": "For almost every activity in Germany there is a registered association.",
   "words": 148,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "freund-und-bekannter",
@@ -201,7 +201,7 @@
   "teaser": "Wer aus dem Englischen kommt, benutzt das Wort Freund meistens viel zu früh.",
   "teaserEn": "People coming from English usually use the word Freund far too early.",
   "words": 154,
-  "minutes": 1
+  "minutes": 3
  },
  {
   "id": "feiertage-sind-nicht-ueberall-gleich",
@@ -225,7 +225,7 @@
   "teaser": "An einem Montag im Oktober legten die Schüler ihren eigenen Garten an.",
   "teaserEn": "One Monday in October the pupils laid out a garden of their own.",
   "words": 134,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "du-und-sie",
@@ -261,7 +261,7 @@
   "teaser": "Wer in Deutschland eine Wohnung sucht, findet erstaunlich oft Räume ohne jede Küche.",
   "teaserEn": "Anyone looking for a flat in Germany surprisingly often finds places without any kitchen at all.",
   "words": 173,
-  "minutes": 1
+  "minutes": 3
  },
  {
   "id": "die-vier-sprachen-der-schweiz",
@@ -285,7 +285,7 @@
   "teaser": "Im Restaurant bestellt Herr Klein eine Suppe ohne Fleisch.",
   "teaserEn": "In the restaurant Mr Klein orders a soup without meat.",
   "words": 94,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "die-stelle-in-hamburg",
@@ -297,7 +297,7 @@
   "teaser": "Der Brief mit dem Angebot lag seit drei Tagen auf dem Küchentisch.",
   "teaserEn": "The letter with the offer had been lying on the kitchen table for three days.",
   "words": 153,
-  "minutes": 1
+  "minutes": 3
  },
  {
   "id": "die-sechzehn-bundeslaender",
@@ -333,7 +333,7 @@
   "teaser": "Jede Adresse in Deutschland hat eine Postleitzahl aus fünf Zahlen.",
   "teaserEn": "Every address in Germany has a postcode made of five digits.",
   "words": 100,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "die-muelltrennung-im-alltag",
@@ -357,7 +357,7 @@
   "teaser": "In vielen Häusern im Süden gibt es die Kehrwoche.",
   "teaserEn": "In many buildings in the south there is the Kehrwoche.",
   "words": 100,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "die-katze-im-bahnhof",
@@ -369,7 +369,7 @@
   "teaser": "In dem kleinen Bahnhof lebte schon seit Jahren eine Katze.",
   "teaserEn": "A cat had been living in the small station for years.",
   "words": 122,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "die-kartoffel",
@@ -393,7 +393,7 @@
   "teaser": "Die Fünf in Mathematik stand ganz unten auf dem Blatt, als hätte sie sich versteckt.",
   "teaserEn": "The failing grade in maths sat right at the bottom of the sheet, as if it had hidden itself.",
   "words": 150,
-  "minutes": 1
+  "minutes": 3
  },
  {
   "id": "die-drei-artikel",
@@ -429,7 +429,7 @@
   "teaser": "Medikamente kauft man in Deutschland nicht im Supermarkt.",
   "teaserEn": "In Germany you do not buy medicines in the supermarket.",
   "words": 109,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "die-anmeldung-in-der-neuen-stadt",
@@ -453,7 +453,7 @@
   "teaser": "Etwa ein Drittel von Deutschland ist mit Wald bedeckt.",
   "teaserEn": "About a third of Germany is covered with forest.",
   "words": 106,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "der-tag-der-deutschen-einheit",
@@ -489,7 +489,7 @@
   "teaser": "Jonas steht vor seiner Wohnung und sucht seinen Schlüssel.",
   "teaserEn": "Jonas is standing outside his flat looking for his key.",
   "words": 94,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "der-rhein",
@@ -513,7 +513,7 @@
   "teaser": "Im Büro galt Herr Baumann als der Beste, weil er nie eine Frage stellte.",
   "teaserEn": "In the office Mr Baumann was regarded as the best, because he never asked a question.",
   "words": 146,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "der-karneval-am-rhein",
@@ -525,7 +525,7 @@
   "teaser": "Am Rhein beginnt der Karneval offiziell am elften November.",
   "teaserEn": "On the Rhine the carnival officially begins on the eleventh of November.",
   "words": 109,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "der-kaffeefilter-aus-dresden",
@@ -549,7 +549,7 @@
   "teaser": "Im Zug nach Bremen sitzt ein alter Hund neben einem leeren Platz.",
   "teaserEn": "On the train to Bremen an old dog is sitting next to an empty seat.",
   "words": 106,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "der-flohmarkt-am-samstag",
@@ -561,7 +561,7 @@
   "teaser": "An vielen Samstagen gibt es in der Stadt einen Flohmarkt.",
   "teaserEn": "On many Saturdays there is a flea market in town.",
   "words": 95,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "der-bodensee-zwischen-drei-laendern",
@@ -573,7 +573,7 @@
   "teaser": "Der Bodensee liegt zwischen Deutschland, Österreich und der Schweiz.",
   "teaserEn": "Lake Constance lies between Germany, Austria and Switzerland.",
   "words": 117,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "der-baum-auf-der-grenze",
@@ -585,7 +585,7 @@
   "teaser": "Der alte Nussbaum stand genau auf der Grenze zwischen den beiden Gärten.",
   "teaserEn": "The old walnut tree stood exactly on the boundary between the two gardens.",
   "words": 134,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "der-anruf-am-sonntag",
@@ -597,7 +597,7 @@
   "teaser": "Jeden Sonntag um elf rief Marek seine Mutter an, seit er nach Köln gezogen war.",
   "teaserEn": "Every Sunday at eleven Marek rang his mother, ever since he had moved to Cologne.",
   "words": 144,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "das-wasser-aus-dem-hahn",
@@ -609,7 +609,7 @@
   "teaser": "In Deutschland wird das Wasser aus der Leitung strenger geprüft als jedes Wasser aus der Flasche.",
   "teaserEn": "In Germany tap water is tested more strictly than any bottled water.",
   "words": 167,
-  "minutes": 1
+  "minutes": 3
  },
  {
   "id": "das-verb-an-zweiter-stelle",
@@ -621,7 +621,7 @@
   "teaser": "Im deutschen Hauptsatz steht das Verb immer an zweiter Stelle.",
   "teaserEn": "In a German main clause the verb always stands in second position.",
   "words": 98,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "das-verb-am-ende-des-nebensatzes",
@@ -633,7 +633,7 @@
   "teaser": "Im Hauptsatz steht das deutsche Verb an zweiter Stelle, im Nebensatz dagegen ganz am Ende.",
   "teaserEn": "In a main clause the German verb stands in second position; in a subordinate clause, by contrast, right at the end.",
   "words": 168,
-  "minutes": 1
+  "minutes": 3
  },
  {
   "id": "das-reinheitsgebot-fuer-bier",
@@ -669,7 +669,7 @@
   "teaser": "Das Oktoberfest beginnt trotz seines Namens schon im September.",
   "teaserEn": "Despite its name, the Oktoberfest already begins in September.",
   "words": 102,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "zwei-nachbarn-teilen-den-garten",
@@ -705,7 +705,7 @@
   "teaser": "Der Februar ist in Deutschland der Monat, in dem alle auf den Frühling warten.",
   "teaserEn": "In Germany, February is the month when everyone is waiting for spring.",
   "words": 143,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "vaters-schlechtes-abendessen",
@@ -729,7 +729,7 @@
   "teaser": "Vater steht spät am Abend allein in der Küche.",
   "teaserEn": "Late in the evening father stands alone in the kitchen.",
   "words": 98,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "unsere-sommerferien-am-meer",
@@ -741,7 +741,7 @@
   "teaser": "Unsere Ferien am Meer begannen jedes Jahr mit derselben langen Autofahrt.",
   "teaserEn": "Our holidays by the sea began every year with the same long car journey.",
   "words": 148,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "unser-sommerurlaub-in-den-bergen",
@@ -753,7 +753,7 @@
   "teaser": "Als Kinder fuhren wir jeden August in dasselbe Bergdorf im Süden.",
   "teaserEn": "As children we drove to the same mountain village in the south every August.",
   "words": 146,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "sommerluft-in-der-wohnung",
@@ -765,7 +765,7 @@
   "teaser": "Nach einem heißen Tag bleibt die Wohnung bis spät in die Nacht warm.",
   "teaserEn": "After a hot day the flat stays warm until late at night.",
   "words": 97,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "schoene-spaziergaenge-im-herbst",
@@ -813,7 +813,7 @@
   "teaser": "In deutschen Wohnungen gibt es fast nie eine Klimaanlage.",
   "teaserEn": "German flats almost never have air conditioning.",
   "words": 99,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "morgendliche-ruhe-und-die-voegel",
@@ -825,7 +825,7 @@
   "teaser": "Herr Brandt war um Viertel nach sechs immer schon wach.",
   "teaserEn": "Mr Brandt was always awake by a quarter past six.",
   "words": 127,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "leben-in-den-bergen",
@@ -837,7 +837,7 @@
   "teaser": "Früher lebten in den Bergdörfern fast nur Bauern und ihre Familien.",
   "teaserEn": "In the past, almost only farmers and their families lived in the mountain villages.",
   "words": 145,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "lange-winterabende-zu-hause",
@@ -861,7 +861,7 @@
   "teaser": "Im Dezember wird es in Deutschland schon gegen halb vier dunkel.",
   "teaserEn": "In December it already gets dark in Germany at around half past three.",
   "words": 134,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "lange-winterabende-im-norden",
@@ -873,7 +873,7 @@
   "teaser": "Im Norden wird es im Winter schon um vier Uhr dunkel.",
   "teaserEn": "In the north it already gets dark at four o'clock in winter.",
   "words": 106,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "gemuetliche-winterabende-zu-hause",
@@ -921,7 +921,7 @@
   "teaser": "In vielen deutschen Städten fährt fast jeder zweite Erwachsene regelmäßig Fahrrad.",
   "teaserEn": "In many German cities almost every second adult cycles regularly.",
   "words": 138,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "einkauf-im-kleinen-eckladen",
@@ -945,7 +945,7 @@
   "teaser": "Anna sitzt auf einer alten Holzbank mitten im Park.",
   "teaserEn": "Anna sits on an old wooden bench in the middle of the park.",
   "words": 93,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "ein-tag-auf-dem-weihnachtsmarkt",
@@ -957,7 +957,7 @@
   "teaser": "Der Weihnachtsmarkt steht jedes Jahr auf dem alten Marktplatz.",
   "teaserEn": "The Christmas market stands on the old market square every year.",
   "words": 94,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "ein-stiller-morgen-mit-voegeln",
@@ -981,7 +981,7 @@
   "teaser": "In der neuen Küche stand noch kein Tisch, nur zwei Stühle.",
   "teaserEn": "There was no table in the new kitchen yet, only two chairs.",
   "words": 124,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "ein-stiller-abend-nach-dem-bus",
@@ -993,7 +993,7 @@
   "teaser": "Der letzte Bus fuhr um halb elf, und Tim kam um halb elf an.",
   "teaserEn": "The last bus left at half past ten, and Tim arrived at half past ten.",
   "words": 136,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "ein-stiller-abend-im-neuen-heim",
@@ -1005,7 +1005,7 @@
   "teaser": "Der Umzug war um sechs Uhr fertig, und die Helfer fuhren nach Hause.",
   "teaserEn": "The move was finished at six o'clock and the helpers drove home.",
   "words": 138,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "ein-ruhiger-schwimmversuch",
@@ -1017,7 +1017,7 @@
   "teaser": "Mit vierunddreißig meldete sich Lena zum Schwimmkurs für Erwachsene an.",
   "teaserEn": "At thirty-four Lena signed up for a swimming course for adults.",
   "words": 133,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "ein-ruhiger-moment-mit-suppe",
@@ -1041,7 +1041,7 @@
   "teaser": "Die Frau sitzt am offenen Fenster und hält eine warme Tasse.",
   "teaserEn": "The woman sits at the open window and holds a warm cup.",
   "words": 95,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "ein-ruhiger-moment-am-becken",
@@ -1053,7 +1053,7 @@
   "teaser": "Im Sommer öffnet das Freibad schon um sieben Uhr morgens.",
   "teaserEn": "In summer the outdoor pool opens as early as seven in the morning.",
   "words": 128,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "ein-ruhiger-abend-am-bahnhof",
@@ -1065,7 +1065,7 @@
   "teaser": "Anna steht allein auf dem Bahnsteig und schaut die Gleise entlang.",
   "teaserEn": "Anna stands alone on the platform and looks along the tracks.",
   "words": 101,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "ein-offenes-fenster-am-abend",
@@ -1077,7 +1077,7 @@
   "teaser": "Am Abend mache ich das Fenster auf und setze mich daneben.",
   "teaserEn": "In the evening I open the window and sit down beside it.",
   "words": 131,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "ein-neuer-anfang",
@@ -1101,7 +1101,7 @@
   "teaser": "Jonas hatte das Meer genau einmal gesehen, im letzten Sommer.",
   "teaserEn": "Jonas had seen the sea exactly once, last summer.",
   "words": 128,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "ein-baecker-vor-dem-morgengrauen",
@@ -1113,7 +1113,7 @@
   "teaser": "Der Wecker klingelt um halb vier, und Jonas steht sofort auf.",
   "teaserEn": "The alarm rings at half past three, and Jonas gets up at once.",
   "words": 96,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "die-stille-sonntagszeit",
@@ -1125,7 +1125,7 @@
   "teaser": "Der deutsche Sonntag fühlt sich anders an als die anderen Tage.",
   "teaserEn": "The German Sunday feels different from the other days.",
   "words": 98,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "die-sonntagsruhe-im-alltag",
@@ -1137,7 +1137,7 @@
   "teaser": "In Deutschland ist der Sonntag gesetzlich ein ruhiger Tag.",
   "teaserEn": "In Germany, Sunday is by law a quiet day.",
   "words": 96,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "die-familie-in-der-neuen-wohnung",
@@ -1161,7 +1161,7 @@
   "teaser": "In vielen deutschen Vierteln gibt es noch einen kleinen Laden an der Ecke.",
   "teaserEn": "In many German neighbourhoods there is still a small shop on the corner.",
   "words": 148,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "der-kleine-laden-an-der-ecke",
@@ -1185,7 +1185,7 @@
   "teaser": "An der Nordsee weht fast immer Wind, auch mitten im Sommer.",
   "teaserEn": "On the North Sea coast the wind blows almost constantly, even in midsummer.",
   "words": 149,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "das-leben-an-der-nordsee",
@@ -1221,7 +1221,7 @@
   "teaser": "Am Sonntag nehmen wir uns viel Zeit für das Frühstück.",
   "teaserEn": "On Sunday we take a lot of time for breakfast.",
   "words": 99,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "berge-im-sueden",
@@ -1233,7 +1233,7 @@
   "teaser": "Im Süden Deutschlands stehen die Alpen so nah, dass man sie vom Zug aus sieht.",
   "teaserEn": "In the south of Germany the Alps stand so close that you can see them from the train.",
   "words": 155,
-  "minutes": 1
+  "minutes": 3
  },
  {
   "id": "brot",
@@ -1257,7 +1257,7 @@
   "teaser": "Der Sonntag ist in Deutschland gesetzlich geschützt, und das merkt man sofort.",
   "teaserEn": "Sunday is protected by law in Germany, and you notice it at once.",
   "words": 93,
-  "minutes": 1
+  "minutes": 2
  },
  {
   "id": "hund-katze",
@@ -1281,6 +1281,6 @@
   "teaser": "Am Ende der Straße steht ein altes Haus mit grünen Fensterläden.",
   "teaserEn": "At the end of the street stands an old house with green shutters.",
   "words": 100,
-  "minutes": 1
+  "minutes": 2
  }
 ]
