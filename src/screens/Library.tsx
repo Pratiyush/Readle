@@ -1,22 +1,31 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { imageUrl, loadLibrary } from "../lib/content";
 import { useAsync } from "../hooks";
 import { actions, streak, useStore } from "../lib/store";
 import { dayKey } from "../lib/dates";
 import { rng } from "../lib/quiz";
 import { LEVELS, type StoryMeta } from "../lib/types";
-import { href } from "../router";
+import { href, savedScroll } from "../router";
 
 const COLLECTIONS: Record<string, string> = { all: "All", fiction: "Fiction", culture: "Culture", facts: "Facts" };
+
+// Kept while the app runs, so coming back from a story lands on the same filters and list position.
+const view = { collection: "all", query: "", unreadOnly: false };
 
 export function Library() {
   const lib = useAsync(loadLibrary, []);
   const level = useStore((s) => s.settings.level);
   const read = useStore((s) => s.read);
   const days = useStore((s) => s.activeDays);
-  const [collection, setCollection] = useState("all");
-  const [query, setQuery] = useState("");
-  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [collection, setCollection] = useState(view.collection);
+  const [query, setQuery] = useState(view.query);
+  const [unreadOnly, setUnreadOnly] = useState(view.unreadOnly);
+  Object.assign(view, { collection, query, unreadOnly });
+
+  // The router scrolls to the top on every route change; put the list back where it was.
+  useEffect(() => {
+    if (lib.status === "ready") window.scrollTo(0, savedScroll({ name: "library" }));
+  }, [lib.status]);
 
   const stories = lib.status === "ready" ? lib.value : [];
   const visible = useMemo(() => {

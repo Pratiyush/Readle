@@ -35,10 +35,15 @@ export function href(r: Route): string {
 
 export const go = (r: Route) => (window.location.hash = href(r));
 
+// Where each screen was scrolled to when the user left it, so a list can put itself back.
+const scrollMemory = new Map<string, number>();
+export const savedScroll = (r: Route) => scrollMemory.get(href(r)) ?? 0;
+
 export function useRoute(): Route {
   const [route, setRoute] = useState(() => parse(window.location.hash));
   useEffect(() => {
-    const on = () => {
+    const on = (e: HashChangeEvent) => {
+      scrollMemory.set(href(parse(new URL(e.oldURL).hash)), window.scrollY);
       setRoute(parse(window.location.hash));
       window.scrollTo(0, 0);
     };
