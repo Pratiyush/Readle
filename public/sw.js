@@ -1,9 +1,19 @@
-// Offline support: app shell and content are cached as they are fetched,
-// so every story you have opened once keeps working without a connection.
-const CACHE = "readle-v1";
+// Offline support. Install caches the app shell — index.html plus the hashed JS/CSS bundle it links,
+// which the very first page load fetched before this worker existed — and the library + dictionary.
+// Stories and pictures are cached as they are opened, so every story read once keeps working offline.
+const CACHE = "readle-v2";
+const CORE = ["./", "./content/stories.json", "./content/dict.json", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(["./", "./content/stories.json", "./content/dict.json"])));
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(CACHE);
+      await cache.addAll(CORE);
+      const html = await (await cache.match("./")).text();
+      const bundle = [...html.matchAll(/(?:src|href)="((?:\.\/)?assets\/[^"]+)"/g)].map((m) => m[1]);
+      await cache.addAll(bundle);
+    })(),
+  );
   self.skipWaiting();
 });
 
@@ -17,14 +27,25 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) return;
-  // Network first so content updates arrive; cache as the fallback.
+  // Network first so content updates arrive; the cache is the fallback.
   event.respondWith(
     fetch(request)
       .then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE).then((c) => c.put(request, copy));
+        if (response.ok) {
+          const copy = response.clone();
+          event.waitUntil(caches.open(CACHE).then((c) => c.put(request, copy)));
+        }
         return response;
       })
-      .catch(() => caches.match(request).then((hit) => hit || caches.match("./"))),
+      .catch(async () => {
+        // ignoreVary: module scripts are requested with an Origin header, and a server that answers
+        // with "Vary: Origin" (vite preview, some CDNs) would otherwise never match the precache.
+        const hit = await caches.match(request, { ignoreVary: true });
+        if (hit) return hit;
+        // Only a page load falls back to the app shell; a missing script, story or image must fail
+        // as itself, not come back as index.html (which broke module loading and JSON parsing).
+        if (request.mode === "navigate") return (await caches.match("./")) ?? Response.error();
+        return Response.error();
+      }),
   );
 });
