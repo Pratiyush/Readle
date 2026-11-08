@@ -29,7 +29,7 @@ Future<void> showWordSheet(
       ),
     );
 
-class _WordSheet extends StatelessWidget {
+class _WordSheet extends StatefulWidget {
   const _WordSheet({
     required this.word,
     required this.saveKey,
@@ -45,6 +45,34 @@ class _WordSheet extends StatelessWidget {
   final bool compound;
   final Sentence sentence;
   final String storyId;
+
+  @override
+  State<_WordSheet> createState() => _WordSheetState();
+}
+
+class _WordSheetState extends State<_WordSheet> {
+  late final AppScope _scope;
+
+  String get word => widget.word;
+  String get saveKey => widget.saveKey;
+  DictEntry? get entry => widget.entry;
+  bool get compound => widget.compound;
+  Sentence get sentence => widget.sentence;
+  String get storyId => widget.storyId;
+
+  @override
+  void initState() {
+    super.initState();
+    _scope = AppScope.read(context);
+    // Tapping a word says it, like a dictionary pen; the setting turns that off.
+    if (_scope.state.settings.autoPlayWords) _scope.sayWord(entry, word);
+  }
+
+  @override
+  void dispose() {
+    _scope.player.stop();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +116,7 @@ class _WordSheet extends StatelessWidget {
           IconButton(
             tooltip: 'Pronounce',
             icon: const Icon(Icons.volume_up_rounded),
-            onPressed: () => scope.speech.speak(e?.headword ?? word, rate: state.settings.speechRate),
+            onPressed: () => scope.sayWord(e, word),
           ),
           IconButton(tooltip: 'Close', icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
         ]),

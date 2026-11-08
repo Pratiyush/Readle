@@ -47,6 +47,7 @@ class Settings {
     this.theme = ThemeChoice.system,
     this.dailyGoal = 1,
     this.speechRate = 0.9,
+    this.autoPlayWords = true,
   });
 
   final String level; // 'all' or a CEFR level
@@ -54,17 +55,27 @@ class Settings {
   final ThemeChoice theme;
   final int dailyGoal; // stories per day
   final double speechRate; // web units: 0.7 slow, 0.9 normal, 1.05 fast
+  final bool autoPlayWords; // say a word when it is tapped
 
-  Settings copyWith({String? level, double? fontScale, ThemeChoice? theme, int? dailyGoal, double? speechRate}) => Settings(
+  Settings copyWith({String? level, double? fontScale, ThemeChoice? theme, int? dailyGoal, double? speechRate, bool? autoPlayWords}) =>
+      Settings(
         level: level ?? this.level,
         fontScale: fontScale ?? this.fontScale,
         theme: theme ?? this.theme,
         dailyGoal: dailyGoal ?? this.dailyGoal,
         speechRate: speechRate ?? this.speechRate,
+        autoPlayWords: autoPlayWords ?? this.autoPlayWords,
       );
 
   Map<String, Object> toJson() =>
-      {'level': level, 'fontScale': fontScale, 'theme': theme.name, 'dailyGoal': dailyGoal, 'speechRate': speechRate};
+      {
+        'level': level,
+        'fontScale': fontScale,
+        'theme': theme.name,
+        'dailyGoal': dailyGoal,
+        'speechRate': speechRate,
+        'autoPlayWords': autoPlayWords,
+      };
 
   factory Settings.fromJson(Map<String, dynamic> j) {
     const d = Settings();
@@ -74,6 +85,7 @@ class Settings {
       theme: ThemeChoice.values.asNameMap()[j['theme']] ?? d.theme,
       dailyGoal: j['dailyGoal'] as int? ?? d.dailyGoal,
       speechRate: (j['speechRate'] as num?)?.toDouble() ?? d.speechRate,
+      autoPlayWords: j['autoPlayWords'] as bool? ?? d.autoPlayWords,
     );
   }
 }

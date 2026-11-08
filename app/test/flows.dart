@@ -5,13 +5,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:readle/app.dart';
 import 'package:readle/content/content_repository.dart';
 import 'package:readle/services/speech.dart';
+import 'package:readle/services/word_player.dart';
 import 'package:readle/state/app_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Harness {
-  Harness(this.state, this.speech);
+  Harness(this.state, this.speech, this.player);
   final AppState state;
   final RecordingSpeech speech;
+  final RecordingWordPlayer player;
 }
 
 Future<Harness> pumpApp(WidgetTester tester, {bool decodeInIsolate = false}) async {
@@ -27,9 +29,10 @@ Future<Harness> pumpApp(WidgetTester tester, {bool decodeInIsolate = false}) asy
     await content.dictionary();
     await content.story('brot');
   });
-  await tester.pumpWidget(ReadleApp(state: state, content: content, speech: speech));
+  final player = RecordingWordPlayer();
+  await tester.pumpWidget(ReadleApp(state: state, content: content, speech: speech, player: player));
   await tester.pumpAndSettle();
-  return Harness(state, speech);
+  return Harness(state, speech, player);
 }
 
 /// Pump until [finder] matches: on a real device, loading and route transitions take wall time.
@@ -91,6 +94,7 @@ Future<void> tapWordAndSave(WidgetTester tester) async {
   expect(find.byKey(const Key('word-sheet')), findsOneWidget);
   expect(find.text('geben'), findsWidgets);
   expect(find.textContaining('to give'), findsOneWidget);
+  expect(h.player.played, ['assets/content/audio/de.geben.v.mp3'], reason: 'tapping a word plays its recorded clip');
   await tester.tap(find.byKey(const Key('save-word')));
   await tester.pumpAndSettle();
   expect(find.text('✓ Saved to your words'), findsOneWidget);
@@ -100,6 +104,8 @@ Future<void> tapWordAndSave(WidgetTester tester) async {
   await tester.pumpAndSettle();
   await tapWord(tester, 'Deutschland');
   expect(find.textContaining('No dictionary entry'), findsOneWidget);
+  expect(h.player.played, hasLength(1), reason: 'a name has no clip');
+  expect(h.speech.spoken.last, 'Deutschland', reason: 'so the device voice says it');
   await tester.tap(find.byTooltip('Close'));
   await tester.pumpAndSettle();
 

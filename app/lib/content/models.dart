@@ -103,6 +103,7 @@ class DictEntry {
     this.cefr,
     this.exampleDe,
     this.exampleEn,
+    this.audio,
   });
 
   final String headword;
@@ -114,6 +115,9 @@ class DictEntry {
   final String? cefr;
   final String? exampleDe;
   final String? exampleEn;
+
+  /// Recorded pronunciation, relative to the content root (`audio/de.geben.v.mp3`).
+  final String? audio;
 
   /// "das Brot" for nouns, the bare headword otherwise.
   String get display => gender == null ? headword : '$gender $headword';
@@ -129,6 +133,7 @@ class DictEntry {
         cefr: j['cefr'] as String?,
         exampleDe: j['xd'] as String?,
         exampleEn: j['xe'] as String?,
+        audio: j['au'] as String?,
       );
 }
 

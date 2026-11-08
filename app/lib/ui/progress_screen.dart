@@ -157,6 +157,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
               (v) => state.updateSettings(state.settings.copyWith(theme: v)), const Key('theme')),
           setting<double>('Speech speed', state.settings.speechRate, {0.7: 'Slow', 0.9: 'Normal', 1.05: 'Fast'},
               (v) => state.updateSettings(state.settings.copyWith(speechRate: v)), const Key('speech-speed')),
+          SwitchListTile(
+            key: const Key('auto-play'),
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Say words when tapped'),
+            value: state.settings.autoPlayWords,
+            onChanged: (v) => state.updateSettings(state.settings.copyWith(autoPlayWords: v)),
+          ),
           const SizedBox(height: 8),
           OutlinedButton(
             key: const Key('reset'),

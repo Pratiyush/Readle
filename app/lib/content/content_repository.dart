@@ -17,6 +17,9 @@ abstract class ContentRepository {
 
   /// The picture for a library or story `image` path, or null when there is none.
   ImageProvider? image(String? path);
+
+  /// Asset path of the entry's recorded pronunciation, or null (callers fall back to TTS).
+  String? wordAudio(DictEntry? entry);
 }
 
 /// Reads the compiled JSON bundled under `assets/content/` (a symlink to the web app's
@@ -65,4 +68,7 @@ class AssetContentRepository implements ContentRepository {
 
   @override
   ImageProvider? image(String? path) => path == null ? null : AssetImage(base + path, bundle: _bundle);
+
+  @override
+  String? wordAudio(DictEntry? entry) => entry?.audio == null ? null : base + entry!.audio!;
 }

@@ -117,6 +117,7 @@ class _ReaderViewState extends State<_ReaderView> {
   void _toggle(int i) => setState(() => _shown.contains(i) ? _shown.remove(i) : _shown.add(i));
 
   void _openWord(Token t, Sentence s) {
+    if (_playing != null) _stop(); // the word's own audio replaces the story reading
     final key = t.key;
     showWordSheet(
       context,

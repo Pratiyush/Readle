@@ -54,6 +54,15 @@ void main() {
     }
   });
 
+  test('every recorded pronunciation the dictionary names is a bundled asset', () async {
+    final withAudio = dict.values.where((e) => e.audio != null).toList();
+    expect(withAudio.length / dict.length, greaterThan(0.85));
+    for (final e in withAudio) {
+      final path = repo.wordAudio(e)!;
+      expect((await rootBundle.load(path)).lengthInBytes, greaterThan(1000), reason: path);
+    }
+  });
+
   test('a seed reproduces the same quiz', () {
     final a = buildQuiz(stories.first, dict, seed: 'x');
     final b = buildQuiz(stories.first, dict, seed: 'x');

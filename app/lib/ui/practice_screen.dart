@@ -116,7 +116,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
             const SizedBox(height: 12),
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48), shape: const StadiumBorder()),
-              onPressed: () => scope.speech.speak(e?.headword ?? current.word, rate: scope.state.settings.speechRate),
+              onPressed: () => scope.sayWord(e, current.word),
               icon: const Icon(Icons.volume_up_rounded),
               label: const Text('Listen'),
             ),

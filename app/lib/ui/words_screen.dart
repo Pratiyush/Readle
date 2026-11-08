@@ -132,7 +132,7 @@ class _WordRow extends StatelessWidget {
             IconButton(
               tooltip: 'Pronounce ${word.word}',
               icon: const Icon(Icons.volume_up_rounded),
-              onPressed: () => scope.speech.speak(e?.headword ?? word.word, rate: scope.state.settings.speechRate),
+              onPressed: () => scope.sayWord(e, word.word),
             ),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
