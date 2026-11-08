@@ -55,10 +55,13 @@ export function buildQuiz(story: Story, dict: Dictionary, seed = story.id): Ques
   const keys = [...seen.keys()];
   // Rarer words first: a quiz on "und" or "sein" teaches nothing.
   const ranked = shuffle(keys, rand).sort((a, b) => cefrRank(dict[b].cefr) - cefrRank(dict[a].cefr));
-  const pool = Object.values(dict).filter((e) => CONTENT_POS.has(e.p)).map(gloss);
+  const pool = Object.values(dict).filter((e) => CONTENT_POS.has(e.p));
   for (const key of ranked.slice(0, 3)) {
     const e = dict[key];
-    const { options, answer } = withDistractors(gloss(e), [...keys.map((k) => gloss(dict[k])), ...pool.slice(0, 200)], rand);
+    // Distractors share the answer's part of speech: "to eat" next to "das Brot" gives it away.
+    const same = (x: Dictionary[string]) => x.p === e.p;
+    const candidates = [...keys.map((k) => dict[k]).filter(same), ...pool.filter(same).slice(0, 200)].map(gloss);
+    const { options, answer } = withDistractors(gloss(e), candidates, rand);
     if (options.length < 2) continue;
     questions.push({
       kind: "word",

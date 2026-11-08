@@ -42,6 +42,16 @@ describe("content", () => {
     expect(linked / words).toBeGreaterThan(0.95);
   });
 
+  it("word questions offer distractors of the same part of speech", () => {
+    const posOf = new Map<string, Set<string>>();
+    for (const e of Object.values(dict)) posOf.set(e.en[0], (posOf.get(e.en[0]) ?? new Set()).add(e.p));
+    for (const story of stories)
+      for (const q of buildQuiz(story, dict).filter((x) => x.kind === "word")) {
+        const shared = q.options.map((o) => posOf.get(o)!).reduce((a, b) => new Set([...a].filter((p) => b.has(p))));
+        expect(shared.size, `${story.id}: ${q.prompt} → ${q.options.join(" / ")}`).toBeGreaterThan(0);
+      }
+  });
+
   it("every story yields a solvable quiz", () => {
     for (const story of stories) {
       const qs = buildQuiz(story, dict);
