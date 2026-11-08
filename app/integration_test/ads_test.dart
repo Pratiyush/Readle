@@ -16,7 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('the library shows an inline adaptive banner after the 6th story', (tester) async {
+  testWidgets('the library shows a 320×100 banner after the 6th story, at most 120 dp tall', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final state = await AppState.load(await SharedPreferences.getInstance());
     final ads = AdMobAds(policy: InterstitialPolicy(firstSession: false));
