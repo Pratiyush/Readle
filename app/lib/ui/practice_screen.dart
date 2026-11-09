@@ -163,7 +163,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     Expanded(
                       child: FilledButton(
                         key: const Key('didnt-know'),
-                        style: FilledButton.styleFrom(backgroundColor: palette.bad),
+                        style: FilledButton.styleFrom(backgroundColor: palette.bad, foregroundColor: palette.onBad),
                         onPressed: () => _answer(current.key, false),
                         child: const Text("Didn't know"),
                       ),

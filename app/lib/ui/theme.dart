@@ -12,20 +12,27 @@ class Palette extends ThemeExtension<Palette> {
     required this.goodSoft,
     required this.bad,
     required this.badSoft,
+    required this.onBad,
+    required this.danger,
   });
 
-  final Color surface2, muted, line, accentSoft, saved, good, goodSoft, bad, badSoft;
+  /// [bad] is "not quite" (a wrong answer, "Didn't know"): gold, never salmon or coral (owner rule:
+  /// no Claude colours). [danger] is the one deep flag-red, for destructive actions only, always
+  /// as a fill with white text: a red light enough to read as text on dark is pink.
+  final Color surface2, muted, line, accentSoft, saved, good, goodSoft, bad, badSoft, onBad, danger;
 
   static const light = Palette(
-    surface2: Color(0xFFF2EDE4),
+    surface2: Color(0xFFF0F4F2),
     muted: Color(0xFF6B6F76),
-    line: Color(0xFFE6E0D6),
+    line: Color(0xFFDCE4E1),
     accentSoft: Color(0xFFD8EFEC),
     saved: Color(0xFFFFF1BF),
     good: Color(0xFF15803D),
     goodSoft: Color(0xFFDCFCE7),
-    bad: Color(0xFFB91C1C),
-    badSoft: Color(0xFFFEE2E2),
+    bad: Color(0xFF7A5B00),
+    badSoft: Color(0xFFFEF3C7),
+    onBad: Colors.white,
+    danger: Color(0xFFB91C1C),
   );
 
   static const dark = Palette(
@@ -36,8 +43,10 @@ class Palette extends ThemeExtension<Palette> {
     saved: Color(0xFF4A3D12),
     good: Color(0xFF4ADE80),
     goodSoft: Color(0xFF14321F),
-    bad: Color(0xFFF87171),
-    badSoft: Color(0xFF3B1717),
+    bad: Color(0xFFFACC15),
+    badSoft: Color(0xFF3B2F04),
+    onBad: Color(0xFF1F1A03),
+    danger: Color(0xFFB91C1C),
   );
 
   static Palette of(BuildContext context) => Theme.of(context).extension<Palette>()!;
@@ -54,7 +63,7 @@ const levelColors = {
   'A2': Color(0xFF0F766E),
   'B1': Color(0xFF2563EB),
   'B2': Color(0xFF7C3AED),
-  'C1': Color(0xFFB45309),
+  'C1': Color(0xFF475569),
 };
 
 /// The story text face: a book serif where the platform has one.
@@ -69,16 +78,19 @@ ThemeData buildTheme(Brightness b) {
     onPrimary: dark ? const Color(0xFF0B1F1D) : Colors.white,
     surface: dark ? const Color(0xFF1D2125) : Colors.white,
     onSurface: dark ? const Color(0xFFE9E6E1) : const Color(0xFF1F2328),
+    // Material's default error colours are pinks and salmons: pin the one flag-red in both themes,
+    // and give error containers a neutral panel with red text.
+    error: const Color(0xFFB91C1C),
+    onError: Colors.white,
+    errorContainer: dark ? const Color(0xFF262B30) : const Color(0xFFF0F4F2),
+    onErrorContainer: dark ? Colors.white : const Color(0xFFB91C1C),
   );
+  const paper = Color(0xFFF6F8F7); // faint teal-grey, not Claude's cream
   return ThemeData(
     colorScheme: scheme,
-    scaffoldBackgroundColor: dark ? const Color(0xFF14171A) : const Color(0xFFFBF8F3),
+    scaffoldBackgroundColor: dark ? const Color(0xFF14171A) : paper,
     extensions: [dark ? Palette.dark : Palette.light],
-    appBarTheme: AppBarTheme(
-      backgroundColor: dark ? const Color(0xFF14171A) : const Color(0xFFFBF8F3),
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-    ),
+    appBarTheme: AppBarTheme(backgroundColor: dark ? const Color(0xFF14171A) : paper, surfaceTintColor: Colors.transparent, elevation: 0),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         minimumSize: const Size.fromHeight(48),
@@ -86,6 +98,8 @@ ThemeData buildTheme(Brightness b) {
         textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
       ),
     ),
+    // The due-words badge is news, not an error: accent, not red.
+    badgeTheme: BadgeThemeData(backgroundColor: accent, textColor: scheme.onPrimary),
     cardTheme: CardThemeData(
       color: scheme.surface,
       elevation: 0,

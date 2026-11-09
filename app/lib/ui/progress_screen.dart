@@ -287,13 +287,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
               onTap: () => showLicensePage(context: context, applicationName: 'Readle'),
             ),
             const SizedBox(height: 8),
-            OutlinedButton(
+            FilledButton(
               key: const Key('reset'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(48),
-                shape: const StadiumBorder(),
-                foregroundColor: palette.bad,
-              ),
+              style: FilledButton.styleFrom(backgroundColor: palette.danger, foregroundColor: Colors.white),
               onPressed: () async {
                 final ok = await showDialog<bool>(
                   context: context,
