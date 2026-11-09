@@ -14,3 +14,10 @@ Uri? legalPage(String page, {String slug = legalSlug}) => slug.isEmpty ? null : 
 /// Readle's Play listing, for "Update app" when the content CDN needs a newer client. iOS shows the
 /// message without a link until the App Store record exists (Apple enrolment: January 2027).
 const playStoreUrl = 'https://play.google.com/store/apps/details?id=com.pratiyush.readle';
+
+/// Where "Contact support" writes to (the owner's privacy and support contact, per the hub).
+const supportEmail = 'pratiyush1@gmail.com';
+
+/// A mail to support with the app version in the subject. Built by hand: Uri.queryParameters would
+/// turn the spaces into plus signs, which mail apps show as they are.
+Uri supportMail(String version) => Uri.parse('mailto:$supportEmail?subject=${Uri.encodeComponent('Readle $version')}');

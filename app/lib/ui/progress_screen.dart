@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
@@ -18,6 +19,16 @@ class ProgressScreen extends StatefulWidget {
 }
 
 class _ProgressScreenState extends State<ProgressScreen> {
+  String? _version; // "0.1.0 (7)": shown in Settings and put in the support mail's subject
+
+  @override
+  void initState() {
+    super.initState();
+    PackageInfo.fromPlatform().then((i) {
+      if (mounted) setState(() => _version = '${i.version} (${i.buildNumber})');
+    }, onError: (Object _) {});
+  }
+
   late Future<List<StoryMeta>> _library;
 
   @override
@@ -331,7 +342,21 @@ class _ProgressScreenState extends State<ProgressScreen> {
               contentPadding: EdgeInsets.zero,
               title: const Text('Licences'),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => showLicensePage(context: context, applicationName: 'Readle'),
+              onTap: () => showLicensePage(context: context, applicationName: 'Readle', applicationVersion: _version),
+            ),
+            ListTile(
+              key: const Key('support'),
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Contact support'),
+              subtitle: const Text(supportEmail),
+              trailing: const Icon(Icons.mail_outline),
+              onTap: () => launchUrl(supportMail(_version ?? '')),
+            ),
+            ListTile(
+              key: const Key('version'),
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Version'),
+              trailing: Text(_version ?? '…'),
             ),
             const SizedBox(height: 8),
             FilledButton(
