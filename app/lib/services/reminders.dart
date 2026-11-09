@@ -91,7 +91,7 @@ class LocalReminders implements Reminders {
         id: _firstId + i,
         scheduledDate: tz.TZDateTime.from(t.toUtc(), tz.UTC),
         title: 'Zeit für eine Geschichte',
-        body: 'A short German story is waiting. About three minutes.',
+        body: 'A short German story is waiting.', // fits the collapsed lock-screen card (device pass, 9 Nov)
         notificationDetails: _details,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       );

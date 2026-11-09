@@ -3,6 +3,33 @@
 One entry per loop of the hub's standing order (`German/docs/better-loop.md`):
 measure → the 3 highest-value fixes → build → prove on a device → record. Newest first.
 
+## Loop 4 (2026-11-09): a daily reminder that stays gentle, new stories on Wi-Fi
+
+Daily habit was the better-loop step left open: a learner needs a reason to come back tomorrow, and
+a reminder is the standard one. Gentle by design: nothing until the learner turns it on, one a day,
+none once they have read or practised that day, and quiet after a week away. Proof device: private
+sandbox emulator `claude-readle` (API 35, CET clock), debug and release builds, deleted after; heavy
+lock held 15:37–15:57.
+
+| # | Area (loop step) | Before | After | Proof |
+|---|---|---|---|---|
+| 1 | Daily habit | No reason to return but the streak | **Settings → Daily reminder** (off by default; permission asked only when turned on; time picker, 19:00 default). Seven one-shot reminders kept in step with the state (`DailyReminder`), today's skipped once you read or practise | `reminder_test` (DST 23 h / 25 h, spring-forward gap, 23:59 → 00:00, year end, leap day, bad stored times), flow 12; device: "Don't allow" → switch stays off with the hint, second ask → Allow → `dumpsys alarm` shows 9–15 Nov 19:00; time set to 15:49 → posted **15:49:04** with the screen locked, shown on the [lock screen](better-log/loop4-android-lockscreen-reminder.jpg) (public visibility, book icon), tap → unlock → Readle opens, next reminder tomorrow |
+| 2 | Release safety | — | R8 keeps the plugin (Gson) and the icon resource (`res/raw/keep.xml`) | Release APK on the same emulator: time set → seven alarms → posted 15:57:21 (inexact), icon resolved, no crash |
+| 3 | Feel: listening | Unknown whether "Listen from here" survives a screen lock | It does: reading continues with the screen off and the reader is idle and correct on unlock | Device: progress 2 → 3 → 6 → 7 over 25 s locked, German voice (de-DE) utterances completing; on unlock "Listen" (not Stop), no Flutter errors |
+| 4 | Notifications blocked later | The switch would say on while nothing arrives | Settings re-checks on open / resume and offers "Notifications are off for Readle" → system page | `reminder_test` |
+| 5 | Content client (flag off) | Updates only on a tap; "app too old" was text only | Opt-in **Download new stories on Wi-Fi** (never on mobile data; failure keeps the offer); "Update app" → Play listing | `content_client_test` Wi-Fi group, flows 13–14 |
+| 6 | Gate | — | Settings shows the version; **Contact support** mails the owner with the version in the subject | `legal_test` |
+
+**Found on the device:** the body "…About three minutes." was cut off on the collapsed lock-screen
+card, and not every story is three minutes; it now reads "A short German story is waiting." (the
+screenshot shows the old text). **Bug found by the work:** BUG-40 (a failed asset load raised a
+second, uncaught error), fixed test-first.
+
+**Tests:** Flutter 117 headless (+1 live), Vitest 52, Playwright 60; fast gate 76 s at load ~55.
+
+**Next:** frame timing in profile mode; for further reminder checks, a test-only hook or a moved
+emulator clock rather than waiting on the real one (hub, 9 Nov).
+
 ## Loop 3 (2026-11-09, overnight): every open bug, the first launch, a safe content client
 
 The hub's order: fix the open bugs by severity (code-only first while the heavy lock is busy), a
