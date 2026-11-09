@@ -3,10 +3,13 @@
 // the DST cases below are real clock changes.
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:readle/services/reminders.dart';
 import 'package:readle/state/app_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'flows.dart';
 
 String fmt(DateTime t) =>
     '${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')} '
@@ -87,6 +90,29 @@ void main() {
       );
       expect((s.reminder, s.reminderMinutes), (true, 450));
     });
+  });
+
+  testWidgets('on, but notifications blocked later in system settings: Settings says so and opens them', (tester) async {
+    tester.view.physicalSize = const Size(1125, 2436);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final h = await pumpApp(tester);
+    h.state.updateSettings(h.state.settings.copyWith(reminder: true));
+    h.reminders.granted = false; // the learner switched Readle's notifications off since
+    await tester.tap(find.byKey(const Key('tab-progress')));
+    await tester.pumpAndSettle();
+    final blocked = find.byKey(const Key('reminder-blocked'));
+    await reveal(tester, blocked, const Key('progress-list'));
+    await tester.tap(blocked);
+    await tester.pumpAndSettle();
+    expect(h.reminders.settingsOpened, 1);
+
+    h.reminders.granted = true; // allowed again; back in the app
+    await tester.tap(find.byKey(const Key('tab-stories')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('tab-progress')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('reminder-blocked'), skipOffstage: false), findsNothing);
   });
 
   group('DailyReminder', () {

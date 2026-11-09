@@ -35,6 +35,12 @@ abstract interface class Reminders {
   Future<void> schedule(List<DateTime> at);
 
   Future<void> cancelAll();
+
+  /// Whether the system lets the app show notifications now (the learner can block them later).
+  Future<bool> enabled();
+
+  /// The system's notification settings for the app.
+  Future<void> openSettings();
 }
 
 /// Notifications through flutter_local_notifications. One-shot, inexact (no exact-alarm
@@ -97,6 +103,21 @@ class LocalReminders implements Reminders {
     await _ready();
     await _plugin.cancelAll();
   }
+
+  @override
+  Future<bool> enabled() async {
+    await _ready();
+    final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (android != null) return await android.areNotificationsEnabled() ?? false;
+    final ios = _plugin.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>();
+    return (await ios?.checkPermissions())?.isEnabled ?? false;
+  }
+
+  @override
+  Future<void> openSettings() async {
+    await _ready();
+    await _plugin.openAppNotificationSettings();
+  }
 }
 
 /// Records what would be scheduled. Used by tests and the on-device flows.
@@ -105,7 +126,7 @@ class RecordingReminders implements Reminders {
 
   bool granted;
   List<DateTime> pending = [];
-  int permissionAsks = 0, schedules = 0, cancels = 0;
+  int permissionAsks = 0, schedules = 0, cancels = 0, settingsOpened = 0;
 
   @override
   Future<bool> requestPermission() async {
@@ -124,6 +145,12 @@ class RecordingReminders implements Reminders {
     cancels++;
     pending = [];
   }
+
+  @override
+  Future<bool> enabled() async => granted;
+
+  @override
+  Future<void> openSettings() async => settingsOpened++;
 }
 
 /// Keeps the pending reminders in step with [AppState]: on/off, the time, and whether the learner

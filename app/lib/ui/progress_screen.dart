@@ -12,7 +12,11 @@ import 'app_scope.dart';
 import 'theme.dart';
 
 class ProgressScreen extends StatefulWidget {
-  const ProgressScreen({super.key});
+  const ProgressScreen({super.key, this.visible = true});
+
+  /// The tab is on screen. Settings checks the notification permission each time it shows (and
+  /// when the app comes back), since the learner can block notifications in system settings.
+  final bool visible;
 
   @override
   State<ProgressScreen> createState() => _ProgressScreenState();
@@ -21,9 +25,34 @@ class ProgressScreen extends StatefulWidget {
 class _ProgressScreenState extends State<ProgressScreen> {
   String? _version; // "0.1.0 (7)": shown in Settings and put in the support mail's subject
 
+  bool _notificationsBlocked = false; // the reminder is on, but the system won't show it
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void didUpdateWidget(ProgressScreen old) {
+    super.didUpdateWidget(old);
+    if (widget.visible && !old.visible) _checkNotifications();
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkNotifications() async {
+    if (!mounted || !widget.visible) return;
+    final scope = AppScope.read(context);
+    final reminders = scope.reminders;
+    final blocked = reminders != null && scope.state.settings.reminder && !await reminders.enabled();
+    if (mounted && blocked != _notificationsBlocked) setState(() => _notificationsBlocked = blocked);
+  }
+
   @override
   void initState() {
     super.initState();
+    _lifecycle = AppLifecycleListener(onResume: _checkNotifications);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkNotifications());
     PackageInfo.fromPlatform().then((i) {
       if (mounted) setState(() => _version = '${i.version} (${i.buildNumber})');
     }, onError: (Object _) {});
@@ -300,8 +329,18 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     return;
                   }
                   state.updateSettings(state.settings.copyWith(reminder: on));
+                  if (on) setState(() => _notificationsBlocked = false); // just allowed
                 },
               ),
+              if (state.settings.reminder && _notificationsBlocked)
+                ListTile(
+                  key: const Key('reminder-blocked'),
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.notifications_off_outlined),
+                  title: const Text('Notifications are off for Readle'),
+                  subtitle: const Text('The reminder can\'t show. Tap to allow notifications.'),
+                  onTap: reminders.openSettings,
+                ),
               if (state.settings.reminder)
                 ListTile(
                   key: const Key('reminder-time'),

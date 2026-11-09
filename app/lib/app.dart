@@ -92,7 +92,14 @@ class _ShellState extends State<Shell> {
   Widget build(BuildContext context) {
     final due = AppScope.of(context).state.dueCount;
     return Scaffold(
-      body: IndexedStack(index: _tab, children: const [LibraryScreen(), WordsScreen(), ProgressScreen()]),
+      body: IndexedStack(
+        index: _tab,
+        children: [
+          const LibraryScreen(),
+          const WordsScreen(),
+          ProgressScreen(visible: _tab == 2),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
