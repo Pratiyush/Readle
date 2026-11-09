@@ -18,7 +18,7 @@ void main() {
 
   testWidgets('the library shows a 320×100 banner after the 6th story, at most 120 dp tall', (tester) async {
     SharedPreferences.setMockInitialValues({});
-    final state = await AppState.load(await SharedPreferences.getInstance());
+    final state = await AppState.load(await SharedPreferences.getInstance())..onboarded = true;
     final ads = AdMobAds(policy: InterstitialPolicy(firstSession: false));
     await tester.pumpWidget(ReadleApp(
         state: state, content: AssetContentRepository(), speech: RecordingSpeech(), player: RecordingWordPlayer(), ads: ads));

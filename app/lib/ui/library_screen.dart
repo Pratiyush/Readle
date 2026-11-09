@@ -13,11 +13,16 @@ import 'whole_words_text.dart';
 
 const collections = {'all': 'All', 'fiction': 'Fiction', 'culture': 'Culture', 'facts': 'Facts'};
 
-/// Same pick all day: a story of the chosen level, preferring unread ones.
+/// Same pick all day, preferring unread stories. "All levels" goes in sequence, A1 → B2: the pick
+/// comes from the lowest level that still has unread stories, so a beginner isn't handed B2 on day one.
 StoryMeta? storyOfTheDay(List<StoryMeta> stories, String level, Map<String, String> read, String today) {
   final pool = stories.where((s) => level == 'all' || s.level == level).toList();
   if (pool.isEmpty) return null;
-  final unread = pool.where((s) => !read.containsKey(s.id)).toList();
+  var unread = pool.where((s) => !read.containsKey(s.id)).toList();
+  if (level == 'all') {
+    final next = levels.where((l) => unread.any((s) => s.level == l)).firstOrNull;
+    if (next != null) unread = unread.where((s) => s.level == next).toList();
+  }
   final from = unread.isEmpty ? pool : unread;
   return from[Random(seedOf(today)).nextInt(from.length)];
 }

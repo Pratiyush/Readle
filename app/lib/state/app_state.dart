@@ -108,6 +108,7 @@ class AppState extends ChangeNotifier {
   Settings settings = const Settings();
   String? lastStory; // the story opened most recently, for "Continue reading"
   bool wordTipSeen = false; // the first-run "tap any word" cue has done its job
+  bool onboarded = false; // the first-launch level question is answered
 
   String get today => _today();
 
@@ -135,6 +136,8 @@ class AppState extends ChangeNotifier {
     settings = Settings.fromJson(j['settings'] as Map<String, dynamic>? ?? {});
     lastStory = j['lastStory'] as String?;
     wordTipSeen = j['wordTipSeen'] as bool? ?? false;
+    // Installs from before the level question have already been using the app.
+    onboarded = j['onboarded'] as bool? ?? true;
   }
 
   Map<String, Object> toJson() => {
@@ -147,6 +150,7 @@ class AppState extends ChangeNotifier {
         'settings': settings.toJson(),
         'lastStory': ?lastStory,
         'wordTipSeen': wordTipSeen,
+        'onboarded': onboarded,
       };
 
   void _commit() {
@@ -219,6 +223,13 @@ class AppState extends ChangeNotifier {
     if (w == null) return;
     words = {...words, key: w.withCard(w.card.review(correct: correct, today: today))};
     _markActive();
+    _commit();
+  }
+
+  /// The first-launch answer: a CEFR level, or 'all' for every level in sequence.
+  void finishOnboarding(String level) {
+    settings = settings.copyWith(level: level);
+    onboarded = true;
     _commit();
   }
 

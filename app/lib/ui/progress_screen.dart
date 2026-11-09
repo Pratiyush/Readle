@@ -173,7 +173,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
         panel([
           const Text('Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
           setting<String>('Story level', state.settings.level,
-              {'all': 'All levels', 'A1': 'A1 · beginner', 'A2': 'A2 · elementary', 'B1': 'B1 · intermediate', 'B2': 'B2 · upper intermediate'},
+              {'all': 'All levels, A1 → B2', 'A1': 'A1 · beginner', 'A2': 'A2 · elementary', 'B1': 'B1 · intermediate', 'B2': 'B2 · upper intermediate'},
               (v) => state.updateSettings(state.settings.copyWith(level: v)), const Key('story-level')),
           setting<int>('Daily goal', goal, {1: '1 story', 2: '2 stories', 3: '3 stories', 5: '5 stories'},
               (v) => state.updateSettings(state.settings.copyWith(dailyGoal: v)), const Key('daily-goal')),

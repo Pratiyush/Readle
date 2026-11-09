@@ -25,11 +25,12 @@ class Harness {
   final RecordingWordPlayer player;
 }
 
-Future<Harness> pumpApp(WidgetTester tester, {bool decodeInIsolate = false}) async {
+Future<Harness> pumpApp(WidgetTester tester, {bool decodeInIsolate = false, bool onboarded = true}) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   await prefs.clear();
-  final state = await AppState.load(prefs);
+  // Every flow but the onboarding one starts past the first-launch level question.
+  final state = await AppState.load(prefs)..onboarded = onboarded;
   final speech = RecordingSpeech(duration: const Duration(milliseconds: 120));
   final content = AssetContentRepository(decodeInIsolate: decodeInIsolate);
   // Load the content for real before the app's first frame (assets are real I/O).
@@ -270,7 +271,7 @@ Future<void> contentUpdate(WidgetTester tester) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   await prefs.clear();
-  final state = await AppState.load(prefs);
+  final state = await AppState.load(prefs)..onboarded = true;
   late Directory root;
   late ContentClient updates;
   late LayeredContentRepository content;
@@ -339,7 +340,35 @@ Future<void> listenFromHere(WidgetTester tester) async {
 }
 
 /// Every flow, by name, for both runners.
+/// First launch: the level question. "Not sure? Start at A1" is every level in order, so the story
+/// of the day is an A1 story; picking a level shows that level's stories.
+Future<void> onboarding(WidgetTester tester) async {
+  var h = await pumpApp(tester, onboarded: false);
+  await waitFor(tester, find.byKey(const Key('onboarding')));
+  expect(find.byKey(const Key('tab-stories')), findsNothing, reason: 'the question comes before the app');
+  final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+  for (final key in ['onboard-A1', 'onboard-B2', 'onboard-not-sure']) {
+    expect(tester.getRect(find.byKey(Key(key))).bottom, lessThanOrEqualTo(screen.height), reason: '$key on screen without scrolling');
+  }
+  await tester.tap(find.byKey(const Key('onboard-not-sure')));
+  await tester.pumpAndSettle();
+  final daily = find.byKey(const Key('daily'));
+  await waitFor(tester, daily);
+  expect(h.state.onboarded, isTrue);
+  expect(h.state.settings.level, 'all');
+  expect(find.descendant(of: daily, matching: find.text('A1')), findsOneWidget, reason: 'all levels start at A1');
+
+  h = await pumpApp(tester, onboarded: false);
+  await waitFor(tester, find.byKey(const Key('onboard-B1')));
+  await tester.tap(find.byKey(const Key('onboard-B1')));
+  await tester.pumpAndSettle();
+  await waitFor(tester, daily);
+  expect(h.state.settings.level, 'B1');
+  expect(find.descendant(of: daily, matching: find.text('B1')), findsOneWidget);
+}
+
 final flows = <String, Future<void> Function(WidgetTester)>{
+  'first launch: pick a level, or not sure → start at A1': onboarding,
   'library search and story of the day': libraryFilters,
   'tap a word, save it, translations, names unglossed': tapWordAndSave,
   'listening reads every sentence and stops on leave': listenThenLeave,

@@ -8,6 +8,7 @@ import 'services/word_player.dart';
 import 'state/app_state.dart';
 import 'ui/app_scope.dart';
 import 'ui/library_screen.dart';
+import 'ui/onboarding_screen.dart';
 import 'ui/progress_screen.dart';
 import 'ui/theme.dart';
 import 'ui/words_screen.dart';
@@ -49,11 +50,19 @@ class ReadleApp extends StatelessWidget {
           // System text up to 200 % (WCAG 1.4.4). iOS accessibility sizes reach about 310 %, which
           // splits headings mid-word and clips cards; the story text has its own size on top.
           builder: (context, child) => MediaQuery.withClampedTextScaling(maxScaleFactor: maxTextScale, child: child!),
-          home: const Shell(),
+          home: const _Root(),
         ),
       ),
     );
   }
+}
+
+/// The level question on first launch, then the app.
+class _Root extends StatelessWidget {
+  const _Root();
+
+  @override
+  Widget build(BuildContext context) => AppScope.of(context).state.onboarded ? const Shell() : const OnboardingScreen();
 }
 
 /// Three tabs in an IndexedStack, so each keeps its scroll position and filters while you read.

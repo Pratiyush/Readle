@@ -72,4 +72,22 @@ void main() {
     s.reset();
     expect(s.quiz, isEmpty);
   });
+
+  group('first-launch level question', () {
+    test('a fresh install asks; an install from before the question does not', () async {
+      expect((await fresh()).onboarded, isFalse);
+      final old = await fresh({'readle.state.v1': jsonEncode({'version': 1, 'settings': {'level': 'A2'}})});
+      expect(old.onboarded, isTrue);
+      expect(old.settings.level, 'A2');
+    });
+
+    test('the answer sets the story level and is remembered', () async {
+      final s = await fresh();
+      s.finishOnboarding('B1');
+      expect(s.settings.level, 'B1');
+      final again = await AppState.load(await SharedPreferences.getInstance(), today: () => today);
+      expect(again.onboarded, isTrue);
+      expect(again.settings.level, 'B1');
+    });
+  });
 }

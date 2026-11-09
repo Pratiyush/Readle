@@ -109,4 +109,25 @@ void main() {
     final heading = tester.getSize(find.byKey(const Key('library-heading')));
     expect(heading.height, lessThan(28 * maxTextScale * 1.6), reason: '"Stories" on one line, not split mid-word');
   });
+
+  testWidgets('first launch at 320×640 and 200 % text, dark: lays out, "Not sure?" on screen, guidelines met', (tester) async {
+    tester.view.physicalSize = const Size(640, 1280);
+    tester.view.devicePixelRatio = 2;
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+    addTearDown(() {
+      tester.view.reset();
+      tester.platformDispatcher.clearTextScaleFactorTestValue();
+      tester.platformDispatcher.clearPlatformBrightnessTestValue();
+    });
+    final handle = tester.ensureSemantics();
+    await pumpApp(tester, onboarded: false);
+    await waitFor(tester, find.byKey(const Key('onboarding')));
+    expect(tester.takeException(), isNull);
+    expect(tester.getRect(find.byKey(const Key('onboard-not-sure'))).bottom, lessThanOrEqualTo(640));
+    await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(labeledTapTargetGuideline));
+    await expectLater(tester, meetsGuideline(textContrastGuideline));
+    handle.dispose();
+  });
 }
