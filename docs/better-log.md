@@ -13,12 +13,20 @@ a `CONTENT_CDN_ENABLED` flag that defaults off.
 |---|---|---|---|---|
 | 1 | Open bugs (web) | 9 low web bugs open: Listen without a German voice, no PNG icons, notch, no saved position, practice blanking, praise at 20 %, sheet not modal, hidden chip, two tabs overwrite | All 9 fixed (`bf08376`); only BUG-26 (130 clips, Lernle's pipeline) stays open | Playwright 54 green (was 40), Vitest 39: one test per bug |
 | 2 | Web parity | Continue reading and the first-run tip were app-only | Both on the web, plus "Listen from here" | `e2e/reading.spec.ts`; [tip](better-log/loop3-web-tip.png), [continue card](better-log/loop3-web-continue.png) at 375 px |
-| 3 | First 5 minutes: level | The app opened on a random story of all levels; "All levels" could hand a beginner B2 on day one | First launch asks once: A1–B2, or a pinned **"Not sure? Start at A1"** (every level in order, as in Tobo). "All levels, A1 → B2" now goes in sequence: the story of the day comes from the lowest level with unread stories | Onboarding flow (headless; device pending), sequence unit tests in both apps, 320×640 at 200 % dark: guidelines met. The first build put "Not sure?" below the fold on a 375×812 phone (BUG-32); the flow's on-screen assertion caught it |
+| 3 | First 5 minutes: level | The app opened on a random story of all levels; "All levels" could hand a beginner B2 on day one | First launch asks once: A1–B2, or a pinned **"Not sure? Start at A1"** (every level in order, as in Tobo). "All levels, A1 → B2" now goes in sequence: the story of the day comes from the lowest level with unread stories | Onboarding flow (headless + Android device), sequence unit tests in both apps, 320×640 at 200 % dark: guidelines met. The first build put "Not sure?" below the fold on a 375×812 phone (BUG-32); the flow's on-screen assertion caught it |
 | 4 | Content client | Always on; any manifest path was followed, slugs became file names unchecked | Behind `CONTENT_CDN_ENABLED` (default off: no request, no Settings check). Paths must stay on the CDN host, hashes must be sha256, slugs `[a-z0-9-]`, release fetches HTTPS only (BUG-33, BUG-34) | Unit tests: off-host manifest makes no request, traversal slug writes nothing. Live smoke test: A1 images, 6,000+ clip paths, every slug pass |
 
 **Tests:** Flutter 69 headless green + 1 live test (skipped by default), `flutter analyze` clean;
-Playwright 54, Vitest 39. **Devices:** the heavy lock was held all night by other sessions'
-renders and device runs, so the Android pass waits for it.
+Playwright 54, Vitest 39.
+
+**Android device pass (the one loop 2 couldn't finish), sandbox emulator under host load 20–47
+and swap 50/51 GB: all 11 flows green**, in two runs. The first stopped after 7 when the host ran
+out of memory; a retry recorded logcat and showed only the emulator's low-memory killer clearing
+system processes, no Readle crash. **The banner with Google test ads passed.** A cold start in
+dark mode, font scale 2.0 and airplane mode launched in 3.4 s, offline:
+[onboarding](better-log/loop3-android-onboarding-dark-font2-offline.jpg) with "Not sure?" pinned
+on screen, then the [library](better-log/loop3-android-library-dark-font2-offline.jpg) with an A1
+story of the day after tapping it.
 
 ## Loop 2 (2026-11-08): test hard, then new stories from the CDN
 
