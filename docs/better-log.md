@@ -3,6 +3,23 @@
 One entry per loop of the hub's standing order (`German/docs/better-loop.md`):
 measure → the 3 highest-value fixes → build → prove on a device → record. Newest first.
 
+## Loop 3 (2026-11-09, overnight): every open bug, the first launch, a safe content client
+
+The hub's order: fix the open bugs by severity (code-only first while the heavy lock is busy), a
+level setting with onboarding, the Android pass when the lock frees, and the content client behind
+a `CONTENT_CDN_ENABLED` flag that defaults off.
+
+| # | Area (loop step) | Before | After | Proof |
+|---|---|---|---|---|
+| 1 | Open bugs (web) | 9 low web bugs open: Listen without a German voice, no PNG icons, notch, no saved position, practice blanking, praise at 20 %, sheet not modal, hidden chip, two tabs overwrite | All 9 fixed (`bf08376`); only BUG-26 (130 clips, Lernle's pipeline) stays open | Playwright 54 green (was 40), Vitest 39: one test per bug |
+| 2 | Web parity | Continue reading and the first-run tip were app-only | Both on the web, plus "Listen from here" | `e2e/reading.spec.ts`; [tip](better-log/loop3-web-tip.png), [continue card](better-log/loop3-web-continue.png) at 375 px |
+| 3 | First 5 minutes: level | The app opened on a random story of all levels; "All levels" could hand a beginner B2 on day one | First launch asks once: A1–B2, or a pinned **"Not sure? Start at A1"** (every level in order, as in Tobo). "All levels, A1 → B2" now goes in sequence: the story of the day comes from the lowest level with unread stories | Onboarding flow (headless; device pending), sequence unit tests in both apps, 320×640 at 200 % dark: guidelines met. The first build put "Not sure?" below the fold on a 375×812 phone (BUG-32); the flow's on-screen assertion caught it |
+| 4 | Content client | Always on; any manifest path was followed, slugs became file names unchecked | Behind `CONTENT_CDN_ENABLED` (default off: no request, no Settings check). Paths must stay on the CDN host, hashes must be sha256, slugs `[a-z0-9-]`, release fetches HTTPS only (BUG-33, BUG-34) | Unit tests: off-host manifest makes no request, traversal slug writes nothing. Live smoke test: A1 images, 6,000+ clip paths, every slug pass |
+
+**Tests:** Flutter 69 headless green + 1 live test (skipped by default), `flutter analyze` clean;
+Playwright 54, Vitest 39. **Devices:** the heavy lock was held all night by other sessions'
+renders and device runs, so the Android pass waits for it.
+
 ## Loop 2 (2026-11-08): test hard, then new stories from the CDN
 
 The hub's order for this loop: test hard first (first run, a whole story, tap-to-translate with
