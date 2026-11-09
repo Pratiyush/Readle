@@ -1,6 +1,7 @@
-# The Flutter app (app/): static analysis and headless tests on every push, plus the same
-# end-to-end flows (app/test/flows.dart) on an Android emulator and an iOS simulator.
-name: App
+# Device tier (German/docs/e2e-standard.md): the end-to-end flows (app/test/flows.dart) on an
+# Android emulator and an iOS simulator when the app changes. The fast gate (format, analyze,
+# headless tests) runs on every push in verify.yml.
+name: App devices
 
 on:
   push:
@@ -13,23 +14,7 @@ env:
   FLUTTER_VERSION: "3.47.1"
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          cache: true
-      - run: flutter pub get
-      - run: flutter analyze
-      - run: flutter test
-
   android-device:
-    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -60,7 +45,6 @@ jobs:
           script: flutter test integration_test -d emulator-5554
 
   ios-device:
-    needs: test
     runs-on: macos-latest
     timeout-minutes: 45
     defaults:

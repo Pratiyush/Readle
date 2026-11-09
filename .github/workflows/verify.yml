@@ -1,0 +1,65 @@
+# The fast gate (tools/verify.sh, German/docs/e2e-standard.md) on every push and pull request,
+# whatever the branch is called: the app half and the web half in parallel, exactly as run locally.
+# Deploying the web app to GitHub Pages is opt-in: it needs Pages enabled (source "GitHub
+# Actions") and the repository variable DEPLOY_PAGES=true, and only happens for pushes to the
+# default branch, after both halves pass. Device runs live in app.yml (the device tier).
+name: Verify
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  FLUTTER_VERSION: "3.47.1"
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - run: tools/verify.sh app
+
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: tools/verify.sh web
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch && vars.DEPLOY_PAGES == 'true'
+        with:
+          path: dist
+
+  deploy:
+    if: github.event_name == 'push' && github.ref_name == github.event.repository.default_branch && vars.DEPLOY_PAGES == 'true'
+    needs: [app, web]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
