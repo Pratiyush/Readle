@@ -91,6 +91,7 @@ Web (`e2e/*.spec.ts`): library, reader, reading (Continue reading, tip, Listen f
 | Two tabs at once | N/A | ✓ `store.test` (BUG-21) |
 | Rotation, backgrounding during audio/ads | Device tier only (not automated yet) | N/A |
 | Off by default: no notification call, no permission prompt at launch | ✓ `reminder_test`, flow 12 | N/A |
+| Reminder on, notifications blocked later in system settings | ✓ `reminder_test` (Settings says so, opens the system page; gone once allowed) | N/A |
 | Reminder from the lock screen; reading on through a screen lock | Device tier, by hand (`docs/better-log.md`) | N/A |
 
 ### Network / CDN
