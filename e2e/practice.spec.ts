@@ -12,8 +12,11 @@ test("finish a story, take the quiz, see progress", async ({ page }) => {
     await expect(page.locator(".option.right")).toHaveCount(1);
     await page.locator(".feedback .btn").click();
   }
-  await expect(page.getByRole("heading", { name: "Gut gemacht!" })).toBeVisible();
+  // The praise follows the score (BUG-18): the first option is right only some of the time.
   await expect(page.locator(".stat b").first()).toHaveText(/^\d+%$/);
+  const pct = parseInt((await page.locator(".stat b").first().textContent())!, 10);
+  const headline = pct >= 80 ? "Gut gemacht!" : pct >= 50 ? "Nicht schlecht!" : "Weiter so!";
+  await expect(page.getByRole("heading", { name: headline })).toBeVisible();
   await page.getByRole("link", { name: "Next story" }).click();
   await expect(page.locator(".story-card", { hasText: "Brot ist hier wichtig" })).toContainText("✓ Read");
   await expect(page.locator(".streak-pill")).toContainText("1");

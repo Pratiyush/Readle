@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { actions, useStore } from "../lib/store";
 import { playWord, stopWord } from "../lib/wordAudio";
 import type { DictEntry } from "../lib/types";
@@ -36,8 +36,30 @@ export function WordSheet({ picked, entry, storyId, onClose }: { picked: Picked;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [picked]);
 
+  // A modal dialog: focus moves in, Tab stays inside, Escape closes, and focus goes back to the
+  // word that opened it.
+  const sheet = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const opener = document.activeElement as HTMLElement | null;
+    sheet.current?.querySelector<HTMLElement>("button")?.focus();
+    return () => opener?.focus?.();
+  }, []);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") return onClose();
+      if (e.key !== "Tab" || !sheet.current) return;
+      const items = [...sheet.current.querySelectorAll<HTMLElement>("button, a[href]")];
+      if (!items.length) return;
+      const [first, last] = [items[0], items[items.length - 1]];
+      const inside = sheet.current.contains(document.activeElement);
+      if (e.shiftKey && (document.activeElement === first || !inside)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !inside)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
@@ -45,7 +67,7 @@ export function WordSheet({ picked, entry, storyId, onClose }: { picked: Picked;
   const headword = entry ? (entry.g ? `${entry.g} ${entry.h}` : entry.h) : picked.word;
   return (
     <div className="sheet-backdrop" onClick={onClose}>
-      <div className="sheet" role="dialog" aria-label={`Meaning of ${picked.word}`} onClick={(e) => e.stopPropagation()}>
+      <div className="sheet" ref={sheet} role="dialog" aria-modal="true" aria-label={`Meaning of ${picked.word}`} onClick={(e) => e.stopPropagation()}>
         <div className="sheet-grip" />
         <div className="sheet-head">
           <div>
@@ -104,7 +126,7 @@ export function WordSheet({ picked, entry, storyId, onClose }: { picked: Picked;
         <button
           className={saved ? "btn secondary wide" : "btn wide"}
           onClick={() =>
-            actions.toggleWord({ key: saveKey, word: entry?.h ?? picked.word, storyId, context: picked.sentence })
+            actions.toggleWord({ key: saveKey, word: entry?.h ?? picked.word, surface: picked.word, storyId, context: picked.sentence })
           }
         >
           {saved ? "✓ Saved to your words" : "＋ Save to my words"}

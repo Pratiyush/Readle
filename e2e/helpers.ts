@@ -1,12 +1,28 @@
 import { expect, type Page } from "@playwright/test";
 
-/** Replace the device TTS with a recorder: each utterance "ends" after 150 ms. */
-export async function stubSpeech(page: Page) {
-  await page.addInitScript(() => {
+/**
+ * Replace the device TTS with a recorder: each utterance "ends" after 150 ms. The device has a
+ * German voice unless `german` is false (then it only has an English one).
+ */
+export async function stubSpeech(page: Page, { german = true } = {}) {
+  await page.addInitScript((german) => {
     const w = window as unknown as { __spoken: string[] };
     w.__spoken = [];
     let current: SpeechSynthesisUtterance | null = null;
     const synth = window.speechSynthesis;
+    const voices = [{ lang: "en-US", name: "English", default: true, localService: true, voiceURI: "en" }];
+    if (german) voices.push({ lang: "de-DE", name: "Deutsch", default: false, localService: true, voiceURI: "de" });
+    synth.getVoices = () => voices as SpeechSynthesisVoice[];
+    // The fakes aren't real SpeechSynthesisVoice objects, which the real setter rejects.
+    Object.defineProperty(SpeechSynthesisUtterance.prototype, "voice", {
+      configurable: true,
+      get() {
+        return (this as { _voice?: unknown })._voice ?? null;
+      },
+      set(v) {
+        (this as { _voice?: unknown })._voice = v;
+      },
+    });
     synth.speak = (u: SpeechSynthesisUtterance) => {
       w.__spoken.push(u.text);
       current = u;
@@ -22,8 +38,10 @@ export async function stubSpeech(page: Page) {
       current = null;
       u?.onerror?.(new Event("error") as SpeechSynthesisErrorEvent);
     };
-  });
+  }, german);
 }
+
+export const spokenTexts = (page: Page) => page.evaluate(() => (window as unknown as { __spoken: string[] }).__spoken);
 
 export const spoken = (page: Page) => page.evaluate(() => (window as unknown as { __spoken: string[] }).__spoken.length);
 

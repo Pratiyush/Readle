@@ -55,7 +55,7 @@ export function Practice() {
     setFlipped(false);
     setIndex(index + 1);
   };
-  const context = current.context.replace(new RegExp(`\\b${escape(current.word)}\\b`, "i"), "＿＿＿");
+  const context = blank(current.context, [current.surface, current.word]);
 
   return (
     <div className="page quiz">
@@ -107,4 +107,17 @@ export function Practice() {
 
 function escape(s: string) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Blank the word in its sentence: the form met in the story first ("gibt"), then the headword
+ * ("geben"). Word edges are Unicode-aware; JavaScript's \b treats "Ä" or "ß" as a word break.
+ */
+export function blank(sentence: string, forms: (string | undefined)[]): string {
+  for (const f of forms) {
+    if (!f) continue;
+    const re = new RegExp(`(?<![\\p{L}\\p{N}])${escape(f)}(?![\\p{L}\\p{N}])`, "iu");
+    if (re.test(sentence)) return sentence.replace(re, "＿＿＿");
+  }
+  return sentence;
 }

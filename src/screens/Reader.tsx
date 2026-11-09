@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { imageUrl, loadDictionary, loadStory } from "../lib/content";
 import { useAsync } from "../hooks";
-import { actions, useStore } from "../lib/store";
-import { speak, speechAvailable, stopSpeaking } from "../lib/speech";
+import { actions, getState, useStore } from "../lib/store";
+import { speak, stopSpeaking, useGermanVoice } from "../lib/speech";
 import type { Dictionary, Story } from "../lib/types";
 import { glue } from "../lib/glue";
 import { go, href } from "../router";
@@ -30,6 +30,8 @@ function ReaderView({ story, dict }: { story: Story; dict: Dictionary }) {
   const settings = useStore((s) => s.settings);
   const saved = useStore((s) => s.words);
   const isRead = useStore((s) => !!s.read[story.id]);
+  const tipSeen = useStore((s) => s.wordTipSeen);
+  const canSpeak = useGermanVoice();
   const [shown, setShown] = useState<Set<number>>(new Set());
   const [allShown, setAllShown] = useState(false);
   const [picked, setPicked] = useState<Picked | null>(null);
@@ -38,15 +40,26 @@ function ReaderView({ story, dict }: { story: Story; dict: Dictionary }) {
   const playToken = useRef(0);
   const units = useMemo(() => story.sentences.map((s) => glue(s.t)), [story]);
 
+  // Reopen where the learner left off, and remember it for the library's "Continue reading".
   useEffect(() => {
+    const s = getState();
+    actions.openStory(story.id);
+    const reached = s.progress[story.id] ?? 0;
+    if (!s.read[story.id] && reached > 0) document.getElementById(`s${reached}`)?.scrollIntoView({ block: "center" });
+  }, [story.id]);
+
+  useEffect(() => {
+    const last = story.sentences.length - 1;
     const on = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(max > 0 ? Math.min(1, window.scrollY / max) : 1);
+      const p = max > 0 ? Math.min(1, window.scrollY / max) : 1;
+      setProgress(p);
+      if (window.scrollY > 0) actions.setProgress(story.id, Math.round(p * last));
     };
     on();
     window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
-  }, []);
+  }, [story]);
 
   // Leaving the reader must silence it: bump the token first, because cancelling fires the
   // utterance's end/error handler, which would otherwise go on to speak the next sentence.
@@ -68,6 +81,7 @@ function ReaderView({ story, dict }: { story: Story; dict: Dictionary }) {
           return;
         }
         setPlaying(i);
+        actions.setProgress(story.id, i);
         document.getElementById(`s${i}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
         speak(story.sentences[i].de, settings.speechRate, () => step(i + 1));
       };
@@ -103,6 +117,7 @@ function ReaderView({ story, dict }: { story: Story; dict: Dictionary }) {
 
   const finish = () => {
     stop();
+    actions.setProgress(story.id, story.sentences.length - 1);
     actions.finishStory(story.id);
     go({ name: "quiz", id: story.id });
   };
@@ -114,7 +129,7 @@ function ReaderView({ story, dict }: { story: Story; dict: Dictionary }) {
           ←
         </a>
         <div className="reader-bar-actions">
-          {speechAvailable() && (
+          {canSpeak && (
             <button className="icon-btn" onClick={() => (playing === null ? play(0) : stop())} aria-label={playing === null ? "Listen" : "Stop"}>
               {playing === null ? "▶︎" : "■"}
             </button>
@@ -135,7 +150,14 @@ function ReaderView({ story, dict }: { story: Story; dict: Dictionary }) {
           <span className={`lvl lvl-${story.level}`}>{story.level}</span> {story.minutes} min read · {story.words} words
         </p>
         <h1 lang="de">{story.title}</h1>
-        <p className="muted small tip">Tap any word for its meaning. Tap ⇄ for a sentence translation.</p>
+        {tipSeen ? (
+          <p className="muted small tip">Tap any word for its meaning. Tap ⇄ for a sentence translation.</p>
+        ) : (
+          // First run: the one thing to learn about this app, until the first tap.
+          <p className="tip first-tip" data-testid="word-tip">
+            <span aria-hidden>👆</span> Tap any word to hear it and see what it means. Tap ⇄ to translate a sentence.
+          </p>
+        )}
 
         <div className="story-text" lang="de">
           {story.sentences.map((s, i) => (
@@ -152,6 +174,7 @@ function ReaderView({ story, dict }: { story: Story; dict: Dictionary }) {
                       className={`w${key ? "" : " w-unknown"}${savedHere ? " w-saved" : ""}`}
                       onClick={() => {
                         if (playing !== null) stop(); // the word's own audio replaces the story reading
+                        actions.markWordTipSeen();
                         setPicked({ word, key: key ?? null, compound: compound === 1, sentence: s.de, sentenceEn: s.en });
                       }}
                     >
@@ -166,7 +189,12 @@ function ReaderView({ story, dict }: { story: Story; dict: Dictionary }) {
               {typeof units[i].at(-1) === "string" && <> {translateButton(i)}</>}
               {(allShown || shown.has(i)) && (
                 <span className="translation" lang="en">
-                  {s.en}
+                  <span className="tr-text">{s.en}</span>
+                  {canSpeak && (
+                    <button className="tr-btn listen-from" onClick={() => play(i)} aria-label={`Listen from sentence ${i + 1}`} title="Listen from here">
+                      {playing === i ? "♪" : "🔊"}
+                    </button>
+                  )}
                 </span>
               )}{" "}
             </span>

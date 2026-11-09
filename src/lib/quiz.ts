@@ -86,3 +86,10 @@ export function buildQuiz(story: Story, dict: Dictionary, seed = story.id): Ques
 function cefrRank(c?: string): number {
   return c ? ["A1", "A2", "B1", "B2", "C1"].indexOf(c) : -1;
 }
+
+/** Praise that matches the score: "Gut gemacht! 🎉" at 20% read as a joke. Same tiers as the app. */
+export function praise(pct: number): [emoji: string, headline: string] {
+  if (pct >= 80) return ["🎉", "Gut gemacht!"];
+  if (pct >= 50) return ["👍", "Nicht schlecht!"];
+  return ["📖", "Weiter so!"];
+}

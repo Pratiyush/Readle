@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { imageUrl, loadLibrary } from "../lib/content";
 import { useAsync } from "../hooks";
-import { actions, streak, useStore } from "../lib/store";
+import { actions, continueStory, streak, useStore } from "../lib/store";
 import { dayKey } from "../lib/dates";
 import { rng } from "../lib/quiz";
 import { LEVELS, type StoryMeta } from "../lib/types";
@@ -17,6 +17,7 @@ export function Library() {
   const level = useStore((s) => s.settings.level);
   const read = useStore((s) => s.read);
   const days = useStore((s) => s.activeDays);
+  const resumeId = useStore(continueStory);
   const [collection, setCollection] = useState(view.collection);
   const [query, setQuery] = useState(view.query);
   const [unreadOnly, setUnreadOnly] = useState(view.unreadOnly);
@@ -42,6 +43,7 @@ export function Library() {
   const today = dayKey();
   const daily = useMemo(() => storyOfTheDay(stories, level, read, today), [stories, level, read, today]);
   const finishedToday = Object.values(read).filter((d) => d === today).length;
+  const resume = resumeId ? stories.find((s) => s.id === resumeId) : undefined;
 
   return (
     <div className="page">
@@ -54,6 +56,19 @@ export function Library() {
           🔥 {streak(days)}
         </a>
       </header>
+
+      {resume && (
+        <a className="continue" href={href({ name: "story", id: resume.id })} data-testid="continue-card">
+          {resume.image ? <img src={imageUrl(resume.thumb ?? resume.image)} alt="" /> : <span className="ph" />}
+          <div className="continue-body">
+            <span className="eyebrow">Continue reading</span>
+            <h2 lang="de">{resume.title}</h2>
+          </div>
+          <span className="play" aria-hidden>
+            ▶
+          </span>
+        </a>
+      )}
 
       {daily && (
         <a className="daily" href={href({ name: "story", id: daily.id })}>
@@ -69,22 +84,22 @@ export function Library() {
       )}
 
       <div className="chips" role="group" aria-label="Level">
-        <button className={level === "all" ? "chip on" : "chip"} onClick={() => actions.updateSettings({ level: "all" })}>
+        <button className={level === "all" ? "chip on" : "chip"} aria-pressed={level === "all"} onClick={() => actions.updateSettings({ level: "all" })}>
           All levels
         </button>
         {LEVELS.map((l) => (
-          <button key={l} className={level === l ? "chip on" : "chip"} onClick={() => actions.updateSettings({ level: l })}>
+          <button key={l} className={level === l ? "chip on" : "chip"} aria-pressed={level === l} onClick={() => actions.updateSettings({ level: l })}>
             {l}
           </button>
         ))}
       </div>
       <div className="chips" role="group" aria-label="Collection">
         {Object.entries(COLLECTIONS).map(([k, label]) => (
-          <button key={k} className={collection === k ? "chip on" : "chip"} onClick={() => setCollection(k)}>
+          <button key={k} className={collection === k ? "chip on" : "chip"} aria-pressed={collection === k} onClick={() => setCollection(k)}>
             {label}
           </button>
         ))}
-        <button className={unreadOnly ? "chip on" : "chip"} onClick={() => setUnreadOnly(!unreadOnly)}>
+        <button className={unreadOnly ? "chip on" : "chip"} aria-pressed={unreadOnly} onClick={() => setUnreadOnly(!unreadOnly)}>
           Unread
         </button>
       </div>
@@ -116,11 +131,18 @@ export function Library() {
   );
 }
 
-/** Same pick all day: the first unread story of the chosen level, shuffled by date. */
+/**
+ * Same pick all day, preferring unread stories. "All levels" goes in sequence, A1 → B2: the pick
+ * comes from the lowest level that still has unread stories, so a beginner isn't handed B2 on day one.
+ */
 export function storyOfTheDay(stories: StoryMeta[], level: string, read: Record<string, string>, today: string) {
   const pool = stories.filter((s) => level === "all" || s.level === level);
   if (!pool.length) return null;
-  const unread = pool.filter((s) => !read[s.id]);
+  let unread = pool.filter((s) => !read[s.id]);
+  if (level === "all") {
+    const next = LEVELS.find((l) => unread.some((s) => s.level === l));
+    if (next) unread = unread.filter((s) => s.level === next);
+  }
   const from = unread.length ? unread : pool;
   return from[Math.floor(rng(today)() * from.length)];
 }

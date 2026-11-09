@@ -1,4 +1,4 @@
-import { actions, getState, streak } from "./store";
+import { actions, continueStory, getState, streak } from "./store";
 
 describe("streak", () => {
   it("counts consecutive days ending today", () => {
@@ -35,5 +35,35 @@ describe("actions", () => {
     actions.recordQuiz("x", 0.8);
     actions.recordQuiz("x", 0.4);
     expect(getState().quiz.x).toBe(0.8);
+  });
+
+  it("offers Continue reading for the last story opened, started and unfinished (BUG-16)", () => {
+    actions.openStory("brot");
+    expect(continueStory(getState())).toBeNull(); // opened, not started
+    actions.setProgress("brot", 3);
+    expect(continueStory(getState())).toBe("brot");
+    actions.setProgress("brot", 1); // progress never goes back
+    expect(getState().progress.brot).toBe(3);
+    actions.finishStory("brot");
+    expect(continueStory(getState())).toBeNull();
+  });
+
+  it("takes another tab's saves instead of overwriting them (BUG-21)", () => {
+    actions.toggleWord({ key: "de.haus.n", word: "Haus", storyId: "x", context: "Das Haus." });
+    // The other tab saved a second word on top of our first one.
+    const theirs = JSON.parse(localStorage.getItem("readle.state.v1")!);
+    theirs.words["de.brot.n"] = { ...theirs.words["de.haus.n"], key: "de.brot.n", word: "Brot" };
+    window.dispatchEvent(new StorageEvent("storage", { key: "readle.state.v1", newValue: JSON.stringify(theirs) }));
+    actions.toggleWord({ key: "de.tür.n", word: "Tür", storyId: "x", context: "Die Tür." });
+    expect(Object.keys(getState().words).sort()).toEqual(["de.brot.n", "de.haus.n", "de.tür.n"]);
+    expect(Object.keys(JSON.parse(localStorage.getItem("readle.state.v1")!).words)).toHaveLength(3);
+  });
+
+  it("ignores other keys and reads a cleared store as a fresh start", () => {
+    actions.toggleWord({ key: "de.haus.n", word: "Haus", storyId: "x", context: "Das Haus." });
+    window.dispatchEvent(new StorageEvent("storage", { key: "other", newValue: "{}" }));
+    expect(getState().words["de.haus.n"]).toBeTruthy();
+    window.dispatchEvent(new StorageEvent("storage", { key: "readle.state.v1", newValue: null }));
+    expect(getState().words).toEqual({});
   });
 });

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { loadDictionary, loadStory } from "../lib/content";
 import { useAsync } from "../hooks";
-import { buildQuiz } from "../lib/quiz";
+import { buildQuiz, praise } from "../lib/quiz";
 import { actions, streak, useStore } from "../lib/store";
 import { href } from "../router";
 import type { Dictionary, Story } from "../lib/types";
@@ -34,10 +34,11 @@ function QuizView({ story, dict }: { story: Story; dict: Dictionary }) {
 
   if (done || !questions.length) {
     const pct = questions.length ? Math.round((100 * correct) / questions.length) : 100;
+    const [emoji, headline] = praise(pct);
     return (
       <div className="page quiz-done">
-        <div className="celebrate">🎉</div>
-        <h1>Gut gemacht!</h1>
+        <div className="celebrate">{emoji}</div>
+        <h1>{headline}</h1>
         <p className="muted">You finished “{story.title}”.</p>
         <div className="stat-row">
           <div className="stat">

@@ -5,7 +5,8 @@ import type { Level } from "./types";
 
 export interface SavedWord {
   key: string; // dictionary key, or "free:<word>" for words without an entry
-  word: string; // surface form as met in the story
+  word: string; // headword (or the word itself without an entry)
+  surface?: string; // the form met in the story ("gibt" for geben), to blank it in practice
   storyId: string;
   context: string; // the sentence it came from
   added: string;
@@ -28,6 +29,8 @@ export interface State {
   quiz: Record<string, number>; // storyId → best score 0..1
   words: Record<string, SavedWord>;
   activeDays: string[]; // sorted, unique
+  lastStory: string | null; // opened most recently, for "Continue reading"
+  wordTipSeen: boolean; // the first-run "tap any word" cue has done its job
   settings: Settings;
 }
 
@@ -40,25 +43,42 @@ export const defaultState = (): State => ({
   quiz: {},
   words: {},
   activeDays: [],
+  lastStory: null,
+  wordTipSeen: false,
   settings: { level: "all", fontScale: 1, theme: "system", dailyGoal: 1, speechRate: 0.9, autoPlayWords: true },
 });
 
+function parse(raw: string | null): State | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as State;
+    const d = defaultState();
+    return { ...d, ...parsed, settings: { ...d.settings, ...parsed.settings } };
+  } catch {
+    return null; // corrupt data
+  }
+}
+
 function loadState(): State {
   try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as State;
-      const d = defaultState();
-      return { ...d, ...parsed, settings: { ...d.settings, ...parsed.settings } };
-    }
+    return parse(localStorage.getItem(KEY)) ?? defaultState();
   } catch {
-    /* private mode or corrupt data: start fresh */
+    return defaultState(); // private mode: start fresh
   }
-  return defaultState();
 }
 
 let state = loadState();
 const listeners = new Set<() => void>();
+
+// Another tab of the app saved: take its state, so this tab's next save builds on it instead of
+// overwriting it (two open tabs used to lose each other's words and progress).
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
+    if (e.key !== KEY) return;
+    state = parse(e.newValue) ?? defaultState();
+    listeners.forEach((l) => l());
+  });
+}
 
 function commit(next: State) {
   state = next;
@@ -94,6 +114,13 @@ export const actions = {
       activeDays: markActive(state, today),
     });
   },
+  openStory(storyId: string) {
+    if (state.lastStory === storyId) return;
+    commit({ ...state, lastStory: storyId });
+  },
+  markWordTipSeen() {
+    if (!state.wordTipSeen) commit({ ...state, wordTipSeen: true });
+  },
   setProgress(storyId: string, index: number) {
     if ((state.progress[storyId] ?? -1) >= index) return;
     commit({ ...state, progress: { ...state.progress, [storyId]: index } });
@@ -123,6 +150,12 @@ export const actions = {
     commit(defaultState());
   },
 };
+
+/** The story to offer as "Continue reading": opened last, started, not finished. */
+export function continueStory(s: State): string | null {
+  const id = s.lastStory;
+  return id && !s.read[id] && (s.progress[id] ?? 0) > 0 ? id : null;
+}
 
 /** Consecutive active days ending today, or yesterday if today isn't done yet. */
 export function streak(activeDays: string[], today = dayKey()): number {

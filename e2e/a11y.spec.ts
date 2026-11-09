@@ -38,3 +38,33 @@ test("200% text size: no screen scrolls sideways", async ({ page }) => {
     expect(scroll, route).toBeLessThanOrEqual(width);
   }
 });
+
+test("word sheet is a modal dialog: focus moves in, stays in, and returns to the word (BUG-19)", async ({ page }) => {
+  await page.goto("./#/story/brot");
+  const gibt = page.locator("button.w", { hasText: /^gibt$/ }).first();
+  await gibt.focus();
+  await page.keyboard.press("Enter");
+  const sheet = page.getByRole("dialog");
+  await expect(sheet).toHaveAttribute("aria-modal", "true");
+  await expect.poll(() => sheet.evaluate((el) => el.contains(document.activeElement))).toBe(true);
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press(i % 3 === 2 ? "Shift+Tab" : "Tab");
+    expect(await sheet.evaluate((el) => el.contains(document.activeElement)), `after ${i + 1} tabs`).toBe(true);
+  }
+  await page.keyboard.press("Escape");
+  await expect(sheet).toHaveCount(0);
+  await expect(gibt).toBeFocused();
+});
+
+test("filter chips say whether they are on, and none hides past the edge at 375 px (BUG-19, BUG-20)", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("./");
+  await expect(page.locator(".story-card").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "All levels" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Unread" }).click();
+  await expect(page.getByRole("button", { name: "Unread" })).toHaveAttribute("aria-pressed", "true");
+  const outside = await page.locator(".chip").evaluateAll((els) =>
+    els.filter((el) => el.getBoundingClientRect().right > innerWidth || el.getBoundingClientRect().left < 0).map((el) => el.textContent),
+  );
+  expect(outside).toEqual([]);
+});

@@ -26,7 +26,7 @@ test.describe("reader", () => {
     await openStory(page, "brot");
     await page.getByLabel("Translate sentence 1").click();
     await expect(page.locator(".translation")).toHaveCount(1);
-    await expect(page.locator(".translation")).toHaveText("In Germany, bread is very important.");
+    await expect(page.locator(".translation .tr-text")).toHaveText("In Germany, bread is very important.");
     await page.getByLabel("Show all translations").click();
     await expect(page.locator(".translation")).toHaveCount(8);
   });
