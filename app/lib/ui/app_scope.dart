@@ -4,6 +4,7 @@ import '../content/cdn/content_client.dart';
 import '../content/content_repository.dart';
 import '../content/models.dart';
 import '../services/ads.dart';
+import '../services/reminders.dart';
 import '../services/speech.dart';
 import '../services/word_player.dart';
 import '../state/app_state.dart';
@@ -19,6 +20,7 @@ class AppScope extends InheritedNotifier<Listenable> {
     required this.player,
     required this.ads,
     this.updates,
+    this.reminders,
     required super.child,
   }) : super(notifier: Listenable.merge([state, ads, ?updates]));
 
@@ -27,6 +29,9 @@ class AppScope extends InheritedNotifier<Listenable> {
 
   /// New stories from the content CDN; null where the app runs without it (tests, previews).
   final ContentClient? updates;
+
+  /// The daily reminder's platform side; null where the app runs without notifications.
+  final Reminders? reminders;
 
   final ContentRepository content;
   final Speech speech;

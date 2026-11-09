@@ -47,7 +47,11 @@ class Settings {
     this.dailyGoal = 1,
     this.speechRate = 0.9,
     this.autoPlayWords = true,
+    this.reminder = false,
+    this.reminderMinutes = defaultReminderMinutes,
   });
+
+  static const defaultReminderMinutes = 19 * 60;
 
   final String level; // 'all' or a CEFR level
   final double fontScale;
@@ -55,16 +59,28 @@ class Settings {
   final int dailyGoal; // stories per day
   final double speechRate; // web units: 0.7 slow, 0.9 normal, 1.05 fast
   final bool autoPlayWords; // say a word when it is tapped
+  final bool reminder; // the daily reminder: off until the learner turns it on
+  final int reminderMinutes; // its time of day, minutes after midnight (0..1439)
 
-  Settings copyWith({String? level, double? fontScale, ThemeChoice? theme, int? dailyGoal, double? speechRate, bool? autoPlayWords}) =>
-      Settings(
-        level: level ?? this.level,
-        fontScale: fontScale ?? this.fontScale,
-        theme: theme ?? this.theme,
-        dailyGoal: dailyGoal ?? this.dailyGoal,
-        speechRate: speechRate ?? this.speechRate,
-        autoPlayWords: autoPlayWords ?? this.autoPlayWords,
-      );
+  Settings copyWith({
+    String? level,
+    double? fontScale,
+    ThemeChoice? theme,
+    int? dailyGoal,
+    double? speechRate,
+    bool? autoPlayWords,
+    bool? reminder,
+    int? reminderMinutes,
+  }) => Settings(
+    level: level ?? this.level,
+    fontScale: fontScale ?? this.fontScale,
+    theme: theme ?? this.theme,
+    dailyGoal: dailyGoal ?? this.dailyGoal,
+    speechRate: speechRate ?? this.speechRate,
+    autoPlayWords: autoPlayWords ?? this.autoPlayWords,
+    reminder: reminder ?? this.reminder,
+    reminderMinutes: reminderMinutes ?? this.reminderMinutes,
+  );
 
   Map<String, Object> toJson() => {
     'level': level,
@@ -73,6 +89,8 @@ class Settings {
     'dailyGoal': dailyGoal,
     'speechRate': speechRate,
     'autoPlayWords': autoPlayWords,
+    'reminder': reminder,
+    'reminderMinutes': reminderMinutes,
   };
 
   factory Settings.fromJson(Map<String, dynamic> j) {
@@ -85,6 +103,11 @@ class Settings {
       dailyGoal: as<num>(j['dailyGoal'])?.toInt() ?? d.dailyGoal,
       speechRate: as<num>(j['speechRate'])?.toDouble() ?? d.speechRate,
       autoPlayWords: as<bool>(j['autoPlayWords']) ?? d.autoPlayWords,
+      reminder: as<bool>(j['reminder']) ?? d.reminder,
+      reminderMinutes: switch (j['reminderMinutes']) {
+        final int m when m >= 0 && m < 24 * 60 => m,
+        _ => d.reminderMinutes,
+      },
     );
   }
 }

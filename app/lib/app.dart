@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'content/cdn/content_client.dart';
 import 'content/content_repository.dart';
 import 'services/ads.dart';
+import 'services/reminders.dart';
 import 'services/speech.dart';
 import 'services/word_player.dart';
 import 'state/app_state.dart';
@@ -25,6 +26,7 @@ class ReadleApp extends StatelessWidget {
     required this.player,
     required this.ads,
     this.updates,
+    this.reminders,
   });
 
   final AppState state;
@@ -33,6 +35,7 @@ class ReadleApp extends StatelessWidget {
   final WordPlayer player;
   final Ads ads;
   final ContentClient? updates;
+  final Reminders? reminders;
 
   @override
   Widget build(BuildContext context) {
@@ -43,6 +46,7 @@ class ReadleApp extends StatelessWidget {
       player: player,
       ads: ads,
       updates: updates,
+      reminders: reminders,
       child: ListenableBuilder(
         listenable: state,
         builder: (context, _) => MaterialApp(

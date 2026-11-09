@@ -16,6 +16,7 @@ import 'services/ads.dart';
 import 'services/ads_config.dart';
 import 'services/error_log.dart';
 import 'services/interstitial_policy.dart';
+import 'services/reminders.dart';
 import 'services/speech.dart';
 import 'services/word_player.dart';
 import 'state/app_state.dart';
@@ -34,7 +35,20 @@ Future<void> main() async {
   final content = LayeredContentRepository(bundled: bundled, store: store);
   final bundledIds = <String>{};
   final updates = contentCdnEnabled ? ContentClient(fetcher: HttpFetcher(), store: store, prefs: prefs, bundledIds: bundledIds) : null;
-  runApp(ReadleApp(state: state, content: content, speech: DeviceSpeech(), player: AssetWordPlayer(), ads: ads, updates: updates));
+  final reminders = LocalReminders();
+  runApp(
+    ReadleApp(
+      state: state,
+      content: content,
+      speech: DeviceSpeech(),
+      player: AssetWordPlayer(),
+      ads: ads,
+      updates: updates,
+      reminders: reminders,
+    ),
+  );
+  // The daily reminder (off by default): with it on, every launch sets the next seven days again.
+  DailyReminder(state: state, reminders: reminders).start();
   // Consent → ATT → SDK after the first frame; reading never waits for it.
   unawaited(ads.init().catchError((Object _) {}));
   // The daily content check (at most once per 24 h, silent offline) after the first frame too.

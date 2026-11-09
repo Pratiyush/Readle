@@ -269,6 +269,43 @@ class _ProgressScreenState extends State<ProgressScreen> {
               value: state.settings.autoPlayWords,
               onChanged: (v) => state.updateSettings(state.settings.copyWith(autoPlayWords: v)),
             ),
+            if (scope.reminders case final reminders?) ...[
+              SwitchListTile(
+                key: const Key('reminder'),
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Daily reminder'),
+                subtitle: const Text('One a day, skipped once you have read'),
+                value: state.settings.reminder,
+                onChanged: (on) async {
+                  // Permission is asked here, when the learner wants the reminder, never at launch.
+                  if (on && !await reminders.requestPermission()) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        key: Key('reminder-denied'),
+                        content: Text('Notifications are off for Readle. Allow them in system settings to get the reminder.'),
+                      ),
+                    );
+                    return;
+                  }
+                  state.updateSettings(state.settings.copyWith(reminder: on));
+                },
+              ),
+              if (state.settings.reminder)
+                ListTile(
+                  key: const Key('reminder-time'),
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Reminder time'),
+                  trailing: Text(
+                    _timeOf(state.settings.reminderMinutes).format(context),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                  onTap: () async {
+                    final picked = await showTimePicker(context: context, initialTime: _timeOf(state.settings.reminderMinutes));
+                    if (picked != null) state.updateSettings(state.settings.copyWith(reminderMinutes: picked.hour * 60 + picked.minute));
+                  },
+                ),
+            ],
             if (scope.ads.privacyOptionsRequired)
               ListTile(
                 key: const Key('privacy-options'),
@@ -342,6 +379,8 @@ List<Widget> legalTiles({String slug = legalSlug}) => [
 ];
 
 /// Settings → New stories: the daily check runs on its own; this runs it now.
+TimeOfDay _timeOf(int minutes) => TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60);
+
 class _ContentCheckTile extends StatelessWidget {
   const _ContentCheckTile({required this.updates});
   final ContentClient updates;

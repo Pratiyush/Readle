@@ -24,6 +24,7 @@ App (`app/test/flows.dart`, run headless by `test/widget_test.dart` and on devic
 9. Continue reading: card, then back to the same place
 10. First run: the tap-a-word tip until the first tap
 11. New stories from the CDN: offer, install, read a downloaded story's words
+12. Daily reminder: off by default, permission asked only when turned on (denied → stays off), a new time, off
 
 Web (`e2e/*.spec.ts`): library, reader, reading (Continue reading, tip, Listen from here, German-voice gate), practice and quiz, offline (library, stories, recorded clips), a11y (contrast, 200 % text, modal sheet, chips), PWA icons, edges.
 
@@ -40,6 +41,7 @@ Web (`e2e/*.spec.ts`): library, reader, reading (Continue reading, tip, Listen f
 | Duplicate ids (CDN story = bundled story) | ✓ `content_client_test` (bundled `brot` skipped, 108 in library) | N/A: web has no CDN source |
 | Missing optional fields (no picture, no thumb) | ✓ `edge_cases_test` (missing picture renders, no error) | ✓ placeholder `📖` (`Library.tsx`), thumbs fall back to hero |
 | Corrupt / truncated JSON (saved state) | ✓ `edge_cases_test` | ✓ `edges.test` |
+| Reminder time out of range or of the wrong type (-1, 1440, "19:00", 600.5) | ✓ `reminder_test` (falls back to 19:00, alone) | N/A |
 | A field or entry of the wrong type | ✓ `edge_cases_test` (BUG-36) | ✓ `edges.test`, `edges.spec` (BUG-37) |
 | Unknown schema version (manifest@2) | ✓ `content_client_test` edges | N/A |
 
@@ -64,6 +66,8 @@ Web (`e2e/*.spec.ts`): library, reader, reading (Continue reading, tip, Listen f
 | Clock moved backwards | ✓ `content_client_test` (BUG-35) | N/A: no daily check on the web |
 | 24 h daily-check edge (23:59 / 24:01) | ✓ `content_client_test` | N/A |
 | Streak day boundaries | ✓ `logic_test`, `edge_cases_test` | ✓ `store.test` |
+| Daily reminder: at / one minute before the time, 23:59 → 00:00, DST nights (23 h / 25 h apart, same wall clock), a time in the spring-forward gap, year end, leap day | ✓ `reminder_test` | N/A: the web app has no scheduled notifications (no push server) |
+| Reminder skipped once you read or practised today; quiet after 7 days away | ✓ `reminder_test` | N/A |
 
 ### Levels
 | Case | App | Web |
@@ -83,6 +87,8 @@ Web (`e2e/*.spec.ts`): library, reader, reading (Continue reading, tip, Listen f
 | Back mid-flow (leave while listening) | ✓ flow 4 | ✓ `reader.spec` |
 | Two tabs at once | N/A | ✓ `store.test` (BUG-21) |
 | Rotation, backgrounding during audio/ads | Device tier only (not automated yet) | N/A |
+| Off by default: no notification call, no permission prompt at launch | ✓ `reminder_test`, flow 12 | N/A |
+| Reminder from the lock screen; reading on through a screen lock | Device tier, by hand (`docs/better-log.md`) | N/A |
 
 ### Network / CDN
 | Case | App | Web |

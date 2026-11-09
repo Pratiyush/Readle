@@ -11,6 +11,7 @@ import 'package:readle/content/cdn/content_store.dart';
 import 'package:readle/content/content_repository.dart';
 import 'package:readle/content/layered_repository.dart';
 import 'package:readle/services/ads.dart';
+import 'package:readle/services/reminders.dart';
 import 'package:readle/services/speech.dart';
 import 'package:readle/services/word_player.dart';
 import 'package:readle/state/app_state.dart';
@@ -19,10 +20,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'support/cdn_fixture.dart';
 
 class Harness {
-  Harness(this.state, this.speech, this.player);
+  Harness(this.state, this.speech, this.player, this.reminders);
   final AppState state;
   final RecordingSpeech speech;
   final RecordingWordPlayer player;
+  final RecordingReminders reminders;
 }
 
 Future<Harness> pumpApp(
@@ -48,9 +50,11 @@ Future<Harness> pumpApp(
     await repo.story('brot');
   });
   final player = RecordingWordPlayer(works: clipsWork);
-  await tester.pumpWidget(ReadleApp(state: state, content: repo, speech: speech, player: player, ads: NoAds()));
+  final reminders = RecordingReminders();
+  DailyReminder(state: state, reminders: reminders).start();
+  await tester.pumpWidget(ReadleApp(state: state, content: repo, speech: speech, player: player, ads: NoAds(), reminders: reminders));
   await tester.pumpAndSettle();
-  return Harness(state, speech, player);
+  return Harness(state, speech, player, reminders);
 }
 
 /// Pump until [finder] matches: on a real device, loading and route transitions take wall time.
@@ -385,6 +389,60 @@ Future<void> onboarding(WidgetTester tester) async {
   expect(find.descendant(of: daily, matching: find.text('B1')), findsOneWidget);
 }
 
+Future<void> dailyReminder(WidgetTester tester) async {
+  final h = await pumpApp(tester);
+  await tester.tap(find.byKey(const Key('tab-progress')));
+  await tester.pumpAndSettle();
+  await waitFor(tester, find.byKey(const Key('progress-list')));
+  final toggle = find.byKey(const Key('reminder'));
+  await reveal(tester, toggle, const Key('progress-list'));
+  expect(tester.widget<SwitchListTile>(toggle).value, isFalse, reason: 'off by default');
+  expect(find.byKey(const Key('reminder-time')), findsNothing);
+  expect(h.reminders.permissionAsks, 0, reason: 'never asked before the learner turns it on');
+
+  // Permission denied: the switch stays off and says where to allow it.
+  h.reminders.granted = false;
+  await tester.tap(toggle);
+  await tester.pumpAndSettle();
+  expect(h.state.settings.reminder, isFalse);
+  expect(find.byKey(const Key('reminder-denied')), findsOneWidget);
+  expect(h.reminders.pending, isEmpty);
+  ScaffoldMessenger.of(tester.element(toggle)).removeCurrentSnackBar();
+  await tester.pumpAndSettle();
+
+  h.reminders.granted = true;
+  await tester.tap(toggle);
+  await tester.pumpAndSettle();
+  expect(h.state.settings.reminder, isTrue);
+  expect(h.reminders.pending, hasLength(reminderDays));
+  expect(h.reminders.pending.map((t) => (t.hour, t.minute)).toSet(), {(19, 0)});
+
+  // A new time, typed into the picker (12- or 24-hour, as the device shows times).
+  final time = find.byKey(const Key('reminder-time'));
+  await reveal(tester, time, const Key('progress-list'));
+  String shown(int h, int m) => TimeOfDay(hour: h, minute: m).format(tester.element(time));
+  expect(find.descendant(of: time, matching: find.text(shown(19, 0))), findsOneWidget);
+  await tester.tap(time);
+  await tester.pumpAndSettle();
+  await tester.tap(find.byTooltip('Switch to text input mode'));
+  await tester.pumpAndSettle();
+  final fields = find.descendant(of: find.byType(TimePickerDialog), matching: find.byType(TextField));
+  await tester.enterText(fields.first, '07');
+  await tester.enterText(fields.last, '30');
+  if (find.text('AM').evaluate().isNotEmpty) await tester.tap(find.text('AM'));
+  await tester.tap(find.text('OK'));
+  await tester.pumpAndSettle();
+  expect(h.state.settings.reminderMinutes, 7 * 60 + 30);
+  expect(h.reminders.pending.map((t) => (t.hour, t.minute)).toSet(), {(7, 30)});
+  expect(find.descendant(of: time, matching: find.text(shown(7, 30))), findsOneWidget);
+
+  await tester.tap(toggle);
+  await tester.pumpAndSettle();
+  expect(h.state.settings.reminder, isFalse);
+  expect(h.reminders.pending, isEmpty);
+  expect(find.byKey(const Key('reminder-time')), findsNothing);
+}
+
 final flows = <String, Future<void> Function(WidgetTester)>{
   'first launch: pick a level, or not sure → start at A1': onboarding,
   'library search and story of the day': libraryFilters,
@@ -397,4 +455,5 @@ final flows = <String, Future<void> Function(WidgetTester)>{
   'continue reading: card, then back to the same place': continueReading,
   'first run: the tap-a-word tip until the first tap': firstRunWordTip,
   'new stories from the CDN: offer, install, read': contentUpdate,
+  'daily reminder: off by default, on asks first, a new time, off': dailyReminder,
 };
