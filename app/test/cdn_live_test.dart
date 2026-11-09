@@ -40,5 +40,23 @@ void main() {
       }
     }
     expect(linked / words, greaterThan(0.95), reason: '$linked of $words words linked');
+
+    // Every path the client would follow passes its checks: A1 story images and all word clips.
+    final index = m.levels['A1']!.index!;
+    final images = (jsonDecode(utf8.decode(await fetchVerified(fetcher, base.resolve(index.url), index.sha256)))
+        as Map<String, dynamic>)['story_images'] as Map<String, dynamic>;
+    for (final img in images.values.cast<Map<String, dynamic>>()) {
+      checkedPath(img['url'] as String);
+      checkedSha256(img['sha256'] as String);
+    }
+    final lookup = jsonDecode(utf8.decode(await fetchVerified(fetcher, base.resolve(m.lookup!.url), m.lookup!.sha256))) as Map<String, dynamic>;
+    final clips = (lookup['clips'] as Map<String, dynamic>).values.cast<Map<String, dynamic>>().toList();
+    for (final c in clips) {
+      checkedPath(c['url'] as String);
+    }
+    for (final s in (pack['stories'] as List).cast<Map<String, dynamic>>()) {
+      checkedSlug((s['slug'] as String?) ?? (s['id'] as String).replaceFirst('de.story.', ''));
+    }
+    expect(clips.length, greaterThan(6000));
   });
 }

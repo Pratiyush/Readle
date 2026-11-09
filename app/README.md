@@ -14,7 +14,8 @@ flutter test integration_test -d <device>    # the same flows on an emulator, si
   dictionary. `LayeredContentRepository` puts stories installed from the german-content CDN
   (`cdn/`: daily manifest check, verified staged download, atomic swap, rollback) over the bundled
   ones; `linker.dart` makes their words tappable with the builder's own rules (tables in
-  `assets/linker/`, written by `../tools/build_content.py`). Point a debug build at a local CDN
+  `assets/linker/`, written by `../tools/build_content.py`). The CDN check is **off by default**:
+  build with `--dart-define=CONTENT_CDN_ENABLED=true` to turn it on. Point a debug build at a local CDN
   with `--dart-define=CONTENT_CDN=http://10.0.2.2:8787/` and `../../content/tools/serve`.
   Live smoke test: `flutter test --run-skipped --tags live test/cdn_live_test.dart`.
 - `lib/state/app_state.dart`: progress, saved words and settings, in the web app's JSON schema

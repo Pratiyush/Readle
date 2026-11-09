@@ -206,6 +206,8 @@ Future<void> settingsAndReset(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('tab-progress')));
   await tester.pumpAndSettle();
   await waitFor(tester, find.byKey(const Key('progress-list')));
+  // Without a content client (CONTENT_CDN_ENABLED off, the default) there is nothing to check.
+  expect(find.byKey(const Key('content-check'), skipOffstage: false), findsNothing);
   await reveal(tester, find.byKey(const Key('theme')), const Key('progress-list'));
   await tester.tap(find.byKey(const Key('theme')));
   await tester.pumpAndSettle();

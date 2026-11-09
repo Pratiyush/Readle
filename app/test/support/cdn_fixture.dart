@@ -11,11 +11,11 @@ const newSlug = 'neuer-baecker';
 const newTitle = 'Der neue Bäcker';
 
 class CdnFixture {
-  CdnFixture({int version = 2, int minClient = 1, List<int>? image}) {
+  CdnFixture({int version = 2, int minClient = 1, List<int>? image, String slug = newSlug}) {
     final img = image ?? File('assets/content/images/brot.webp').readAsBytesSync();
     final story = {
-      'id': 'de.story.$newSlug',
-      'slug': newSlug,
+      'id': 'de.story.$slug',
+      'slug': slug,
       'title': newTitle,
       'cefr': 'A1',
       'published_at': '2099-01-01',
@@ -24,7 +24,7 @@ class CdnFixture {
         {'de': 'Der Bäcker gibt mir ein Brot.', 'en': 'The baker gives me a loaf of bread.'},
         {'de': 'Die Abbuchung kommt morgen.', 'en': 'The debit comes tomorrow.'},
       ],
-      'image': {'path': 'story-images/de.story.$newSlug.webp'},
+      'image': {'path': 'story-images/de.story.$slug.webp'},
       'audio': null,
     };
     final brot = {...story, 'id': 'de.story.brot', 'slug': 'brot', 'title': 'Brot ist hier wichtig'};
@@ -34,7 +34,7 @@ class CdnFixture {
       'schema': 'german-content/file-index@1',
       'level': 'A1',
       'story_images': {
-        'de.story.$newSlug': {'path': 'story-images/x.webp', 'sha256': sha(img), 'bytes': img.length, 'url': imageUrl},
+        'de.story.$slug': {'path': 'story-images/x.webp', 'sha256': sha(img), 'bytes': img.length, 'url': imageUrl},
       },
     });
     final clip = _file(utf8.encode('ID3 fake clip'), 'mp3');
@@ -46,7 +46,7 @@ class CdnFixture {
       'schema': 'german-content/feed-stories@1',
       'stories': [
         {'id': 'de.story.brot', 'cefr': 'A1', 'level_file': pack.url},
-        {'id': 'de.story.$newSlug', 'cefr': 'A1', 'level_file': pack.url},
+        {'id': 'de.story.$slug', 'cefr': 'A1', 'level_file': pack.url},
       ],
     });
     manifest = {

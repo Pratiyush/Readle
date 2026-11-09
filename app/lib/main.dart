@@ -9,6 +9,7 @@ import 'app.dart';
 import 'content/cdn/content_client.dart';
 import 'content/cdn/content_store.dart';
 import 'content/cdn/fetcher.dart';
+import 'content/cdn/manifest.dart' show contentCdnEnabled;
 import 'content/content_repository.dart';
 import 'content/layered_repository.dart';
 import 'services/ads.dart';
@@ -32,13 +33,15 @@ Future<void> main() async {
   final bundled = AssetContentRepository();
   final content = LayeredContentRepository(bundled: bundled, store: store);
   final bundledIds = <String>{};
-  final updates = ContentClient(fetcher: HttpFetcher(), store: store, prefs: prefs, bundledIds: bundledIds);
+  final updates = contentCdnEnabled ? ContentClient(fetcher: HttpFetcher(), store: store, prefs: prefs, bundledIds: bundledIds) : null;
   runApp(ReadleApp(state: state, content: content, speech: DeviceSpeech(), player: AssetWordPlayer(), ads: ads, updates: updates));
   // Consent → ATT → SDK after the first frame; reading never waits for it.
   unawaited(ads.init().catchError((Object _) {}));
   // The daily content check (at most once per 24 h, silent offline) after the first frame too.
-  unawaited(() async {
-    bundledIds.addAll([for (final s in await bundled.library()) s.id]);
-    await updates.check();
-  }());
+  if (updates != null) {
+    unawaited(() async {
+      bundledIds.addAll([for (final s in await bundled.library()) s.id]);
+      await updates.check();
+    }());
+  }
 }

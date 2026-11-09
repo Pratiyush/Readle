@@ -66,7 +66,7 @@ class ContentClient extends ChangeNotifier {
   /// Bumped after every successful install, so screens reload the library.
   int installs = 0;
 
-  Uri _url(String path) => base.resolve(path);
+  Uri _url(String path) => base.resolve(checkedPath(path));
 
   /// The daily check. Never throws; [force] skips the 24-hour limit (Settings → Check now).
   Future<void> check({bool force = false}) async {
@@ -173,12 +173,12 @@ class ContentClient extends ChangeNotifier {
                     as Map<String, dynamic>? ??
                 const {});
         for (final s in stories) {
-          final slug = (s['slug'] as String?) ?? (s['id'] as String).replaceFirst('de.story.', '');
+          final slug = checkedSlug((s['slug'] as String?) ?? (s['id'] as String).replaceFirst('de.story.', ''));
           await File('${staged.path}/stories/$slug.json').create(recursive: true).then((f) => f.writeAsString(jsonEncode(s), flush: true));
           String? image;
           final img = images[s['id']] as Map<String, dynamic>?;
           if (img != null) {
-            await get(img['url'] as String, img['sha256'] as String, 'images/$slug.webp');
+            await get(img['url'] as String, checkedSha256(img['sha256'] as String), 'images/$slug.webp');
             image = 'images/$slug.webp';
           }
           metas.add(storyMeta(s, slug, image));
@@ -187,7 +187,8 @@ class ContentClient extends ChangeNotifier {
       if (m.lookup != null && wanted.isNotEmpty) {
         final lookup = jsonDecode(utf8.decode(await get(m.lookup!.url, m.lookup!.sha256, 'packs/lookup.json'))) as Map<String, dynamic>;
         final clips = {
-          for (final e in ((lookup['clips'] as Map<String, dynamic>?) ?? const {}).entries) e.key: (e.value as Map<String, dynamic>)['url'],
+          for (final e in ((lookup['clips'] as Map<String, dynamic>?) ?? const {}).entries)
+            e.key: checkedPath((e.value as Map<String, dynamic>)['url'] as String),
         };
         await File('${staged.path}/packs/lookup.json').delete();
         files.remove(m.lookup!.sha256);

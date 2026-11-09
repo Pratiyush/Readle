@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:readle/content/cdn/content_client.dart';
 import 'package:readle/content/cdn/content_store.dart';
 import 'package:readle/content/cdn/fetcher.dart';
+import 'package:readle/content/cdn/manifest.dart' show checkedPath, checkedSlug, contentCdnEnabled;
 import 'package:readle/content/content_repository.dart';
 import 'package:readle/content/layered_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,6 +48,49 @@ void main() {
         base: Uri.parse('https://cdn.test/'),
         now: () => clock,
       );
+
+  test('the CDN check is off unless the build turns it on (CONTENT_CDN_ENABLED)', () {
+    expect(contentCdnEnabled, isFalse);
+  });
+
+  group('every request stays on the CDN host, every file inside the content folder', () {
+    test('paths must be relative to the CDN root', () {
+      for (final ok in ['manifest.json', 'files/ab/abc123.webp', 'stories/a1.3f2a.json', 'feed/stories.0a1b.json']) {
+        expect(checkedPath(ok), ok);
+      }
+      for (final bad in ['https://evil.test/x.json', '//evil.test/x', '/etc/passwd', '../x.json', 'a/../b', 'a//b', '', './a', 'a?b=1', 'a b']) {
+        expect(() => checkedPath(bad), throwsFormatException, reason: bad);
+      }
+      expect(checkedSlug('was-der-dolmetscher-nicht-sagte'), isNotEmpty);
+      for (final bad in ['../../escape', 'a/b', 'Brot', '', '-x']) {
+        expect(() => checkedSlug(bad), throwsFormatException, reason: bad);
+      }
+    });
+
+    test('a manifest pointing at another host is refused, silently, with no request to it', () async {
+      for (final url in ['https://evil.test/feed.json', '../feed.json']) {
+        final cdn = CdnFixture();
+        final feed = cdn.manifest['feed']['stories'] as Map<String, dynamic>;
+        cdn.manifest['feed'] = {'stories': {...feed, 'url': url}};
+        cdn.files['manifest.json'] = utf8.encode(jsonEncode(cdn.manifest));
+        final c = client(cdn);
+        await c.check(force: true);
+        expect(c.kind, UpdateKind.none, reason: url);
+        expect(cdn.requests, ['manifest.json'], reason: url);
+      }
+    });
+
+    test('a story slug that would write outside the content folder fails the install, nothing written', () async {
+      final cdn = CdnFixture(slug: '../../escape');
+      final c = client(cdn);
+      await c.check();
+      expect(c.kind, UpdateKind.available);
+      expect(await c.update(), isFalse);
+      expect(await ContentStore(root).current(), isNull, reason: 'nothing installed');
+      expect(File('${root.parent.path}/escape.json').existsSync(), isFalse);
+      expect(root.listSync(recursive: true).whereType<File>().where((f) => f.path.endsWith('escape.json')), isEmpty);
+    });
+  });
 
   test('the bundled version: no prompt and no further downloads', () async {
     final cdn = CdnFixture(version: 1);

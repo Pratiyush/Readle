@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 
 class FetchResult {
   const FetchResult(this.status, this.body, {this.etag});
@@ -22,6 +23,8 @@ class HttpFetcher implements Fetcher {
 
   @override
   Future<FetchResult> get(Uri url, {String? etag}) async {
+    // Release builds talk HTTPS only; debug builds may use a local `content/tools/serve`.
+    if (url.scheme != 'https' && !kDebugMode) throw ArgumentError.value(url, 'url', 'HTTPS only');
     final request = await _client.getUrl(url).timeout(timeout);
     if (etag != null) request.headers.set(HttpHeaders.ifNoneMatchHeader, etag);
     final response = await request.close().timeout(timeout);
