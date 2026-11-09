@@ -71,7 +71,9 @@ class ContentClient extends ChangeNotifier {
   /// The daily check. Never throws; [force] skips the 24-hour limit (Settings → Check now).
   Future<void> check({bool force = false}) async {
     final last = prefs.getInt(_kLastCheck);
-    if (!force && last != null && _now().difference(DateTime.fromMillisecondsSinceEpoch(last)) < checkInterval) return;
+    final since = last == null ? null : _now().difference(DateTime.fromMillisecondsSinceEpoch(last));
+    // A last check in the future means the clock was moved back: check now, not in a year.
+    if (!force && since != null && !since.isNegative && since < checkInterval) return;
     try {
       final cached = prefs.getString(_kManifest);
       final r = await fetcher.get(_url('manifest.json'), etag: cached == null ? null : prefs.getString(_kEtag));

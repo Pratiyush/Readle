@@ -25,23 +25,30 @@ class Harness {
   final RecordingWordPlayer player;
 }
 
-Future<Harness> pumpApp(WidgetTester tester, {bool decodeInIsolate = false, bool onboarded = true}) async {
+Future<Harness> pumpApp(
+  WidgetTester tester, {
+  bool decodeInIsolate = false,
+  bool onboarded = true,
+  bool clipsWork = true,
+  bool germanVoice = true,
+  ContentRepository? content,
+}) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   await prefs.clear();
   // Every flow but the onboarding one starts past the first-launch level question.
   final state = await AppState.load(prefs)
     ..onboarded = onboarded;
-  final speech = RecordingSpeech(duration: const Duration(milliseconds: 120));
-  final content = AssetContentRepository(decodeInIsolate: decodeInIsolate);
+  final speech = RecordingSpeech(duration: const Duration(milliseconds: 120), hasVoice: germanVoice);
+  final repo = content ?? AssetContentRepository(decodeInIsolate: decodeInIsolate);
   // Load the content for real before the app's first frame (assets are real I/O).
   await tester.runAsync(() async {
-    await content.library();
-    await content.dictionary();
-    await content.story('brot');
+    await repo.library();
+    await repo.dictionary();
+    await repo.story('brot');
   });
-  final player = RecordingWordPlayer();
-  await tester.pumpWidget(ReadleApp(state: state, content: content, speech: speech, player: player, ads: NoAds()));
+  final player = RecordingWordPlayer(works: clipsWork);
+  await tester.pumpWidget(ReadleApp(state: state, content: repo, speech: speech, player: player, ads: NoAds()));
   await tester.pumpAndSettle();
   return Harness(state, speech, player);
 }

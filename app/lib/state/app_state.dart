@@ -77,13 +77,14 @@ class Settings {
 
   factory Settings.fromJson(Map<String, dynamic> j) {
     const d = Settings();
+    T? as<T>(Object? v) => v is T ? v : null; // a value of the wrong type falls back, alone
     return Settings(
-      level: j['level'] as String? ?? d.level,
-      fontScale: (j['fontScale'] as num?)?.toDouble() ?? d.fontScale,
+      level: as<String>(j['level']) ?? d.level,
+      fontScale: as<num>(j['fontScale'])?.toDouble() ?? d.fontScale,
       theme: ThemeChoice.values.asNameMap()[j['theme']] ?? d.theme,
-      dailyGoal: j['dailyGoal'] as int? ?? d.dailyGoal,
-      speechRate: (j['speechRate'] as num?)?.toDouble() ?? d.speechRate,
-      autoPlayWords: j['autoPlayWords'] as bool? ?? d.autoPlayWords,
+      dailyGoal: as<num>(j['dailyGoal'])?.toInt() ?? d.dailyGoal,
+      speechRate: as<num>(j['speechRate'])?.toDouble() ?? d.speechRate,
+      autoPlayWords: as<bool>(j['autoPlayWords']) ?? d.autoPlayWords,
     );
   }
 }
@@ -124,16 +125,35 @@ class AppState extends ChangeNotifier {
   }
 
   void _fromJson(Map<String, dynamic> j) {
-    read = {for (final e in (j['read'] as Map? ?? {}).entries) e.key as String: e.value as String};
-    progress = {for (final e in (j['progress'] as Map? ?? {}).entries) e.key as String: e.value as int};
-    quiz = {for (final e in (j['quiz'] as Map? ?? {}).entries) e.key as String: (e.value as num).toDouble()};
-    words = {for (final e in (j['words'] as Map? ?? {}).entries) e.key as String: SavedWord.fromJson(e.value as Map<String, dynamic>)};
-    activeDays = [for (final d in j['activeDays'] as List? ?? []) d as String];
-    settings = Settings.fromJson(j['settings'] as Map<String, dynamic>? ?? {});
-    lastStory = j['lastStory'] as String?;
-    wordTipSeen = j['wordTipSeen'] as bool? ?? false;
+    // Field by field and entry by entry: one value of the wrong type (an older or newer build, a
+    // hand-edited backup) must not drop everything after it, which the next save makes permanent.
+    read = _entries(j['read'], (v) => v as String);
+    progress = _entries(j['progress'], (v) => (v as num).toInt());
+    quiz = _entries(j['quiz'], (v) => (v as num).toDouble());
+    words = _entries(j['words'], (v) => SavedWord.fromJson(v as Map<String, dynamic>));
+    activeDays = [
+      for (final d in j['activeDays'] is List ? j['activeDays'] as List : const [])
+        if (d is String) d,
+    ];
+    settings = j['settings'] is Map<String, dynamic> ? Settings.fromJson(j['settings'] as Map<String, dynamic>) : const Settings();
+    lastStory = j['lastStory'] is String ? j['lastStory'] as String : null;
+    wordTipSeen = j['wordTipSeen'] is bool ? j['wordTipSeen'] as bool : false;
     // Installs from before the level question have already been using the app.
-    onboarded = j['onboarded'] as bool? ?? true;
+    onboarded = j['onboarded'] is bool ? j['onboarded'] as bool : true;
+  }
+
+  /// The entries of a JSON object that parse; a bad entry is skipped, not the whole map.
+  static Map<String, T> _entries<T>(Object? raw, T Function(Object? v) parse) {
+    final out = <String, T>{};
+    if (raw is! Map) return out;
+    for (final e in raw.entries) {
+      try {
+        out[e.key as String] = parse(e.value);
+      } catch (_) {
+        // skip this entry only
+      }
+    }
+    return out;
   }
 
   Map<String, Object> toJson() => {

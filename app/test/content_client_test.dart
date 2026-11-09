@@ -27,6 +27,17 @@ class _Offline implements Fetcher {
   Future<FetchResult> get(Uri url, {String? etag}) => throw const SocketException('offline');
 }
 
+class _Status implements Fetcher {
+  _Status(this.status);
+  final int status;
+  var calls = 0;
+  @override
+  Future<FetchResult> get(Uri url, {String? etag}) async {
+    calls++;
+    return FetchResult(status, utf8.encode('Internal Server Error'));
+  }
+}
+
 void main() {
   late Directory root;
   late SharedPreferences prefs;
@@ -147,6 +158,67 @@ void main() {
     await c.check();
     expect(cdn.requests, ['manifest.json', 'manifest.json']);
     expect(c.kind, UpdateKind.none, reason: '304: the cached manifest is evaluated again');
+  });
+
+  group('edges: clock, server errors, bad manifests, double taps', () {
+    test('the 24-hour boundary: 23:59 later no request, 24:01 later one', () async {
+      final cdn = CdnFixture(version: 1);
+      final c = client(cdn);
+      await c.check();
+      clock = clock.add(const Duration(hours: 23, minutes: 59));
+      await c.check();
+      expect(cdn.requests, hasLength(1));
+      clock = clock.add(const Duration(minutes: 2));
+      await c.check();
+      expect(cdn.requests, hasLength(2));
+    });
+
+    test('a clock moved backwards does not stop the daily check', () async {
+      final cdn = CdnFixture(version: 1);
+      final c = client(cdn);
+      await c.check(); // the clock was a year ahead when the app last checked
+      clock = clock.subtract(const Duration(days: 365));
+      await c.check();
+      expect(cdn.requests, hasLength(2), reason: 'a last check in the future is not "less than 24 h ago"');
+      clock = clock.add(const Duration(hours: 1));
+      await c.check();
+      expect(cdn.requests, hasLength(2), reason: 'and then the 24 h rule applies again');
+    });
+
+    test('server 500: silent, keeps the installed content, retried on the next open', () async {
+      final cdn = CdnFixture();
+      final fetcher = _Status(500);
+      final c = client(cdn, fetcher: fetcher);
+      await c.check();
+      expect(c.kind, UpdateKind.none);
+      await c.check();
+      expect(fetcher.calls, 2, reason: 'no "checked today" after a failure');
+    });
+
+    test('a manifest that is not JSON, or of an unknown schema, is ignored', () async {
+      for (final body in [
+        '{"schema": "german-content/manifest@2", "content_version": 9}',
+        '<html>502</html>',
+        '{"schema": "german-content/manifest@1"',
+      ]) {
+        final cdn = CdnFixture();
+        cdn.files['manifest.json'] = utf8.encode(body);
+        final c = client(cdn);
+        await c.check(force: true);
+        expect(c.kind, UpdateKind.none, reason: body);
+      }
+    });
+
+    test('tapping Download twice installs once', () async {
+      final cdn = CdnFixture();
+      final c = client(cdn);
+      await c.check();
+      final first = c.update();
+      final second = c.update();
+      expect(await second, isFalse, reason: 'already downloading');
+      expect(await first, isTrue);
+      expect(cdn.requests.where((r) => r.startsWith('stories/')), hasLength(1));
+    });
   });
 
   test('a file whose hash does not match is refused and the installed set is kept', () async {

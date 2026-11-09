@@ -161,11 +161,7 @@ class _QuizScreenState extends State<QuizScreen> {
     final state = AppScope.of(context).state;
     final palette = Palette.of(context);
     final pct = total == 0 ? 100 : (100 * _correct / total).round();
-    final (emoji, headline) = switch (pct) {
-      >= 80 => ('🎉', 'Gut gemacht!'),
-      >= 50 => ('👍', 'Nicht schlecht!'),
-      _ => ('📖', 'Weiter so!'),
-    };
+    final (emoji, headline) = praise(pct);
     Widget stat(String value, String label) => Expanded(
       child: Card(
         child: Padding(

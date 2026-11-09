@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { addDays, dayKey } from "./dates";
 import { newCard, review, type Card } from "./srs";
-import type { Level } from "./types";
+import { LEVELS, type Level } from "./types";
 
 export interface SavedWord {
   key: string; // dictionary key, or "free:<word>" for words without an entry
@@ -48,15 +48,50 @@ export const defaultState = (): State => ({
   settings: { level: "all", fontScale: 1, theme: "system", dailyGoal: 1, speechRate: 0.9, autoPlayWords: true },
 });
 
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
+
+/** The entries of a stored object whose values pass `ok`; a bad entry is dropped alone. */
+function entries<T>(v: unknown, ok: (x: unknown) => boolean): Record<string, T> {
+  return isObj(v) ? (Object.fromEntries(Object.entries(v).filter(([, x]) => ok(x))) as Record<string, T>) : {};
+}
+
+const isWord = (w: unknown) => isObj(w) && typeof w.key === "string" && typeof w.word === "string" && isObj(w.card) && typeof w.card.due === "string";
+
+/**
+ * Field by field and entry by entry: one value of the wrong type (an older or newer build, the
+ * app's JSON, a hand-edited backup) must not crash the app or drop the rest, which the next save
+ * would make permanent. A saved word without a card used to crash every screen with a tab bar.
+ */
 function parse(raw: string | null): State | null {
   if (!raw) return null;
+  let p: unknown;
   try {
-    const parsed = JSON.parse(raw) as State;
-    const d = defaultState();
-    return { ...d, ...parsed, settings: { ...d.settings, ...parsed.settings } };
+    p = JSON.parse(raw);
   } catch {
     return null; // corrupt data
   }
+  if (!isObj(p)) return null;
+  const d = defaultState();
+  const s = isObj(p.settings) ? p.settings : {};
+  const pick = <K extends keyof Settings>(k: K, type: string): Settings[K] => (typeof s[k] === type ? (s[k] as Settings[K]) : d.settings[k]);
+  return {
+    version: 1,
+    read: entries<string>(p.read, (x) => typeof x === "string"),
+    progress: entries<number>(p.progress, (x) => typeof x === "number"),
+    quiz: entries<number>(p.quiz, (x) => typeof x === "number"),
+    words: entries<SavedWord>(p.words, isWord),
+    activeDays: Array.isArray(p.activeDays) ? p.activeDays.filter((x): x is string => typeof x === "string") : [],
+    lastStory: typeof p.lastStory === "string" ? p.lastStory : null,
+    wordTipSeen: p.wordTipSeen === true,
+    settings: {
+      level: (["all", ...LEVELS] as unknown[]).includes(s.level) ? (s.level as Settings["level"]) : d.settings.level,
+      fontScale: pick("fontScale", "number"),
+      theme: ["system", "light", "dark"].includes(s.theme as string) ? (s.theme as Settings["theme"]) : d.settings.theme,
+      dailyGoal: pick("dailyGoal", "number"),
+      speechRate: pick("speechRate", "number"),
+      autoPlayWords: pick("autoPlayWords", "boolean"),
+    },
+  };
 }
 
 function loadState(): State {

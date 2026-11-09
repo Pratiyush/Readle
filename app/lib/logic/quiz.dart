@@ -73,3 +73,10 @@ List<Question> buildQuiz(Story story, Dictionary dict, {String? seed}) {
   }
   return questions;
 }
+
+/// Praise that matches the score ("Gut gemacht! 🎉" at 20 % read as a joke). Same tiers as the web.
+(String, String) praise(int pct) => switch (pct) {
+  >= 80 => ('🎉', 'Gut gemacht!'),
+  >= 50 => ('👍', 'Nicht schlecht!'),
+  _ => ('📖', 'Weiter so!'),
+};
