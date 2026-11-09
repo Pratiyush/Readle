@@ -49,6 +49,7 @@ class Settings {
     this.autoPlayWords = true,
     this.reminder = false,
     this.reminderMinutes = defaultReminderMinutes,
+    this.autoUpdateOnWifi = false,
   });
 
   static const defaultReminderMinutes = 19 * 60;
@@ -61,6 +62,7 @@ class Settings {
   final bool autoPlayWords; // say a word when it is tapped
   final bool reminder; // the daily reminder: off until the learner turns it on
   final int reminderMinutes; // its time of day, minutes after midnight (0..1439)
+  final bool autoUpdateOnWifi; // new stories download on their own on Wi-Fi; otherwise on a tap
 
   Settings copyWith({
     String? level,
@@ -71,6 +73,7 @@ class Settings {
     bool? autoPlayWords,
     bool? reminder,
     int? reminderMinutes,
+    bool? autoUpdateOnWifi,
   }) => Settings(
     level: level ?? this.level,
     fontScale: fontScale ?? this.fontScale,
@@ -80,6 +83,7 @@ class Settings {
     autoPlayWords: autoPlayWords ?? this.autoPlayWords,
     reminder: reminder ?? this.reminder,
     reminderMinutes: reminderMinutes ?? this.reminderMinutes,
+    autoUpdateOnWifi: autoUpdateOnWifi ?? this.autoUpdateOnWifi,
   );
 
   Map<String, Object> toJson() => {
@@ -91,6 +95,7 @@ class Settings {
     'autoPlayWords': autoPlayWords,
     'reminder': reminder,
     'reminderMinutes': reminderMinutes,
+    'autoUpdateOnWifi': autoUpdateOnWifi,
   };
 
   factory Settings.fromJson(Map<String, dynamic> j) {
@@ -108,6 +113,7 @@ class Settings {
         final int m when m >= 0 && m < 24 * 60 => m,
         _ => d.reminderMinutes,
       },
+      autoUpdateOnWifi: as<bool>(j['autoUpdateOnWifi']) ?? d.autoUpdateOnWifi,
     );
   }
 }

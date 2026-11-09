@@ -1,9 +1,11 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../config.dart' show playStoreUrl;
 import '../content/cdn/content_client.dart';
-import '../content/layered_repository.dart';
 import '../content/models.dart';
 import '../logic/quiz.dart' show seedOf;
 import 'app_scope.dart';
@@ -45,6 +47,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    // Runs on every app-state or content-update change: after an install (a tap on Download, or on
+    // its own on Wi-Fi) the content is already reloaded, so this picks up the new stories.
     _library = AppScope.read(context).content.library();
   }
 
@@ -132,12 +136,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    if (scope.updates != null)
-                      _UpdateBanner(
-                        onInstalled: () => setState(() {
-                          _library = scope.content.library();
-                        }),
-                      ),
+                    if (scope.updates != null) const _UpdateBanner(),
                     if (resume != null) ...[_ContinueCard(story: resume), const SizedBox(height: 12)],
                     if (daily != null) _DailyCard(story: daily, keepGoing: state.readToday > 0),
                     const SizedBox(height: 12),
@@ -440,11 +439,11 @@ class _StoryCard extends StatelessWidget {
   }
 }
 
-/// "New stories" from the content CDN: offered, never downloaded without a tap. Hidden when there
-/// is nothing new; asks for an app update when the CDN needs a newer client.
+/// "New stories" from the content CDN: offered, downloaded on a tap (or on their own on Wi-Fi when
+/// the learner allowed it). Hidden when there is nothing new; asks for an app update, with a link to
+/// the store on Android, when the CDN needs a newer client.
 class _UpdateBanner extends StatelessWidget {
-  const _UpdateBanner({required this.onInstalled});
-  final VoidCallback onInstalled;
+  const _UpdateBanner();
 
   @override
   Widget build(BuildContext context) {
@@ -472,6 +471,12 @@ class _UpdateBanner extends StatelessWidget {
                     : '📚 $n new stories to read',
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
+              if (tooOld && defaultTargetPlatform == TargetPlatform.android)
+                OutlinedButton(
+                  key: const Key('update-app'),
+                  onPressed: () => launchUrl(Uri.parse(playStoreUrl), mode: LaunchMode.externalApplication),
+                  child: const Text('Update app'),
+                ),
               if (!tooOld)
                 FilledButton(
                   key: const Key('content-update-button'),
@@ -479,11 +484,8 @@ class _UpdateBanner extends StatelessWidget {
                       ? null
                       : () async {
                           final messenger = ScaffoldMessenger.maybeOf(context);
-                          if (await updates.update()) {
-                            final content = scope.content;
-                            if (content is LayeredContentRepository) await content.reload();
-                            onInstalled();
-                          } else {
+                          // On success the library follows on its own (the client reloads the content).
+                          if (!await updates.update()) {
                             messenger?.showSnackBar(const SnackBar(content: Text("Couldn't download the new stories. Try again later.")));
                           }
                         },

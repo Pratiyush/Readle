@@ -46,10 +46,15 @@ class AssetContentRepository implements ContentRepository {
       final json = decodeInIsolate && text.length > 50000 ? await compute(jsonDecode, text) : jsonDecode(text);
       return _parsed[path] = parse(json);
     });
-    hit.catchError((Object _) {
-      _cache.remove(path);
-      return null;
-    });
+    // Forget a failed load so the next call tries again. The caller still gets the error through
+    // `hit`; this branch must not raise one of its own (a catchError returning null into a
+    // Future<Story> used to throw an uncaught ArgumentError, BUG-40).
+    hit.then<void>(
+      (_) {},
+      onError: (Object _) {
+        _cache.remove(path); // a block: returning the removed (failed) future would re-raise it
+      },
+    );
     return hit.then((v) => v as T);
   }
 

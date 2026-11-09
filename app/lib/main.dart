@@ -10,6 +10,7 @@ import 'content/cdn/content_client.dart';
 import 'content/cdn/content_store.dart';
 import 'content/cdn/fetcher.dart';
 import 'content/cdn/manifest.dart' show contentCdnEnabled;
+import 'content/cdn/network.dart';
 import 'content/content_repository.dart';
 import 'content/layered_repository.dart';
 import 'services/ads.dart';
@@ -34,7 +35,17 @@ Future<void> main() async {
   final bundled = AssetContentRepository();
   final content = LayeredContentRepository(bundled: bundled, store: store);
   final bundledIds = <String>{};
-  final updates = contentCdnEnabled ? ContentClient(fetcher: HttpFetcher(), store: store, prefs: prefs, bundledIds: bundledIds) : null;
+  final updates = contentCdnEnabled
+      ? ContentClient(
+          fetcher: HttpFetcher(),
+          store: store,
+          prefs: prefs,
+          bundledIds: bundledIds,
+          autoUpdate: () => state.settings.autoUpdateOnWifi,
+          unmetered: onUnmeteredNetwork,
+          afterInstall: content.reload,
+        )
+      : null;
   final reminders = LocalReminders();
   runApp(
     ReadleApp(

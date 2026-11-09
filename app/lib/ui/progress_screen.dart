@@ -314,7 +314,17 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: scope.ads.showPrivacyOptions,
               ),
-            if (scope.updates != null) _ContentCheckTile(updates: scope.updates!),
+            if (scope.updates != null) ...[
+              _ContentCheckTile(updates: scope.updates!),
+              SwitchListTile(
+                key: const Key('auto-update-wifi'),
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Download new stories on Wi-Fi'),
+                subtitle: const Text('Never on mobile data. Off: you tap Download.'),
+                value: state.settings.autoUpdateOnWifi,
+                onChanged: (v) => state.updateSettings(state.settings.copyWith(autoUpdateOnWifi: v)),
+              ),
+            ],
             ...legalTiles(),
             ListTile(
               key: const Key('licences'),
@@ -378,9 +388,9 @@ List<Widget> legalTiles({String slug = legalSlug}) => [
       ),
 ];
 
-/// Settings → New stories: the daily check runs on its own; this runs it now.
 TimeOfDay _timeOf(int minutes) => TimeOfDay(hour: minutes ~/ 60, minute: minutes % 60);
 
+/// Settings → New stories: the daily check runs on its own; this runs it now.
 class _ContentCheckTile extends StatelessWidget {
   const _ContentCheckTile({required this.updates});
   final ContentClient updates;

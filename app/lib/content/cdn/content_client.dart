@@ -13,7 +13,8 @@ enum UpdateKind {
   /// Nothing to offer: offline, checked recently, or no story Readle doesn't already have.
   none,
 
-  /// New stories are on the CDN; the library offers "Update" (never automatic).
+  /// New stories are on the CDN; the library offers "Download" (automatic only on Wi-Fi, and only
+  /// when the learner allowed it).
   available,
 
   /// The CDN needs a newer app (`min_client`); installed content keeps working.
@@ -33,6 +34,9 @@ class ContentClient extends ChangeNotifier {
     Uri? base,
     DateTime Function()? now,
     this.clientVersion = contentClientVersion,
+    this.autoUpdate,
+    this.unmetered,
+    this.afterInstall,
   }) : base = base ?? Uri.parse(cdnBase),
        _now = now ?? DateTime.now {
     final pending = prefs.getString(_kPending);
@@ -52,6 +56,16 @@ class ContentClient extends ChangeNotifier {
   final Uri base;
   final int clientVersion;
   final DateTime Function() _now;
+
+  /// The learner's "download new stories on Wi-Fi" choice. Null or false: offer, never download.
+  final bool Function()? autoUpdate;
+
+  /// True on Wi-Fi or Ethernet. Never downloads on mobile data without a tap (content-client.md §2).
+  final Future<bool> Function()? unmetered;
+
+  /// Runs after a new set is committed and before listeners hear of it (the app reloads its
+  /// content here), so every screen that rebuilds on the news already sees the new stories.
+  final Future<void> Function()? afterInstall;
 
   static const _kLastCheck = 'readle.cdn.lastCheck';
   static const _kEtag = 'readle.cdn.etag';
@@ -80,6 +94,7 @@ class ContentClient extends ChangeNotifier {
       if (r.status == 304 && cached != null) {
         await prefs.setInt(_kLastCheck, _now().millisecondsSinceEpoch);
         await _evaluate(Manifest.fromJson(jsonDecode(cached) as Map<String, dynamic>));
+        await _autoUpdate();
         return;
       }
       if (r.status != 200) return;
@@ -89,6 +104,7 @@ class ContentClient extends ChangeNotifier {
       if (r.etag != null) await prefs.setString(_kEtag, r.etag!);
       await prefs.setInt(_kLastCheck, _now().millisecondsSinceEpoch);
       await _evaluate(manifest);
+      await _autoUpdate();
     } catch (e) {
       debugPrint('content check failed (will retry next open): $e');
     }
@@ -103,6 +119,13 @@ class ContentClient extends ChangeNotifier {
     final fresh = feed.where((s) => !bundledIds.contains(s.slug) && !have.contains(s.slug)).length;
     // A newer version that only changes words or media Readle doesn't use is not worth a prompt.
     _set(fresh > 0 ? UpdateKind.available : UpdateKind.none, fresh);
+  }
+
+  /// Installs on its own when there is something new, the learner allowed it, and the network is
+  /// not metered. A failure keeps the offer, so a tap (or tomorrow's check) tries again.
+  Future<void> _autoUpdate() async {
+    if (kind != UpdateKind.available || !(autoUpdate?.call() ?? false) || unmetered == null) return;
+    if (await unmetered!()) await update();
   }
 
   Future<List<FeedStory>> _feed(Manifest m) async {
@@ -203,6 +226,11 @@ class ContentClient extends ChangeNotifier {
       await File('${staged.path}/library.json').writeAsString(jsonEncode({'stories': metas}), flush: true);
       await File('${staged.path}/files.json').writeAsString(jsonEncode(files), flush: true);
       await store.commit(staged, m.contentVersion);
+      try {
+        await afterInstall?.call();
+      } catch (e) {
+        debugPrint('content reload after install failed: $e'); // installed; read on the next start
+      }
       installs++;
       _set(UpdateKind.none, 0);
       return true;

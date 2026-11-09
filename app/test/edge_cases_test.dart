@@ -1,8 +1,10 @@
 // Edge and boundary cases from German/docs/e2e-standard.md that the flows don't already cover
 // (docs/test-plan.md maps every case to its test). The fast gate runs this in Europe/Berlin.
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:readle/content/cdn/content_client.dart';
 import 'package:readle/content/content_repository.dart';
@@ -36,6 +38,17 @@ class _MissingPicture extends AssetContentRepository {
       ),
       ...real.skip(1),
     ];
+  }
+}
+
+/// Fails the first load of each asset, then serves the real one.
+class _FlakyBundle extends CachingAssetBundle {
+  final failed = <String>{};
+
+  @override
+  Future<ByteData> load(String key) async {
+    if (failed.add(key)) throw FlutterError('Unable to load asset: "$key".');
+    return rootBundle.load(key);
   }
 }
 
@@ -177,6 +190,19 @@ void main() {
       await pumpApp(tester, content: _MissingPicture());
       await waitFor(tester, find.text('Ohne Bild', skipOffstage: false));
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('content loading', () {
+    test('a story that fails to load: the caller gets the error, nothing else escapes, the next try loads (BUG-40)', () async {
+      final escaped = <Object>[];
+      await runZonedGuarded(() async {
+        final repo = AssetContentRepository(bundle: _FlakyBundle(), decodeInIsolate: false);
+        await expectLater(repo.story('brot'), throwsA(isA<FlutterError>()));
+        expect((await repo.story('brot')).id, 'brot', reason: 'not cached as failed');
+        await pumpEventQueue();
+      }, (e, _) => escaped.add(e));
+      expect(escaped, isEmpty, reason: 'a failed load must not raise a second, uncaught error');
     });
   });
 

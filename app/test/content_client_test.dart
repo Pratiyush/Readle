@@ -12,6 +12,7 @@ import 'package:readle/content/cdn/fetcher.dart';
 import 'package:readle/content/cdn/manifest.dart' show checkedPath, checkedSlug, contentCdnEnabled;
 import 'package:readle/content/content_repository.dart';
 import 'package:readle/content/layered_repository.dart';
+import 'package:readle/state/app_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/cdn_fixture.dart';
@@ -218,6 +219,85 @@ void main() {
       expect(await second, isFalse, reason: 'already downloading');
       expect(await first, isTrue);
       expect(cdn.requests.where((r) => r.startsWith('stories/')), hasLength(1));
+    });
+  });
+
+  group('automatic update on Wi-Fi: only when the learner allowed it (content-client.md §3)', () {
+    ContentClient auto(CdnFixture cdn, {required bool allowed, required bool wifi}) => ContentClient(
+      fetcher: cdn.fetcher,
+      store: ContentStore(root),
+      prefs: prefs,
+      bundledIds: {'brot'},
+      base: Uri.parse('https://cdn.test/'),
+      now: () => clock,
+      autoUpdate: () => allowed,
+      unmetered: () async => wifi,
+    );
+    Iterable<String> packs(CdnFixture cdn) => cdn.requests.where((r) => r.startsWith('stories/'));
+
+    test('the choice is off by default; a stored value of the wrong type falls back, alone', () {
+      expect(const Settings().autoUpdateOnWifi, isFalse);
+      final bad = Settings.fromJson({'autoUpdateOnWifi': 'yes', 'level': 'B1'});
+      expect((bad.autoUpdateOnWifi, bad.level), (false, 'B1'));
+      expect(Settings.fromJson({'autoUpdateOnWifi': true}).autoUpdateOnWifi, isTrue);
+    });
+
+    test('not allowed (the default): offers, downloads nothing', () async {
+      final cdn = CdnFixture();
+      final c = auto(cdn, allowed: false, wifi: true);
+      await c.check();
+      expect(c.kind, UpdateKind.available);
+      expect(packs(cdn), isEmpty);
+    });
+
+    test('allowed, on Wi-Fi: installs on its own, nothing left to offer', () async {
+      final cdn = CdnFixture();
+      final c = auto(cdn, allowed: true, wifi: true);
+      await c.check();
+      expect(c.installs, 1);
+      expect(c.kind, UpdateKind.none);
+      expect(await ContentStore(root).current(), isNotNull);
+    });
+
+    test('allowed, on mobile data: offers only, never downloads', () async {
+      final cdn = CdnFixture();
+      final c = auto(cdn, allowed: true, wifi: false);
+      await c.check();
+      expect(c.kind, UpdateKind.available);
+      expect(packs(cdn), isEmpty);
+    });
+
+    test('allowed, on Wi-Fi, but a file is corrupt: the offer stays, the previous content is kept', () async {
+      final picture = utf8.encode('a picture');
+      final cdn = CdnFixture(image: picture);
+      final h = CdnFixture.sha(picture);
+      cdn.files['files/${h.substring(0, 2)}/$h.webp'] = utf8.encode('corrupt');
+      final c = auto(cdn, allowed: true, wifi: true);
+      await c.check();
+      expect(c.installs, 0);
+      expect(c.kind, UpdateKind.available, reason: 'the learner can still tap Update, and it is retried next day');
+      expect(await ContentStore(root).current(), isNull);
+    });
+
+    test('the network question is asked only when there is something to download', () async {
+      final cdn = CdnFixture(version: 1); // nothing newer than the bundle
+      var asked = 0;
+      final c = ContentClient(
+        fetcher: cdn.fetcher,
+        store: ContentStore(root),
+        prefs: prefs,
+        bundledIds: {'brot'},
+        base: Uri.parse('https://cdn.test/'),
+        now: () => clock,
+        autoUpdate: () => true,
+        unmetered: () async {
+          asked++;
+          return true;
+        },
+      );
+      await c.check();
+      expect(c.kind, UpdateKind.none);
+      expect(asked, 0);
     });
   });
 

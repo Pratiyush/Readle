@@ -25,6 +25,8 @@ App (`app/test/flows.dart`, run headless by `test/widget_test.dart` and on devic
 10. First run: the tap-a-word tip until the first tap
 11. New stories from the CDN: offer, install, read a downloaded story's words
 12. Daily reminder: off by default, permission asked only when turned on (denied → stays off), a new time, off
+13. New stories on Wi-Fi: allowed in Settings (off by default), installed by the next daily check without a tap, shown in the library already on screen
+14. A CDN that needs a newer app: the library says so, "Update app" opens the Play listing, installed stories keep working
 
 Web (`e2e/*.spec.ts`): library, reader, reading (Continue reading, tip, Listen from here, German-voice gate), practice and quiz, offline (library, stories, recorded clips), a11y (contrast, 200 % text, modal sheet, chips), PWA icons, edges.
 
@@ -38,6 +40,7 @@ Web (`e2e/*.spec.ts`): library, reader, reading (Continue reading, tip, Listen f
 | Empty list (no story matches) | ✓ flow 2 (`zzzz` search) | ✓ `edges.spec` (Unread when all read), `library.spec` |
 | One item / the last item (every story read) | ✓ `story_of_the_day_test` (offers a read story again) | ✓ `edges.spec` every story read; `screens.test` |
 | Max size (all 107 stories, 1,344 entries) | ✓ `content_test`, `linker_test` golden (10,870 tokens) | ✓ `content.test`, `library.spec` (107 cards) |
+| A bundled file that fails to load once | ✓ `edge_cases_test` (caller gets the error, nothing else escapes, the retry loads: BUG-40) | N/A |
 | Duplicate ids (CDN story = bundled story) | ✓ `content_client_test` (bundled `brot` skipped, 108 in library) | N/A: web has no CDN source |
 | Missing optional fields (no picture, no thumb) | ✓ `edge_cases_test` (missing picture renders, no error) | ✓ placeholder `📖` (`Library.tsx`), thumbs fall back to hero |
 | Corrupt / truncated JSON (saved state) | ✓ `edge_cases_test` | ✓ `edges.test` |
@@ -100,6 +103,10 @@ Web (`e2e/*.spec.ts`): library, reader, reading (Continue reading, tip, Listen f
 | Server 500, not-JSON, wrong schema | ✓ `content_client_test` edges | N/A |
 | Off-host or `..` paths, unsafe slugs | ✓ `content_client_test` (BUG-33, BUG-34) | N/A |
 | Flag off: no request at all | ✓ `content_client_test`, flow 8 (no check tile) | N/A |
+| Auto-update not allowed (default) / allowed on Wi-Fi / allowed on mobile data | ✓ `content_client_test` (offer only / installs / offer only), flow 13 | N/A |
+| Auto-update fails mid-download | ✓ `content_client_test` (offer stays, previous set kept) | N/A |
+| Nothing new: no network question asked | ✓ `content_client_test` | N/A |
+| `min_client` too new: store link | ✓ flow 14 (Android link; iOS text only until the App Store record exists) | N/A |
 | Live CDN | ✓ `cdn_live_test` (tag `live`, run before a release) | N/A |
 
 ### Ads / consent

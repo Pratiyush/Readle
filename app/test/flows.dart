@@ -5,7 +5,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:readle/app.dart';
+import 'package:readle/config.dart' show playStoreUrl;
 import 'package:readle/content/cdn/content_client.dart';
 import 'package:readle/content/cdn/content_store.dart';
 import 'package:readle/content/content_repository.dart';
@@ -16,6 +18,7 @@ import 'package:readle/services/speech.dart';
 import 'package:readle/services/word_player.dart';
 import 'package:readle/state/app_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import 'support/cdn_fixture.dart';
 
@@ -282,7 +285,14 @@ Future<void> firstRunWordTip(WidgetTester tester) async {
 /// New stories from the content CDN: the library offers them (never downloads by itself), one tap
 /// installs them, and the new story opens with tappable words, linked on the device by the
 /// builder's own rules. The CDN is the in-memory fixture, so this runs the same on a device.
-Future<void> contentUpdate(WidgetTester tester) async {
+/// The app with a content client on the in-memory CDN fixture. [checkFirst]: the daily check has
+/// run before the first frame; otherwise the caller runs it.
+Future<(AppState, ContentClient, LayeredContentRepository)> pumpWithCdn(
+  WidgetTester tester, {
+  bool checkFirst = true,
+  bool onWifi = false,
+  int minClient = 1,
+}) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   await prefs.clear();
@@ -294,7 +304,7 @@ Future<void> contentUpdate(WidgetTester tester) async {
   await tester.runAsync(() async {
     root = await Directory.systemTemp.createTemp('readle-flow');
     final image = (await rootBundle.load('assets/content/images/brot.webp')).buffer.asUint8List();
-    final cdn = CdnFixture(image: image);
+    final cdn = CdnFixture(image: image, minClient: minClient);
     final store = ContentStore(root);
     final bundled = AssetContentRepository();
     content = LayeredContentRepository(bundled: bundled, store: store, cdn: Uri.parse('https://cdn.test/'));
@@ -306,15 +316,22 @@ Future<void> contentUpdate(WidgetTester tester) async {
       prefs: prefs,
       bundledIds: {for (final s in await bundled.library()) s.id},
       base: Uri.parse('https://cdn.test/'),
+      autoUpdate: () => state.settings.autoUpdateOnWifi,
+      unmetered: () async => onWifi,
+      afterInstall: content.reload,
     );
-    await updates.check();
+    if (checkFirst) await updates.check();
   });
   addTearDown(() => root.deleteSync(recursive: true));
-  final player = RecordingWordPlayer();
   await tester.pumpWidget(
-    ReadleApp(state: state, content: content, speech: RecordingSpeech(), player: player, ads: NoAds(), updates: updates),
+    ReadleApp(state: state, content: content, speech: RecordingSpeech(), player: RecordingWordPlayer(), ads: NoAds(), updates: updates),
   );
   await tester.pumpAndSettle();
+  return (state, updates, content);
+}
+
+Future<void> contentUpdate(WidgetTester tester) async {
+  final (_, updates, content) = await pumpWithCdn(tester);
   expect(find.text('📚 1 new story to read'), findsOneWidget);
   expect(find.text(newTitle), findsNothing, reason: 'nothing downloads before the tap');
 
@@ -324,7 +341,9 @@ Future<void> contentUpdate(WidgetTester tester) async {
       await Future<void>.delayed(const Duration(milliseconds: 50));
     }
     expect(updates.installs, 1);
-    await Future<void>.delayed(const Duration(milliseconds: 300)); // the library reload after install
+    await Future<void>.delayed(
+      const Duration(milliseconds: 300),
+    ); // let the store settle (the client reloaded the content before it notified)
     await content.story(newSlug); // read the file now, outside the fake clock
   });
   await tester.pumpAndSettle();
@@ -443,6 +462,68 @@ Future<void> dailyReminder(WidgetTester tester) async {
   expect(find.byKey(const Key('reminder-time')), findsNothing);
 }
 
+/// New stories on Wi-Fi, on their own, once the learner allowed it in Settings: no banner, no tap,
+/// and the library that is already on screen shows them.
+Future<void> contentOnWifi(WidgetTester tester) async {
+  final (state, updates, content) = await pumpWithCdn(tester, checkFirst: false, onWifi: true);
+  await tester.tap(find.byKey(const Key('tab-progress')));
+  await tester.pumpAndSettle();
+  final allow = find.byKey(const Key('auto-update-wifi'));
+  await reveal(tester, allow, const Key('progress-list'));
+  expect(tester.widget<SwitchListTile>(allow).value, isFalse, reason: 'asks first, by default');
+  await tester.tap(allow);
+  await tester.pumpAndSettle();
+  expect(state.settings.autoUpdateOnWifi, isTrue);
+  await tester.tap(find.byKey(const Key('tab-stories')));
+  await tester.pumpAndSettle();
+  expect(find.text(newTitle, skipOffstage: false), findsNothing);
+
+  await tester.runAsync(() async {
+    await updates.check(); // the next app open's daily check
+    for (var i = 0; i < 100 && updates.installs == 0; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+    expect(updates.installs, 1, reason: 'installed without a tap');
+    await Future<void>.delayed(
+      const Duration(milliseconds: 300),
+    ); // let the store settle (the client reloaded the content before it notified)
+  });
+  await tester.pumpAndSettle();
+  expect(find.byKey(const Key('content-update')), findsNothing, reason: 'nothing left to offer');
+  await search(tester, 'Bäcker');
+  expect(find.text(newTitle), findsWidgets);
+}
+
+/// A CDN that needs a newer app: the library says so and links to the store; reading goes on.
+Future<void> contentAppTooOld(WidgetTester tester) async {
+  final launcher = RecordingLauncher();
+  final before = UrlLauncherPlatform.instance;
+  UrlLauncherPlatform.instance = launcher;
+  addTearDown(() => UrlLauncherPlatform.instance = before);
+  await pumpWithCdn(tester, minClient: 99);
+  expect(find.text('Update the app to get new stories.'), findsOneWidget);
+  expect(find.byKey(const Key('content-update-button')), findsNothing);
+  await tester.tap(find.byKey(const Key('update-app')));
+  await tester.pumpAndSettle();
+  expect(launcher.launched, [playStoreUrl]);
+  await openBrot(tester);
+  expect(find.byKey(const Key('reader-list')), findsOneWidget, reason: 'installed content keeps working');
+}
+
+/// Records the URLs the app opens instead of leaving it.
+class RecordingLauncher extends Fake with MockPlatformInterfaceMixin implements UrlLauncherPlatform {
+  final launched = <String>[];
+
+  @override
+  Future<bool> launchUrl(String url, LaunchOptions options) async {
+    launched.add(url);
+    return true;
+  }
+
+  @override
+  Future<bool> canLaunch(String url) async => true;
+}
+
 final flows = <String, Future<void> Function(WidgetTester)>{
   'first launch: pick a level, or not sure → start at A1': onboarding,
   'library search and story of the day': libraryFilters,
@@ -456,4 +537,6 @@ final flows = <String, Future<void> Function(WidgetTester)>{
   'first run: the tap-a-word tip until the first tap': firstRunWordTip,
   'new stories from the CDN: offer, install, read': contentUpdate,
   'daily reminder: off by default, on asks first, a new time, off': dailyReminder,
+  'new stories on Wi-Fi, on their own once allowed': contentOnWifi,
+  'a CDN that needs a newer app: say so, link to the store': contentAppTooOld,
 };
