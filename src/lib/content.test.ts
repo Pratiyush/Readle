@@ -72,3 +72,18 @@ describe("content", () => {
     }
   });
 });
+
+describe("word clips (BUG-26)", () => {
+  // Words Lernle has no recording of (in any part of speech). They fall back to the device voice
+  // until Lernle's pipeline records them; anything else without a clip is a matching bug.
+  const UNRECORDED = ["ab", "ander", "Band", "Bayern", "bekommen", "bisschen", "Brauerei", "dabei", "dafür", "dahin", "daran", "darauf", "darin", "darum", "davon", "dazu", "derselbe", "Deutsche", "Europa", "Fensterladen", "gar", "Gegend", "Gemütlichkeit", "heraus", "herein", "hin", "je", "klingen", "Köln", "Kübel", "Mal", "meist", "nennen", "Raum", "reden", "Rhein", "Schweiz", "selbst", "solch", "sorgen", "still", "Verkäuferin", "verlangen", "weg", "worauf", "zurück", "ändern"];
+
+  it("every word Lernle recorded has its clip; only the known unrecorded ones fall back", () => {
+    const missing = [...new Set(Object.values(dict).filter((e) => !e.au).map((e) => e.h))].sort((a, b) => a.localeCompare(b, "de"));
+    expect(missing).toEqual([...UNRECORDED].sort((a, b) => a.localeCompare(b, "de")));
+  });
+
+  it("every clip a dictionary entry names exists", () => {
+    for (const e of Object.values(dict)) if (e.au) expect(existsSync(join(dir, e.au)), e.au).toBe(true);
+  });
+});

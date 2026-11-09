@@ -277,6 +277,37 @@ def dict_entry(row: dict) -> dict:
 ASCII = str.maketrans({"ä": "ae", "ö": "oe", "ü": "ue", "ß": "ss", "Ä": "Ae", "Ö": "Oe", "Ü": "Ue"})
 
 
+# Same spelling, different pronunciation by meaning (stress moves): never borrow across these.
+HETERONYMS = {"modern", "montage", "tenor", "august", "umfahren", "übersetzen", "umgehen", "durchsetzen",
+              "überlegen", "umschreiben", "unterhalten", "wiederholen", "durchbrechen", "konsum", "rentner",
+              "weg"}  # weg [vɛk] "away" vs Weg [veːk] "path"
+CLIP_POS = {"noun": "n", "verb": "v"}  # Lernle's clip ids end in .n, .v, or .a for everything else
+
+
+def clips_by_spelling(clip_dir: pathlib.Path) -> dict[str, list[pathlib.Path]]:
+    """Lernle's clips by lower-case NFC spelling: de.hütte.n.mp3 → "hütte"."""
+    out: dict[str, list[pathlib.Path]] = {}
+    for f in sorted(clip_dir.glob("de.*.mp3")):
+        lemma = unicodedata.normalize("NFC", f.name[3:-4].rsplit(".", 1)[0])
+        out.setdefault(lemma, []).append(f)
+    return out
+
+
+def clip_for(entry: dict, by_spelling: dict[str, list[pathlib.Path]], clip_dir: pathlib.Path) -> pathlib.Path | None:
+    """A clip for a dictionary entry whose id isn't Lernle's (Readle's supplement uses ASCII ids such
+    as de.huette.n and .x for "other"): the clip of the same spelling and part of speech, else the
+    only clip of that spelling (Aussehen/aussehen sound the same), never a heteronym's."""
+    spelling = unicodedata.normalize("NFC", entry["h"].lower())
+    found = by_spelling.get(spelling, [])
+    want = CLIP_POS.get(entry.get("p", ""), "a")
+    same = [f for f in found if f.name.endswith(f".{want}.mp3")]
+    if len(same) == 1:
+        return same[0]
+    if len(found) == 1 and spelling not in HETERONYMS:
+        return found[0]
+    return None
+
+
 def copy_word_audio(clip_dir: pathlib.Path, dictionary: dict[str, dict]) -> int:
     """Copy Lernle's pronunciation clip for every linked entry that has one, and record its path
     in the entry as "au". The clips are Lernle's own ElevenLabs recordings (64 kbps mono encodes
@@ -289,9 +320,12 @@ def copy_word_audio(clip_dir: pathlib.Path, dictionary: dict[str, dict]) -> int:
     (OUT / "audio").mkdir()
     taken: set[str] = set()
     n = 0
+    by_spelling = clips_by_spelling(clip_dir)
     for lid, entry in dictionary.items():
         src = clip_dir / f"{lid}.mp3"
         if not src.is_file():
+            src = clip_for(entry, by_spelling, clip_dir)
+        if src is None or not src.is_file():
             continue
         name = re.sub(r"[^A-Za-z0-9._-]", "_", lid.translate(ASCII))
         while name in taken:
