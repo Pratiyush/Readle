@@ -75,6 +75,5 @@ class InstalledSet {
 
   File file(String relative) => File('${dir.path}/$relative');
 
-  Future<Map<String, dynamic>> readJson(String relative) async =>
-      jsonDecode(await file(relative).readAsString()) as Map<String, dynamic>;
+  Future<Map<String, dynamic>> readJson(String relative) async => jsonDecode(await file(relative).readAsString()) as Map<String, dynamic>;
 }

@@ -29,7 +29,11 @@ class CdnFixture {
     };
     final brot = {...story, 'id': 'de.story.brot', 'slug': 'brot', 'title': 'Brot ist hier wichtig'};
     final imageUrl = _file(img, 'webp');
-    final pack = _hashed('stories/a1', {'schema': 'german-content/stories@1', 'level': 'A1', 'stories': [brot, story]});
+    final pack = _hashed('stories/a1', {
+      'schema': 'german-content/stories@1',
+      'level': 'A1',
+      'stories': [brot, story],
+    });
     final index = _hashed('index/a1', {
       'schema': 'german-content/file-index@1',
       'level': 'A1',
@@ -40,7 +44,9 @@ class CdnFixture {
     final clip = _file(utf8.encode('ID3 fake clip'), 'mp3');
     final lookup = _hashed('lookup', {
       'schema': 'german-content/lookup@1',
-      'clips': {'de.abbuchung.n': {'url': clip, 'sha256': sha(files[clip]!)}},
+      'clips': {
+        'de.abbuchung.n': {'url': clip, 'sha256': sha(files[clip]!)},
+      },
     });
     final feed = _hashed('feed/stories', {
       'schema': 'german-content/feed-stories@1',

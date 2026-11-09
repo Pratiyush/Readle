@@ -14,23 +14,29 @@ class WholeWordsText extends StatelessWidget {
     final scaler = MediaQuery.textScalerOf(context);
     final direction = Directionality.of(context);
     final base = DefaultTextStyle.of(context).style.merge(style);
-    return LayoutBuilder(builder: (context, c) {
-      var factor = 1.0;
-      if (c.hasBoundedWidth) {
-        for (final word in text.split(RegExp(r'\s+'))) {
-          if (word.isEmpty) continue;
-          final painter = TextPainter(text: TextSpan(text: word, style: base), textDirection: direction, textScaler: scaler, maxLines: 1)
-            ..layout();
-          if (painter.width > c.maxWidth) {
-            final fit = c.maxWidth / painter.width * 0.98;
-            if (fit < factor) factor = fit;
+    return LayoutBuilder(
+      builder: (context, c) {
+        var factor = 1.0;
+        if (c.hasBoundedWidth) {
+          for (final word in text.split(RegExp(r'\s+'))) {
+            if (word.isEmpty) continue;
+            final painter = TextPainter(
+              text: TextSpan(text: word, style: base),
+              textDirection: direction,
+              textScaler: scaler,
+              maxLines: 1,
+            )..layout();
+            if (painter.width > c.maxWidth) {
+              final fit = c.maxWidth / painter.width * 0.98;
+              if (fit < factor) factor = fit;
+            }
+            painter.dispose();
           }
-          painter.dispose();
         }
-      }
-      factor = factor.clamp(0.5, 1.0);
-      final size = base.fontSize ?? 14;
-      return Text(text, style: factor < 1 ? style.copyWith(fontSize: size * factor) : style);
-    });
+        factor = factor.clamp(0.5, 1.0);
+        final size = base.fontSize ?? 14;
+        return Text(text, style: factor < 1 ? style.copyWith(fontSize: size * factor) : style);
+      },
+    );
   }
 }

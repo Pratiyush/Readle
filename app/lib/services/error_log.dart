@@ -12,8 +12,9 @@ class ErrorLog {
   static const keep = 20;
   final SharedPreferences _prefs;
 
-  List<Map<String, dynamic>> get entries =>
-      [for (final e in _prefs.getStringList(key) ?? const <String>[]) jsonDecode(e) as Map<String, dynamic>];
+  List<Map<String, dynamic>> get entries => [
+    for (final e in _prefs.getStringList(key) ?? const <String>[]) jsonDecode(e) as Map<String, dynamic>,
+  ];
 
   void record(Object error, StackTrace? stack, {String source = 'app'}) {
     final line = jsonEncode({

@@ -6,20 +6,14 @@
 /// Stories downloaded from the content CDN carry plain sentences only; this is what makes their
 /// words tappable.
 class Linker {
-  Linker._(this._lex, this._index, this._aliases, List<String> adjEndings, List<String> nounEndings,
-      this._notCompounds, this._posRank)
-      : _endings = [...adjEndings, ...nounEndings];
+  Linker._(this._lex, this._index, this._aliases, List<String> adjEndings, List<String> nounEndings, this._notCompounds, this._posRank)
+    : _endings = [...adjEndings, ...nounEndings];
 
   factory Linker.fromJson(Map<String, dynamic> j) {
     if (j['schema'] != 'readle/linker@1') throw FormatException('linker schema ${j['schema']}');
     return Linker._(
-      {
-        for (final e in (j['lex'] as Map<String, dynamic>).entries)
-          e.key: ((e.value as List)[0] as String, (e.value as List)[1] as int),
-      },
-      {
-        for (final e in (j['index'] as Map<String, dynamic>).entries) e.key: (e.value as List).cast<String>(),
-      },
+      {for (final e in (j['lex'] as Map<String, dynamic>).entries) e.key: ((e.value as List)[0] as String, (e.value as List)[1] as int)},
+      {for (final e in (j['index'] as Map<String, dynamic>).entries) e.key: (e.value as List).cast<String>()},
       (j['aliases'] as Map<String, dynamic>).cast<String, String>(),
       (j['adjEndings'] as List).cast<String>(),
       (j['nounEndings'] as List).cast<String>(),
@@ -78,7 +72,12 @@ class Linker {
     for (final cand in candidates) {
       var ids = _index[cand] ?? const <String>[];
       // German nouns are always capitalised: "weg" is never "Weg".
-      if (!upperFirst) ids = [for (final id in ids) if (_lex[id]?.$1 != 'noun') id];
+      if (!upperFirst) {
+        ids = [
+          for (final id in ids)
+            if (_lex[id]?.$1 != 'noun') id,
+        ];
+      }
       if (ids.isNotEmpty) return (_pick(ids, capitalised), false);
     }
     // compound nouns: resolve the head (Haustür → Tür)
@@ -88,7 +87,10 @@ class Linker {
         final tail = low.substring(i);
         final ids = _index[tail] ?? _index[_aliases[tail] ?? ''];
         if (ids == null) continue;
-        final nouns = [for (final id in ids) if (_lex[id]?.$1 == 'noun') id];
+        final nouns = [
+          for (final id in ids)
+            if (_lex[id]?.$1 == 'noun') id,
+        ];
         if (nouns.isNotEmpty) return (_pick(nouns, true), true);
       }
     }
@@ -106,8 +108,7 @@ class Linker {
     var bestScore = score(best);
     for (final id in ids.skip(1)) {
       final s = score(id);
-      if (s.$1 < bestScore.$1 ||
-          (s.$1 == bestScore.$1 && (s.$2 < bestScore.$2 || (s.$2 == bestScore.$2 && s.$3 < bestScore.$3)))) {
+      if (s.$1 < bestScore.$1 || (s.$1 == bestScore.$1 && (s.$2 < bestScore.$2 || (s.$2 == bestScore.$2 && s.$3 < bestScore.$3)))) {
         best = id;
         bestScore = s;
       }

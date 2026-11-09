@@ -41,13 +41,13 @@ void main() {
   tearDown(() => root.deleteSync(recursive: true));
 
   ContentClient client(CdnFixture cdn, {Fetcher? fetcher}) => ContentClient(
-        fetcher: fetcher ?? cdn.fetcher,
-        store: ContentStore(root),
-        prefs: prefs,
-        bundledIds: {'brot'},
-        base: Uri.parse('https://cdn.test/'),
-        now: () => clock,
-      );
+    fetcher: fetcher ?? cdn.fetcher,
+    store: ContentStore(root),
+    prefs: prefs,
+    bundledIds: {'brot'},
+    base: Uri.parse('https://cdn.test/'),
+    now: () => clock,
+  );
 
   test('the CDN check is off unless the build turns it on (CONTENT_CDN_ENABLED)', () {
     expect(contentCdnEnabled, isFalse);
@@ -58,7 +58,18 @@ void main() {
       for (final ok in ['manifest.json', 'files/ab/abc123.webp', 'stories/a1.3f2a.json', 'feed/stories.0a1b.json']) {
         expect(checkedPath(ok), ok);
       }
-      for (final bad in ['https://evil.test/x.json', '//evil.test/x', '/etc/passwd', '../x.json', 'a/../b', 'a//b', '', './a', 'a?b=1', 'a b']) {
+      for (final bad in [
+        'https://evil.test/x.json',
+        '//evil.test/x',
+        '/etc/passwd',
+        '../x.json',
+        'a/../b',
+        'a//b',
+        '',
+        './a',
+        'a?b=1',
+        'a b',
+      ]) {
         expect(() => checkedPath(bad), throwsFormatException, reason: bad);
       }
       expect(checkedSlug('was-der-dolmetscher-nicht-sagte'), isNotEmpty);
@@ -71,7 +82,9 @@ void main() {
       for (final url in ['https://evil.test/feed.json', '../feed.json']) {
         final cdn = CdnFixture();
         final feed = cdn.manifest['feed']['stories'] as Map<String, dynamic>;
-        cdn.manifest['feed'] = {'stories': {...feed, 'url': url}};
+        cdn.manifest['feed'] = {
+          'stories': {...feed, 'url': url},
+        };
         cdn.files['manifest.json'] = utf8.encode(jsonEncode(cdn.manifest));
         final c = client(cdn);
         await c.check(force: true);
@@ -115,9 +128,9 @@ void main() {
     expect(lib.single['title'], newTitle);
     expect(await set.file('images/$newSlug.webp').exists(), isTrue);
     expect((await set.readJson('clips.json')).keys, ['de.abbuchung.n']);
-    expect(root.listSync().whereType<Directory>().map((d) => d.uri.pathSegments[d.uri.pathSegments.length - 2]),
-        [set.dir.uri.pathSegments[set.dir.uri.pathSegments.length - 2]],
-        reason: 'no staging or old set left behind');
+    expect(root.listSync().whereType<Directory>().map((d) => d.uri.pathSegments[d.uri.pathSegments.length - 2]), [
+      set.dir.uri.pathSegments[set.dir.uri.pathSegments.length - 2],
+    ], reason: 'no staging or old set left behind');
 
     // The prompt survives an app restart until installed, and not after.
     expect(client(cdn).kind, UpdateKind.none);
@@ -195,7 +208,11 @@ void main() {
     expect(repo.image(lib.first.image), isA<FileImage>());
 
     final story = await repo.story(newSlug);
-    final linked = {for (final s in story.sentences) for (final t in s.tokens) if (t.key != null) t.text: t.key};
+    final linked = {
+      for (final s in story.sentences)
+        for (final t in s.tokens)
+          if (t.key != null) t.text: t.key,
+    };
     expect(linked, containsPair('gibt', 'de.geben.v'));
     expect(linked, containsPair('Bäcker', 'de.bäcker.n'));
     expect(linked, containsPair('Abbuchung', 'de.abbuchung.n'));

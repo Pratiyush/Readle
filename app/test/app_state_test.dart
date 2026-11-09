@@ -22,7 +22,11 @@ void main() {
       'quiz': {'brot': 0.8},
       'words': {
         'de.geben.v': {
-          'key': 'de.geben.v', 'word': 'geben', 'storyId': 'brot', 'context': 'Es gibt…', 'added': '2026-11-07',
+          'key': 'de.geben.v',
+          'word': 'geben',
+          'storyId': 'brot',
+          'context': 'Es gibt…',
+          'added': '2026-11-07',
           'card': {'box': 1, 'due': '2026-11-08'},
         },
       },
@@ -76,7 +80,12 @@ void main() {
   group('first-launch level question', () {
     test('a fresh install asks; an install from before the question does not', () async {
       expect((await fresh()).onboarded, isFalse);
-      final old = await fresh({'readle.state.v1': jsonEncode({'version': 1, 'settings': {'level': 'A2'}})});
+      final old = await fresh({
+        'readle.state.v1': jsonEncode({
+          'version': 1,
+          'settings': {'level': 'A2'},
+        }),
+      });
       expect(old.onboarded, isTrue);
       expect(old.settings.level, 'A2');
     });

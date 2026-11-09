@@ -26,7 +26,7 @@ abstract class ContentRepository {
 /// public/content). Each file is parsed once; a failed load is retried on the next call.
 class AssetContentRepository implements ContentRepository {
   AssetContentRepository({AssetBundle? bundle, this.base = 'assets/content/', this.decodeInIsolate = true})
-      : _bundle = bundle ?? rootBundle;
+    : _bundle = bundle ?? rootBundle;
 
   final AssetBundle _bundle;
   final String base;
@@ -54,17 +54,17 @@ class AssetContentRepository implements ContentRepository {
   }
 
   @override
-  Future<List<StoryMeta>> library() => _load('stories.json',
-      (j) => [for (final s in j as List) StoryMeta.fromJson(s as Map<String, dynamic>)]);
+  Future<List<StoryMeta>> library() =>
+      _load('stories.json', (j) => [for (final s in j as List) StoryMeta.fromJson(s as Map<String, dynamic>)]);
 
   @override
-  Future<Story> story(String id) =>
-      _load('stories/$id.json', (j) => Story.fromJson(j as Map<String, dynamic>));
+  Future<Story> story(String id) => _load('stories/$id.json', (j) => Story.fromJson(j as Map<String, dynamic>));
 
   @override
-  Future<Dictionary> dictionary() => _load('dict.json', (j) => {
-        for (final e in (j as Map<String, dynamic>).entries) e.key: DictEntry.fromJson(e.value as Map<String, dynamic>),
-      });
+  Future<Dictionary> dictionary() => _load(
+    'dict.json',
+    (j) => {for (final e in (j as Map<String, dynamic>).entries) e.key: DictEntry.fromJson(e.value as Map<String, dynamic>)},
+  );
 
   @override
   ImageProvider? image(String? path) => path == null ? null : AssetImage(base + path, bundle: _bundle);

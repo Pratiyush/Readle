@@ -33,8 +33,8 @@ class ContentClient extends ChangeNotifier {
     Uri? base,
     DateTime Function()? now,
     this.clientVersion = contentClientVersion,
-  })  : base = base ?? Uri.parse(cdnBase),
-        _now = now ?? DateTime.now {
+  }) : base = base ?? Uri.parse(cdnBase),
+       _now = now ?? DateTime.now {
     final pending = prefs.getString(_kPending);
     if (pending != null) {
       final j = jsonDecode(pending) as Map<String, dynamic>;
@@ -164,14 +164,18 @@ class ContentClient extends ChangeNotifier {
         if (ref == null) throw FormatException('no hash for $levelFile');
         final pack = jsonDecode(utf8.decode(await get(ref.url, ref.sha256, 'packs/${ref.sha256}.json'))) as Map<String, dynamic>;
         final ids = {for (final s in wanted.where((s) => s.levelFile == levelFile)) s.id};
-        final stories = [for (final s in (pack['stories'] as List).cast<Map<String, dynamic>>()) if (ids.contains(s['id'])) s];
+        final stories = [
+          for (final s in (pack['stories'] as List).cast<Map<String, dynamic>>())
+            if (ids.contains(s['id'])) s,
+        ];
         final level = (pack['level'] as String? ?? stories.first['cefr'] as String).toUpperCase();
         final index = m.levels[level]?.index;
         final images = index == null
             ? const <String, dynamic>{}
-            : ((jsonDecode(utf8.decode(await get(index.url, index.sha256, 'packs/${index.sha256}.json'))) as Map<String, dynamic>)['story_images']
-                    as Map<String, dynamic>? ??
-                const {});
+            : ((jsonDecode(utf8.decode(await get(index.url, index.sha256, 'packs/${index.sha256}.json')))
+                          as Map<String, dynamic>)['story_images']
+                      as Map<String, dynamic>? ??
+                  const {});
         for (final s in stories) {
           final slug = checkedSlug((s['slug'] as String?) ?? (s['id'] as String).replaceFirst('de.story.', ''));
           await File('${staged.path}/stories/$slug.json').create(recursive: true).then((f) => f.writeAsString(jsonEncode(s), flush: true));

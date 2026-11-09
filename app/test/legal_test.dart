@@ -11,7 +11,13 @@ void main() {
   });
 
   testWidgets('Settings shows Privacy policy and Impressum once the slug is set, and hides them before', (tester) async {
-    Future<void> pump(String slug) => tester.pumpWidget(MaterialApp(home: Scaffold(body: ListView(children: legalTiles(slug: slug)))));
+    Future<void> pump(String slug) => tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ListView(children: legalTiles(slug: slug)),
+        ),
+      ),
+    );
     await pump('leselicht');
     expect(find.byKey(const Key('privacy-policy')), findsOneWidget);
     expect(find.byKey(const Key('impressum')), findsOneWidget);

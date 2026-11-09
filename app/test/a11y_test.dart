@@ -102,8 +102,11 @@ void main() {
 
     bool inside(Rect inner, Rect outer) =>
         inner.top >= outer.top - 0.5 && inner.bottom <= outer.bottom + 0.5 && inner.left >= outer.left - 0.5;
-    expect(inside(tester.getRect(find.byKey(const Key('daily-title'))), tester.getRect(daily)), isTrue,
-        reason: 'story-of-the-day title inside its card');
+    expect(
+      inside(tester.getRect(find.byKey(const Key('daily-title'))), tester.getRect(daily)),
+      isTrue,
+      reason: 'story-of-the-day title inside its card',
+    );
     final chipRow = find.ancestor(of: find.text('All levels'), matching: find.byType(ListView)).first;
     expect(inside(tester.getRect(find.text('All levels')), tester.getRect(chipRow)), isTrue, reason: 'chip label inside its row');
     final heading = tester.getSize(find.byKey(const Key('library-heading')));

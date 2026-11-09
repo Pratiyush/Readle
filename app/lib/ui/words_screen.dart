@@ -26,11 +26,11 @@ class _WordsScreenState extends State<WordsScreen> {
   }
 
   bool _matches(SavedWord w, String today) => switch (_filter) {
-        WordFilter.all => true,
-        WordFilter.due => w.card.isDue(today),
-        WordFilter.learning => !w.card.mastered,
-        WordFilter.mastered => w.card.mastered,
-      };
+    WordFilter.all => true,
+    WordFilter.due => w.card.isDue(today),
+    WordFilter.learning => !w.card.mastered,
+    WordFilter.mastered => w.card.mastered,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -52,56 +52,68 @@ class _WordsScreenState extends State<WordsScreen> {
         future: _dict,
         builder: (context, snap) {
           final dict = snap.data ?? const {};
-          return ListView(padding: const EdgeInsets.all(16), children: [
-            Text('YOUR VOCABULARY', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, letterSpacing: 1, fontSize: 12)),
-            Text('Words', style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.w800)),
-            const SizedBox(height: 12),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                // Text above, button below: holds at any width and at large system text sizes.
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(
-                    due > 0 ? '$due word${due == 1 ? '' : 's'} to review' : (total > 0 ? 'All caught up!' : 'No words yet'),
-                    key: const Key('words-summary'),
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    total > 0
-                        ? "$total saved · spaced repetition brings each word back just before you'd forget it."
-                        : 'Tap words while reading and save them here.',
-                    style: TextStyle(color: palette.muted, fontSize: 13),
-                  ),
-                  if (due > 0) ...[
-                    const SizedBox(height: 12),
-                    FilledButton(
-                      key: const Key('practice'),
-                      onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PracticeScreen())),
-                      child: const Text('Practice'),
-                    ),
-                  ],
-                ]),
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(
+                'YOUR VOCABULARY',
+                style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, letterSpacing: 1, fontSize: 12),
               ),
-            ),
-            if (total > 0)
-              SizedBox(
-                height: 52,
-                child: ListView(scrollDirection: Axis.horizontal, children: [
-                  for (final f in WordFilter.values)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8, top: 8),
-                      child: FilterChip(
-                        label: Text(f.name[0].toUpperCase() + f.name.substring(1)),
-                        selected: _filter == f,
-                        showCheckmark: false,
-                        onSelected: (_) => setState(() => _filter = f),
+              Text('Words', style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 12),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  // Text above, button below: holds at any width and at large system text sizes.
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        due > 0 ? '$due word${due == 1 ? '' : 's'} to review' : (total > 0 ? 'All caught up!' : 'No words yet'),
+                        key: const Key('words-summary'),
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                       ),
-                    ),
-                ]),
+                      const SizedBox(height: 4),
+                      Text(
+                        total > 0
+                            ? "$total saved · spaced repetition brings each word back just before you'd forget it."
+                            : 'Tap words while reading and save them here.',
+                        style: TextStyle(color: palette.muted, fontSize: 13),
+                      ),
+                      if (due > 0) ...[
+                        const SizedBox(height: 12),
+                        FilledButton(
+                          key: const Key('practice'),
+                          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PracticeScreen())),
+                          child: const Text('Practice'),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
-            for (final w in list) _WordRow(word: w, entry: dict[w.key]),
-          ]);
+              if (total > 0)
+                SizedBox(
+                  height: 52,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      for (final f in WordFilter.values)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8, top: 8),
+                          child: FilterChip(
+                            label: Text(f.name[0].toUpperCase() + f.name.substring(1)),
+                            selected: _filter == f,
+                            showCheckmark: false,
+                            onSelected: (_) => setState(() => _filter = f),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              for (final w in list) _WordRow(word: w, entry: dict[w.key]),
+            ],
+          );
         },
       ),
     );
@@ -124,39 +136,46 @@ class _WordRow extends StatelessWidget {
       child: Card(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          child: Row(children: [
-            IconButton(
-              tooltip: 'Pronounce ${word.word}',
-              icon: const Icon(Icons.volume_up_rounded),
-              onPressed: () => scope.sayWord(e, word.word),
-            ),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(e?.display ?? word.word, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-                Text(e == null ? '—' : e.en.take(2).join(', '), style: TextStyle(color: palette.muted)),
-              ]),
-            ),
-            Tooltip(
-              message: 'Strength ${word.card.box} of 6',
-              child: Row(children: [
-                for (var n = 1; n <= 5; n++)
-                  Container(
-                    width: 6,
-                    height: 14,
-                    margin: const EdgeInsets.symmetric(horizontal: 1),
-                    decoration: BoxDecoration(
-                      color: word.card.box >= n ? Theme.of(context).colorScheme.primary : palette.line,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-              ]),
-            ),
-            IconButton(
-              tooltip: 'Remove ${word.word}',
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () => scope.state.toggleWord(key: word.key, word: word.word, storyId: word.storyId, context: word.context),
-            ),
-          ]),
+          child: Row(
+            children: [
+              IconButton(
+                tooltip: 'Pronounce ${word.word}',
+                icon: const Icon(Icons.volume_up_rounded),
+                onPressed: () => scope.sayWord(e, word.word),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(e?.display ?? word.word, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                    Text(e == null ? '—' : e.en.take(2).join(', '), style: TextStyle(color: palette.muted)),
+                  ],
+                ),
+              ),
+              Tooltip(
+                message: 'Strength ${word.card.box} of 6',
+                child: Row(
+                  children: [
+                    for (var n = 1; n <= 5; n++)
+                      Container(
+                        width: 6,
+                        height: 14,
+                        margin: const EdgeInsets.symmetric(horizontal: 1),
+                        decoration: BoxDecoration(
+                          color: word.card.box >= n ? Theme.of(context).colorScheme.primary : palette.line,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              IconButton(
+                tooltip: 'Remove ${word.word}',
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () => scope.state.toggleWord(key: word.key, word: word.word, storyId: word.storyId, context: word.context),
+              ),
+            ],
+          ),
         ),
       ),
     );

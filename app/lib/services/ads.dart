@@ -56,12 +56,10 @@ class AdMobAds extends Ads {
       (_) => consent.complete(), // offline or misconfigured: fall through to canRequestAds
     );
     await consent.future;
-    _privacyRequired = await ConsentInformation.instance.getPrivacyOptionsRequirementStatus() ==
-        PrivacyOptionsRequirementStatus.required;
+    _privacyRequired = await ConsentInformation.instance.getPrivacyOptionsRequirementStatus() == PrivacyOptionsRequirementStatus.required;
 
     // ATT after UMP (Apple: no tracking prompt while the consent form is up).
-    if (Platform.isIOS &&
-        await AppTrackingTransparency.trackingAuthorizationStatus == TrackingStatus.notDetermined) {
+    if (Platform.isIOS && await AppTrackingTransparency.trackingAuthorizationStatus == TrackingStatus.notDetermined) {
       await AppTrackingTransparency.requestTrackingAuthorization();
     }
 
@@ -99,10 +97,7 @@ class AdMobAds extends Ads {
     InterstitialAd.load(
       adUnitId: units.interstitial,
       request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) => _interstitial = ad,
-        onAdFailedToLoad: (_) => _interstitial = null,
-      ),
+      adLoadCallback: InterstitialAdLoadCallback(onAdLoaded: (ad) => _interstitial = ad, onAdFailedToLoad: (_) => _interstitial = null),
     );
   }
 
@@ -180,15 +175,21 @@ class _InlineBannerState extends State<_InlineBanner> {
   }
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(builder: (context, constraints) {
-        final width = constraints.maxWidth.truncate();
-        if (width != _width) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _load(width) : null);
-        final ad = _ad, size = _size;
-        if (ad == null || size == null) return const SizedBox.shrink();
-        // Clear space around the slot keeps it away from the story cards' tap targets.
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: SizedBox(width: size.width.toDouble(), height: size.height.toDouble(), child: AdWidget(ad: ad)),
-        );
-      });
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final width = constraints.maxWidth.truncate();
+      if (width != _width) WidgetsBinding.instance.addPostFrameCallback((_) => mounted ? _load(width) : null);
+      final ad = _ad, size = _size;
+      if (ad == null || size == null) return const SizedBox.shrink();
+      // Clear space around the slot keeps it away from the story cards' tap targets.
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: SizedBox(
+          width: size.width.toDouble(),
+          height: size.height.toDouble(),
+          child: AdWidget(ad: ad),
+        ),
+      );
+    },
+  );
 }

@@ -23,8 +23,9 @@ void main() {
     expect(m.contentVersion, greaterThanOrEqualTo(bundledContentVersion));
 
     final feed = FeedStory.listFromJson(
-        jsonDecode(utf8.decode(await fetchVerified(fetcher, base.resolve(m.feedStories!.url), m.feedStories!.sha256)))
-            as Map<String, dynamic>);
+      jsonDecode(utf8.decode(await fetchVerified(fetcher, base.resolve(m.feedStories!.url), m.feedStories!.sha256)))
+          as Map<String, dynamic>,
+    );
     expect(feed, isNotEmpty);
 
     final a1 = m.levels['A1']!.stories!;
@@ -43,13 +44,16 @@ void main() {
 
     // Every path the client would follow passes its checks: A1 story images and all word clips.
     final index = m.levels['A1']!.index!;
-    final images = (jsonDecode(utf8.decode(await fetchVerified(fetcher, base.resolve(index.url), index.sha256)))
-        as Map<String, dynamic>)['story_images'] as Map<String, dynamic>;
+    final images =
+        (jsonDecode(utf8.decode(await fetchVerified(fetcher, base.resolve(index.url), index.sha256)))
+                as Map<String, dynamic>)['story_images']
+            as Map<String, dynamic>;
     for (final img in images.values.cast<Map<String, dynamic>>()) {
       checkedPath(img['url'] as String);
       checkedSha256(img['sha256'] as String);
     }
-    final lookup = jsonDecode(utf8.decode(await fetchVerified(fetcher, base.resolve(m.lookup!.url), m.lookup!.sha256))) as Map<String, dynamic>;
+    final lookup =
+        jsonDecode(utf8.decode(await fetchVerified(fetcher, base.resolve(m.lookup!.url), m.lookup!.sha256))) as Map<String, dynamic>;
     final clips = (lookup['clips'] as Map<String, dynamic>).values.cast<Map<String, dynamic>>().toList();
     for (final c in clips) {
       checkedPath(c['url'] as String);

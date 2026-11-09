@@ -25,17 +25,16 @@ class SavedWord {
 
   SavedWord withCard(SrsCard c) => SavedWord(key: key, word: word, storyId: storyId, context: context, added: added, card: c);
 
-  Map<String, Object> toJson() =>
-      {'key': key, 'word': word, 'storyId': storyId, 'context': context, 'added': added, 'card': card.toJson()};
+  Map<String, Object> toJson() => {'key': key, 'word': word, 'storyId': storyId, 'context': context, 'added': added, 'card': card.toJson()};
 
   factory SavedWord.fromJson(Map<String, dynamic> j) => SavedWord(
-        key: j['key'] as String,
-        word: j['word'] as String,
-        storyId: j['storyId'] as String,
-        context: j['context'] as String,
-        added: j['added'] as String,
-        card: SrsCard.fromJson(j['card'] as Map<String, dynamic>),
-      );
+    key: j['key'] as String,
+    word: j['word'] as String,
+    storyId: j['storyId'] as String,
+    context: j['context'] as String,
+    added: j['added'] as String,
+    card: SrsCard.fromJson(j['card'] as Map<String, dynamic>),
+  );
 }
 
 enum ThemeChoice { system, light, dark }
@@ -67,15 +66,14 @@ class Settings {
         autoPlayWords: autoPlayWords ?? this.autoPlayWords,
       );
 
-  Map<String, Object> toJson() =>
-      {
-        'level': level,
-        'fontScale': fontScale,
-        'theme': theme.name,
-        'dailyGoal': dailyGoal,
-        'speechRate': speechRate,
-        'autoPlayWords': autoPlayWords,
-      };
+  Map<String, Object> toJson() => {
+    'level': level,
+    'fontScale': fontScale,
+    'theme': theme.name,
+    'dailyGoal': dailyGoal,
+    'speechRate': speechRate,
+    'autoPlayWords': autoPlayWords,
+  };
 
   factory Settings.fromJson(Map<String, dynamic> j) {
     const d = Settings();
@@ -129,9 +127,7 @@ class AppState extends ChangeNotifier {
     read = {for (final e in (j['read'] as Map? ?? {}).entries) e.key as String: e.value as String};
     progress = {for (final e in (j['progress'] as Map? ?? {}).entries) e.key as String: e.value as int};
     quiz = {for (final e in (j['quiz'] as Map? ?? {}).entries) e.key as String: (e.value as num).toDouble()};
-    words = {
-      for (final e in (j['words'] as Map? ?? {}).entries) e.key as String: SavedWord.fromJson(e.value as Map<String, dynamic>),
-    };
+    words = {for (final e in (j['words'] as Map? ?? {}).entries) e.key as String: SavedWord.fromJson(e.value as Map<String, dynamic>)};
     activeDays = [for (final d in j['activeDays'] as List? ?? []) d as String];
     settings = Settings.fromJson(j['settings'] as Map<String, dynamic>? ?? {});
     lastStory = j['lastStory'] as String?;
@@ -141,17 +137,17 @@ class AppState extends ChangeNotifier {
   }
 
   Map<String, Object> toJson() => {
-        'version': 1,
-        'read': read,
-        'progress': progress,
-        'quiz': quiz,
-        'words': {for (final e in words.entries) e.key: e.value.toJson()},
-        'activeDays': activeDays,
-        'settings': settings.toJson(),
-        'lastStory': ?lastStory,
-        'wordTipSeen': wordTipSeen,
-        'onboarded': onboarded,
-      };
+    'version': 1,
+    'read': read,
+    'progress': progress,
+    'quiz': quiz,
+    'words': {for (final e in words.entries) e.key: e.value.toJson()},
+    'activeDays': activeDays,
+    'settings': settings.toJson(),
+    'lastStory': ?lastStory,
+    'wordTipSeen': wordTipSeen,
+    'onboarded': onboarded,
+  };
 
   void _commit() {
     _prefs.setString(storageKey, jsonEncode(toJson()));

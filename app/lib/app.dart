@@ -17,7 +17,15 @@ import 'ui/words_screen.dart';
 const maxTextScale = 2.0;
 
 class ReadleApp extends StatelessWidget {
-  const ReadleApp({super.key, required this.state, required this.content, required this.speech, required this.player, required this.ads, this.updates});
+  const ReadleApp({
+    super.key,
+    required this.state,
+    required this.content,
+    required this.speech,
+    required this.player,
+    required this.ads,
+    this.updates,
+  });
 
   final AppState state;
   final ContentRepository content;
@@ -80,22 +88,29 @@ class _ShellState extends State<Shell> {
   Widget build(BuildContext context) {
     final due = AppScope.of(context).state.dueCount;
     return Scaffold(
-      body: IndexedStack(
-        index: _tab,
-        children: const [LibraryScreen(), WordsScreen(), ProgressScreen()],
-      ),
+      body: IndexedStack(index: _tab, children: const [LibraryScreen(), WordsScreen(), ProgressScreen()]),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
         destinations: [
-          const NavigationDestination(key: Key('tab-stories'), icon: Icon(Icons.auto_stories_outlined), selectedIcon: Icon(Icons.auto_stories), label: 'Stories'),
+          const NavigationDestination(
+            key: Key('tab-stories'),
+            icon: Icon(Icons.auto_stories_outlined),
+            selectedIcon: Icon(Icons.auto_stories),
+            label: 'Stories',
+          ),
           NavigationDestination(
             key: const Key('tab-words'),
             icon: Badge(isLabelVisible: due > 0, label: Text(due > 99 ? '99+' : '$due'), child: const Icon(Icons.style_outlined)),
             selectedIcon: Badge(isLabelVisible: due > 0, label: Text(due > 99 ? '99+' : '$due'), child: const Icon(Icons.style)),
             label: 'Words',
           ),
-          const NavigationDestination(key: Key('tab-progress'), icon: Icon(Icons.local_fire_department_outlined), selectedIcon: Icon(Icons.local_fire_department), label: 'Progress'),
+          const NavigationDestination(
+            key: Key('tab-progress'),
+            icon: Icon(Icons.local_fire_department_outlined),
+            selectedIcon: Icon(Icons.local_fire_department),
+            label: 'Progress',
+          ),
         ],
       ),
     );

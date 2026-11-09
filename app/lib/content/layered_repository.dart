@@ -20,8 +20,8 @@ import 'models.dart';
 /// file IO.
 class LayeredContentRepository implements ContentRepository {
   LayeredContentRepository({required this.bundled, required this.store, AssetBundle? bundle, Uri? cdn})
-      : _bundle = bundle ?? rootBundle,
-        _cdn = cdn ?? Uri.parse(cdnBase);
+    : _bundle = bundle ?? rootBundle,
+      _cdn = cdn ?? Uri.parse(cdnBase);
 
   final AssetContentRepository bundled;
   final ContentStore store;
@@ -125,10 +125,8 @@ class LayeredContentRepository implements ContentRepository {
   }
 
   @override
-  ImageProvider? image(String? path) =>
-      path != null && path.startsWith('/') ? FileImage(File(path)) : bundled.image(path);
+  ImageProvider? image(String? path) => path != null && path.startsWith('/') ? FileImage(File(path)) : bundled.image(path);
 
   @override
-  String? wordAudio(DictEntry? entry) =>
-      entry?.audio != null && entry!.audio!.startsWith('http') ? entry.audio : bundled.wordAudio(entry);
+  String? wordAudio(DictEntry? entry) => entry?.audio != null && entry!.audio!.startsWith('http') ? entry.audio : bundled.wordAudio(entry);
 }

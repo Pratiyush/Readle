@@ -3,8 +3,17 @@ import 'package:readle/content/models.dart';
 import 'package:readle/ui/library_screen.dart';
 
 StoryMeta story(String id, String level) => StoryMeta(
-    id: id, title: id, level: level, collection: 'fiction', publishedAt: '2026-11-01', image: null,
-    teaser: '', teaserEn: '', words: 50, minutes: 1);
+  id: id,
+  title: id,
+  level: level,
+  collection: 'fiction',
+  publishedAt: '2026-11-01',
+  image: null,
+  teaser: '',
+  teaserEn: '',
+  words: 50,
+  minutes: 1,
+);
 
 void main() {
   final lib = [story('b2', 'B2'), story('a2a', 'A2'), story('a1a', 'A1'), story('a1b', 'A1'), story('b1', 'B1')];

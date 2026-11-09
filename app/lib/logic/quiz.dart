@@ -49,8 +49,7 @@ List<Question> buildQuiz(Story story, Dictionary dict, {String? seed}) {
     }
   }
   final keys = seen.keys.toList();
-  final ranked = _shuffled(keys, rand)
-    ..sort((a, b) => _cefr.indexOf(dict[b]!.cefr ?? '').compareTo(_cefr.indexOf(dict[a]!.cefr ?? '')));
+  final ranked = _shuffled(keys, rand)..sort((a, b) => _cefr.indexOf(dict[b]!.cefr ?? '').compareTo(_cefr.indexOf(dict[a]!.cefr ?? '')));
   final pool = dict.values.where((e) => _contentPos.contains(e.pos)).toList();
 
   for (final key in ranked.take(3)) {

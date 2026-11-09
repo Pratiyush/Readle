@@ -27,11 +27,15 @@ class OnboardingScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
           children: [
-            const Text('Willkommen!',
-                style: TextStyle(fontFamily: serif, fontFamilyFallback: serifFallback, fontSize: 32, fontWeight: FontWeight.w700)),
+            const Text(
+              'Willkommen!',
+              style: TextStyle(fontFamily: serif, fontFamilyFallback: serifFallback, fontSize: 32, fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 8),
-            Text('Read short German stories and tap any word you don’t know. Which stories suit you?',
-                style: TextStyle(color: palette.muted, fontSize: 16, height: 1.4)),
+            Text(
+              'Read short German stories and tap any word you don’t know. Which stories suit you?',
+              style: TextStyle(color: palette.muted, fontSize: 16, height: 1.4),
+            ),
             const SizedBox(height: 20),
             for (final (level, name, blurb) in options)
               Card(
@@ -42,22 +46,30 @@ class OnboardingScreen extends StatelessWidget {
                   onTap: () => state.finishOnboarding(level),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
-                    child: Row(children: [
-                      LevelBadge(level),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-                          Text(blurb, style: TextStyle(color: palette.muted)),
-                        ]),
-                      ),
-                      Icon(Icons.chevron_right_rounded, color: palette.muted),
-                    ]),
+                    child: Row(
+                      children: [
+                        LevelBadge(level),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                              Text(blurb, style: TextStyle(color: palette.muted)),
+                            ],
+                          ),
+                        ),
+                        Icon(Icons.chevron_right_rounded, color: palette.muted),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            Text('You can change this any time in Settings.',
-                textAlign: TextAlign.center, style: TextStyle(color: palette.muted, fontSize: 13)),
+            Text(
+              'You can change this any time in Settings.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: palette.muted, fontSize: 13),
+            ),
           ],
         ),
       ),
@@ -72,10 +84,17 @@ class OnboardingScreen extends StatelessWidget {
             side: BorderSide(color: scheme.primary, width: 1.5),
           ),
           onPressed: () => state.finishOnboarding('all'),
-          child: const Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('Not sure? Start at A1', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-            Text('Every level in order, moving up as you read', textAlign: TextAlign.center, style: TextStyle(fontSize: 13)),
-          ]),
+          child: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Not sure? Start at A1',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              ),
+              Text('Every level in order, moving up as you read', textAlign: TextAlign.center, style: TextStyle(fontSize: 13)),
+            ],
+          ),
         ),
       ),
     );

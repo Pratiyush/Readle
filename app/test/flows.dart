@@ -30,7 +30,8 @@ Future<Harness> pumpApp(WidgetTester tester, {bool decodeInIsolate = false, bool
   final prefs = await SharedPreferences.getInstance();
   await prefs.clear();
   // Every flow but the onboarding one starts past the first-launch level question.
-  final state = await AppState.load(prefs)..onboarded = onboarded;
+  final state = await AppState.load(prefs)
+    ..onboarded = onboarded;
   final speech = RecordingSpeech(duration: const Duration(milliseconds: 120));
   final content = AssetContentRepository(decodeInIsolate: decodeInIsolate);
   // Load the content for real before the app's first frame (assets are real I/O).
@@ -246,8 +247,9 @@ Future<void> continueReading(WidgetTester tester) async {
   await tester.tap(find.byKey(const Key('continue-card')));
   await tester.pumpAndSettle();
   await waitFor(tester, find.byKey(const Key('reader-list')));
-  final position = tester.state<ScrollableState>(
-      find.descendant(of: find.byKey(const Key('reader-list')), matching: find.byType(Scrollable)).first).position;
+  final position = tester
+      .state<ScrollableState>(find.descendant(of: find.byKey(const Key('reader-list')), matching: find.byType(Scrollable)).first)
+      .position;
   expect(position.pixels, greaterThan(0), reason: 'reopens where you left off');
   h.state.finishStory('brot');
   await tester.tap(find.byKey(const Key('reader-back')));
@@ -273,7 +275,8 @@ Future<void> contentUpdate(WidgetTester tester) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   await prefs.clear();
-  final state = await AppState.load(prefs)..onboarded = true;
+  final state = await AppState.load(prefs)
+    ..onboarded = true;
   late Directory root;
   late ContentClient updates;
   late LayeredContentRepository content;
@@ -297,7 +300,9 @@ Future<void> contentUpdate(WidgetTester tester) async {
   });
   addTearDown(() => root.deleteSync(recursive: true));
   final player = RecordingWordPlayer();
-  await tester.pumpWidget(ReadleApp(state: state, content: content, speech: RecordingSpeech(), player: player, ads: NoAds(), updates: updates));
+  await tester.pumpWidget(
+    ReadleApp(state: state, content: content, speech: RecordingSpeech(), player: player, ads: NoAds(), updates: updates),
+  );
   await tester.pumpAndSettle();
   expect(find.text('📚 1 new story to read'), findsOneWidget);
   expect(find.text(newTitle), findsNothing, reason: 'nothing downloads before the tap');
@@ -358,7 +363,11 @@ Future<void> onboarding(WidgetTester tester) async {
   await waitFor(tester, daily);
   expect(h.state.onboarded, isTrue);
   expect(h.state.settings.level, 'all');
-  expect(find.descendant(of: daily, matching: find.text('A1')), findsOneWidget, reason: 'all levels start at A1');
+  expect(
+    find.descendant(of: daily, matching: find.text('A1')),
+    findsOneWidget,
+    reason: 'all levels start at A1',
+  );
 
   h = await pumpApp(tester, onboarded: false);
   await waitFor(tester, find.byKey(const Key('onboard-B1')));

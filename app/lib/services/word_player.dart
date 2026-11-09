@@ -16,9 +16,7 @@ class AssetWordPlayer implements WordPlayer {
     try {
       await _player.stop();
       // AssetSource paths are relative to the `assets/` prefix of the audio cache.
-      await _player.play(assetPath.startsWith('http')
-          ? UrlSource(assetPath)
-          : AssetSource(assetPath.replaceFirst('assets/', '')));
+      await _player.play(assetPath.startsWith('http') ? UrlSource(assetPath) : AssetSource(assetPath.replaceFirst('assets/', '')));
       return true;
     } catch (_) {
       return false;

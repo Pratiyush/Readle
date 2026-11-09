@@ -21,16 +21,16 @@ class DeviceSpeech implements Speech {
   Future<bool>? _ready;
 
   Future<bool> _init() => _ready ??= () async {
-        try {
-          final ok = await _tts.isLanguageAvailable('de-DE');
-          if (ok != true) return false;
-          await _tts.setLanguage('de-DE');
-          await _tts.awaitSpeakCompletion(true);
-          return true;
-        } catch (_) {
-          return false;
-        }
-      }();
+    try {
+      final ok = await _tts.isLanguageAvailable('de-DE');
+      if (ok != true) return false;
+      await _tts.setLanguage('de-DE');
+      await _tts.awaitSpeakCompletion(true);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }();
 
   @override
   Future<bool> available() => _init();

@@ -101,8 +101,11 @@ class LevelBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-        decoration: BoxDecoration(color: levelColors[level] ?? Colors.grey, borderRadius: BorderRadius.circular(6)),
-        child: Text(level, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+    decoration: BoxDecoration(color: levelColors[level] ?? Colors.grey, borderRadius: BorderRadius.circular(6)),
+    child: Text(
+      level,
+      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700),
+    ),
+  );
 }

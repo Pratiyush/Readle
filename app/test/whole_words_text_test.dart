@@ -5,22 +5,32 @@ import 'package:readle/ui/whole_words_text.dart';
 
 void main() {
   Future<double> sizeAt(WidgetTester tester, double width, double scale) async {
-    await tester.pumpWidget(MediaQuery(
-      data: MediaQueryData(textScaler: TextScaler.linear(scale)),
-      child: Directionality(
-        textDirection: TextDirection.ltr,
-        child: Center(child: SizedBox(width: width, child: const WholeWordsText('Die Sonntagsruhe im Alltag', style: TextStyle(fontSize: 24)))),
+    await tester.pumpWidget(
+      MediaQuery(
+        data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SizedBox(
+              width: width,
+              child: const WholeWordsText('Die Sonntagsruhe im Alltag', style: TextStyle(fontSize: 24)),
+            ),
+          ),
+        ),
       ),
-    ));
+    );
     return tester.widget<Text>(find.byType(Text)).style!.fontSize!;
   }
 
   double wordWidth(double fontSize, double scale) {
     final p = TextPainter(
-        text: TextSpan(text: 'Sonntagsruhe', style: TextStyle(fontSize: fontSize)),
-        textDirection: TextDirection.ltr,
-        textScaler: TextScaler.linear(scale))
-      ..layout();
+      text: TextSpan(
+        text: 'Sonntagsruhe',
+        style: TextStyle(fontSize: fontSize),
+      ),
+      textDirection: TextDirection.ltr,
+      textScaler: TextScaler.linear(scale),
+    )..layout();
     return p.width;
   }
 

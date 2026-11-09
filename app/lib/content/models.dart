@@ -32,41 +32,38 @@ class StoryMeta {
   final int minutes;
 
   factory StoryMeta.fromJson(Map<String, dynamic> j) => StoryMeta(
-        id: j['id'] as String,
-        title: j['title'] as String,
-        level: j['level'] as String,
-        collection: j['collection'] as String,
-        publishedAt: j['publishedAt'] as String,
-        image: j['image'] as String?,
-        thumb: j['thumb'] as String?,
-        teaser: j['teaser'] as String,
-        teaserEn: j['teaserEn'] as String,
-        words: j['words'] as int,
-        minutes: j['minutes'] as int,
-      );
+    id: j['id'] as String,
+    title: j['title'] as String,
+    level: j['level'] as String,
+    collection: j['collection'] as String,
+    publishedAt: j['publishedAt'] as String,
+    image: j['image'] as String?,
+    thumb: j['thumb'] as String?,
+    teaser: j['teaser'] as String,
+    teaserEn: j['teaserEn'] as String,
+    words: j['words'] as int,
+    minutes: j['minutes'] as int,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'level': level,
-        'collection': collection,
-        'publishedAt': publishedAt,
-        'image': image,
-        'thumb': thumb,
-        'teaser': teaser,
-        'teaserEn': teaserEn,
-        'words': words,
-        'minutes': minutes,
-      };
+    'id': id,
+    'title': title,
+    'level': level,
+    'collection': collection,
+    'publishedAt': publishedAt,
+    'image': image,
+    'thumb': thumb,
+    'teaser': teaser,
+    'teaserEn': teaserEn,
+    'words': words,
+    'minutes': minutes,
+  };
 }
 
 /// A run of plain text, or a word: optionally linked to a dictionary key, and flagged when the
 /// link goes through the head of a compound (Haustür → Tür).
 class Token {
-  const Token.text(this.text)
-      : isWord = false,
-        key = null,
-        compound = false;
+  const Token.text(this.text) : isWord = false, key = null, compound = false;
   const Token.word(this.text, {this.key, this.compound = false}) : isWord = true;
 
   final String text;
@@ -77,11 +74,7 @@ class Token {
   factory Token.fromJson(Object? j) {
     if (j is String) return Token.text(j);
     final l = j as List;
-    return Token.word(
-      l[0] as String,
-      key: l.length > 1 ? l[1] as String : null,
-      compound: l.length > 2 && l[2] == 1,
-    );
+    return Token.word(l[0] as String, key: l.length > 1 ? l[1] as String : null, compound: l.length > 2 && l[2] == 1);
   }
 }
 
@@ -91,11 +84,8 @@ class Sentence {
   final String en;
   final List<Token> tokens;
 
-  factory Sentence.fromJson(Map<String, dynamic> j) => Sentence(
-        de: j['de'] as String,
-        en: j['en'] as String,
-        tokens: [for (final t in j['t'] as List) Token.fromJson(t)],
-      );
+  factory Sentence.fromJson(Map<String, dynamic> j) =>
+      Sentence(de: j['de'] as String, en: j['en'] as String, tokens: [for (final t in j['t'] as List) Token.fromJson(t)]);
 }
 
 class Story {
@@ -105,10 +95,8 @@ class Story {
 
   String get id => meta.id;
 
-  factory Story.fromJson(Map<String, dynamic> j) => Story(
-        meta: StoryMeta.fromJson(j),
-        sentences: [for (final s in j['sentences'] as List) Sentence.fromJson(s as Map<String, dynamic>)],
-      );
+  factory Story.fromJson(Map<String, dynamic> j) =>
+      Story(meta: StoryMeta.fromJson(j), sentences: [for (final s in j['sentences'] as List) Sentence.fromJson(s as Map<String, dynamic>)]);
 }
 
 class DictEntry {
@@ -143,17 +131,17 @@ class DictEntry {
   String get gloss => en.first;
 
   factory DictEntry.fromJson(Map<String, dynamic> j) => DictEntry(
-        headword: j['h'] as String,
-        pos: j['p'] as String,
-        en: [for (final g in j['en'] as List) g as String],
-        gender: j['g'] as String?,
-        plural: j['pl'] as String?,
-        ipa: j['ipa'] as String?,
-        cefr: j['cefr'] as String?,
-        exampleDe: j['xd'] as String?,
-        exampleEn: j['xe'] as String?,
-        audio: j['au'] as String?,
-      );
+    headword: j['h'] as String,
+    pos: j['p'] as String,
+    en: [for (final g in j['en'] as List) g as String],
+    gender: j['g'] as String?,
+    plural: j['pl'] as String?,
+    ipa: j['ipa'] as String?,
+    cefr: j['cefr'] as String?,
+    exampleDe: j['xd'] as String?,
+    exampleEn: j['xe'] as String?,
+    audio: j['au'] as String?,
+  );
 }
 
 typedef Dictionary = Map<String, DictEntry>;

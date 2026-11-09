@@ -63,13 +63,7 @@ class LevelFiles {
 }
 
 class Manifest {
-  const Manifest({
-    required this.contentVersion,
-    required this.minClient,
-    this.feedStories,
-    this.lookup,
-    this.levels = const {},
-  });
+  const Manifest({required this.contentVersion, required this.minClient, this.feedStories, this.lookup, this.levels = const {}});
 
   factory Manifest.fromJson(Map<String, dynamic> j) {
     if (j['schema'] != 'german-content/manifest@1') throw FormatException('manifest schema ${j['schema']}');
@@ -112,7 +106,7 @@ class FeedStory {
   String get slug => id.replaceFirst('de.story.', '');
 
   static List<FeedStory> listFromJson(Map<String, dynamic> j) => [
-        for (final s in (j['stories'] as List).cast<Map<String, dynamic>>())
-          FeedStory(id: s['id'] as String, level: (s['cefr'] as String? ?? '').toUpperCase(), levelFile: s['level_file'] as String),
-      ];
+    for (final s in (j['stories'] as List).cast<Map<String, dynamic>>())
+      FeedStory(id: s['id'] as String, level: (s['cefr'] as String? ?? '').toUpperCase(), levelFile: s['level_file'] as String),
+  ];
 }

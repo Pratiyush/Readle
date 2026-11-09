@@ -25,30 +25,32 @@ class _ReaderScreenState extends State<ReaderScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final content = AppScope.read(context).content;
-    _data = Future.wait([content.story(widget.storyId), content.dictionary()])
-        .then((r) => (r[0] as Story, r[1] as Dictionary));
+    _data = Future.wait([content.story(widget.storyId), content.dictionary()]).then((r) => (r[0] as Story, r[1] as Dictionary));
   }
 
   @override
   Widget build(BuildContext context) => FutureBuilder<(Story, Dictionary)>(
-        future: _data,
-        builder: (context, snap) {
-          if (snap.hasError) {
-            return Scaffold(
-              appBar: AppBar(),
-              body: Center(
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Text("This story couldn't be loaded."),
-                  const SizedBox(height: 12),
-                  OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Back to stories')),
-                ]),
-              ),
-            );
-          }
-          if (!snap.hasData) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-          return _ReaderView(story: snap.data!.$1, dict: snap.data!.$2);
-        },
-      );
+    future: _data,
+    builder: (context, snap) {
+      if (snap.hasError) {
+        return Scaffold(
+          appBar: AppBar(),
+          body: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text("This story couldn't be loaded."),
+                const SizedBox(height: 12),
+                OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Back to stories')),
+              ],
+            ),
+          ),
+        );
+      }
+      if (!snap.hasData) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return _ReaderView(story: snap.data!.$1, dict: snap.data!.$2);
+    },
+  );
 }
 
 class _ReaderView extends StatefulWidget {
@@ -84,9 +86,7 @@ class _ReaderViewState extends State<_ReaderView> {
       for (final s in story.sentences)
         [for (final t in s.tokens) t.isWord ? (TapGestureRecognizer()..onTap = () => _openWord(t, s)) : null],
     ];
-    _translateTaps = [
-      for (var i = 0; i < story.sentences.length; i++) TapGestureRecognizer()..onTap = () => _toggle(i),
-    ];
+    _translateTaps = [for (var i = 0; i < story.sentences.length; i++) TapGestureRecognizer()..onTap = () => _toggle(i)];
     _scroll.addListener(() {
       final max = _scroll.position.maxScrollExtent;
       final p = max > 0 ? (_scroll.offset / max).clamp(0.0, 1.0) : 1.0;
@@ -217,10 +217,7 @@ class _ReaderViewState extends State<_ReaderView> {
           TextButton(
             key: const Key('show-all-translations'),
             onPressed: () => setState(() => _allShown = !_allShown),
-            style: TextButton.styleFrom(
-              backgroundColor: _allShown ? palette.accentSoft : null,
-              foregroundColor: scheme.onSurface,
-            ),
+            style: TextButton.styleFrom(backgroundColor: _allShown ? palette.accentSoft : null, foregroundColor: scheme.onSurface),
             child: const Text('EN', style: TextStyle(fontWeight: FontWeight.w800)),
           ),
           TextButton(
@@ -246,44 +243,74 @@ class _ReaderViewState extends State<_ReaderView> {
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 680),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                    LevelBadge(story.meta.level),
-                    Text('${story.meta.minutes} min read · ${story.meta.words} words', style: TextStyle(color: palette.muted, fontSize: 13)),
-                  ]),
-                  const SizedBox(height: 8),
-                  WholeWordsText(story.meta.title,
-                      style: const TextStyle(fontFamily: serif, fontFamilyFallback: serifFallback, fontSize: 30, fontWeight: FontWeight.w700, height: 1.15)),
-                  const SizedBox(height: 6),
-                  if (state.wordTipSeen)
-                    Text('Tap any word for its meaning. Tap ⇄ for a sentence translation.', style: TextStyle(color: palette.muted, fontSize: 13))
-                  else
-                    // First run: the one thing to learn about this app, until the first tap.
-                    Container(
-                      key: const Key('word-tip'),
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(color: palette.accentSoft, borderRadius: BorderRadius.circular(12)),
-                      child: Row(children: [
-                        const Text('👆', style: TextStyle(fontSize: 20)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text('Tap any word to hear it and see what it means. Tap ⇄ to translate a sentence.',
-                              style: TextStyle(color: scheme.onSurface, fontWeight: FontWeight.w600)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        LevelBadge(story.meta.level),
+                        Text(
+                          '${story.meta.minutes} min read · ${story.meta.words} words',
+                          style: TextStyle(color: palette.muted, fontSize: 13),
                         ),
-                      ]),
+                      ],
                     ),
-                  const SizedBox(height: 14),
-                  ..._storyText(context, state.words.keys.toSet(), state.settings.fontScale),
-                  const SizedBox(height: 28),
-                  FilledButton(key: const Key('finish'), onPressed: _finish, child: Text(isRead ? 'Take the quiz again' : 'Finish & take the quiz')),
-                  const SizedBox(height: 10),
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48), shape: const StadiumBorder()),
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    child: const Text('Back to stories'),
-                  ),
-                ]),
+                    const SizedBox(height: 8),
+                    WholeWordsText(
+                      story.meta.title,
+                      style: const TextStyle(
+                        fontFamily: serif,
+                        fontFamilyFallback: serifFallback,
+                        fontSize: 30,
+                        fontWeight: FontWeight.w700,
+                        height: 1.15,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    if (state.wordTipSeen)
+                      Text(
+                        'Tap any word for its meaning. Tap ⇄ for a sentence translation.',
+                        style: TextStyle(color: palette.muted, fontSize: 13),
+                      )
+                    else
+                      // First run: the one thing to learn about this app, until the first tap.
+                      Container(
+                        key: const Key('word-tip'),
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(color: palette.accentSoft, borderRadius: BorderRadius.circular(12)),
+                        child: Row(
+                          children: [
+                            const Text('👆', style: TextStyle(fontSize: 20)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                'Tap any word to hear it and see what it means. Tap ⇄ to translate a sentence.',
+                                style: TextStyle(color: scheme.onSurface, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 14),
+                    ..._storyText(context, state.words.keys.toSet(), state.settings.fontScale),
+                    const SizedBox(height: 28),
+                    FilledButton(
+                      key: const Key('finish'),
+                      onPressed: _finish,
+                      child: Text(isRead ? 'Take the quiz again' : 'Finish & take the quiz'),
+                    ),
+                    const SizedBox(height: 10),
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48), shape: const StadiumBorder()),
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      child: const Text('Back to stories'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -308,7 +335,12 @@ class _ReaderViewState extends State<_ReaderView> {
 
     void flush() {
       if (run.isEmpty) return;
-      out.add(Text.rich(TextSpan(style: base, children: run), key: ValueKey('para-${out.length}')));
+      out.add(
+        Text.rich(
+          TextSpan(style: base, children: run),
+          key: ValueKey('para-${out.length}'),
+        ),
+      );
       run = [];
     }
 
@@ -322,47 +354,69 @@ class _ReaderViewState extends State<_ReaderView> {
           continue;
         }
         final isSaved = (t.key != null && saved.contains(t.key)) || saved.contains('free:${t.text.toLowerCase()}');
-        spans.add(TextSpan(
-          text: t.text,
-          recognizer: _wordTaps[i][j],
-          style: isSaved ? TextStyle(backgroundColor: palette.saved) : null,
-        ));
+        spans.add(
+          TextSpan(
+            text: t.text,
+            recognizer: _wordTaps[i][j],
+            style: isSaved ? TextStyle(backgroundColor: palette.saved) : null,
+          ),
+        );
       }
       spans.add(const TextSpan(text: ' '));
-      spans.add(TextSpan(
-        text: '⇄',
-        recognizer: _translateTaps[i],
-        semanticsLabel: 'Translate sentence ${i + 1}',
-        style: TextStyle(color: palette.muted, fontSize: 15 * scale, fontFamily: null),
-      ));
+      spans.add(
+        TextSpan(
+          text: '⇄',
+          recognizer: _translateTaps[i],
+          semanticsLabel: 'Translate sentence ${i + 1}',
+          style: TextStyle(color: palette.muted, fontSize: 15 * scale, fontFamily: null),
+        ),
+      );
       spans.add(const TextSpan(text: ' '));
-      run.add(TextSpan(style: _playing == i ? TextStyle(backgroundColor: palette.accentSoft) : null, children: spans));
+      run.add(
+        TextSpan(
+          style: _playing == i ? TextStyle(backgroundColor: palette.accentSoft) : null,
+          children: spans,
+        ),
+      );
 
       if (_allShown || _shown.contains(i)) {
         flush();
-        out.add(Container(
-          key: Key('translation-$i'),
-          width: double.infinity,
-          margin: const EdgeInsets.only(top: 2, bottom: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            border: Border(left: BorderSide(color: Theme.of(context).colorScheme.primary, width: 3)),
-            borderRadius: const BorderRadius.horizontal(right: Radius.circular(8)),
+        out.add(
+          Container(
+            key: Key('translation-$i'),
+            width: double.infinity,
+            margin: const EdgeInsets.only(top: 2, bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              border: Border(left: BorderSide(color: Theme.of(context).colorScheme.primary, width: 3)),
+              borderRadius: const BorderRadius.horizontal(right: Radius.circular(8)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    s.en,
+                    style: TextStyle(color: palette.muted, fontSize: 15 * scale, height: 1.45),
+                  ),
+                ),
+                // Listen from here: read this sentence and on to the end (the app bar's ■ stops it).
+                if (_canSpeak)
+                  IconButton(
+                    key: Key('listen-from-$i'),
+                    tooltip: 'Listen from here',
+                    visualDensity: VisualDensity.compact,
+                    icon: Icon(
+                      _playing == i ? Icons.graphic_eq_rounded : Icons.volume_up_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    onPressed: () => _play(i),
+                  ),
+              ],
+            ),
           ),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(child: Text(s.en, style: TextStyle(color: palette.muted, fontSize: 15 * scale, height: 1.45))),
-            // Listen from here: read this sentence and on to the end (the app bar's ■ stops it).
-            if (_canSpeak)
-              IconButton(
-                key: Key('listen-from-$i'),
-                tooltip: 'Listen from here',
-                visualDensity: VisualDensity.compact,
-                icon: Icon(_playing == i ? Icons.graphic_eq_rounded : Icons.volume_up_rounded, color: Theme.of(context).colorScheme.primary),
-                onPressed: () => _play(i),
-              ),
-          ]),
-        ));
+        );
       }
     }
     flush();
