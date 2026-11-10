@@ -1,7 +1,7 @@
 // Frame timing in profile mode (production gate §5: gfxinfo can't see Flutter's own frames).
-// Run on a device, never in the fast gate:
+// Run on a device in profile mode; kept out of integration_test/, which CI runs in debug:
 //
-//   flutter drive --profile -d <device> --driver=test_driver/perf_driver.dart --target=integration_test/perf_test.dart
+//   flutter drive --profile -d <device> --driver=test_driver/perf_driver.dart --target=perf/frame_timing_test.dart
 //
 // Writes build/perf/<scenario>.json (FrameTimingSummarizer: average / 90th / 99th percentile /
 // worst build and raster times, missed frame budgets). Ads off, so it measures Readle's own UI.

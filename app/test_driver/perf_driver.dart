@@ -1,4 +1,4 @@
-// Host side of integration_test/perf_test.dart: one JSON file per scenario in build/perf/.
+// Host side of perf/frame_timing_test.dart: one JSON file per scenario in build/perf/.
 import 'package:integration_test/integration_test_driver.dart';
 
 Future<void> main() => integrationDriver(

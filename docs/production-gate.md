@@ -89,7 +89,7 @@ on a host whose load average was 300+, so treat timings as upper bounds.
 
 | Check | Result | Evidence / fix |
 |---|---|---|
-| E2E on Android + iOS (or web), green in CI | **pass** (local) / **fail** (CI not run) | Web: Playwright 16 scenarios × 2 viewports = **32 green**. Flutter: 6 flows green headless and **6/6 on the Android emulator** (API 35 sandbox, debug build, incl. the clip-on-tap assertion). iOS simulator: wired in `.github/workflows/app.yml`, not run yet. CI has never run because nothing is pushed. |
+| E2E on Android + iOS (or web), green in CI | **pass** | GitHub Actions on every push. **Verify** runs the fast gate (`tools/verify.sh`: Flutter 124 headless tests with 14 flows; web vitest 52, Playwright 60). It was green on `f740a5b`, the last pushed commit (9 Nov). **App devices** runs the same 14 flows on an Android API 35 emulator and an iPhone simulator (`flutter test integration_test`). Both jobs were green on `ed3d7db` (9 Nov); the run on `f740a5b` was cancelled. Frame timing (`perf/`) stays out of CI because it needs profile mode. |
 | Unit/widget tests green; analyze / lint clean | **pass** | Web: Vitest 23 green, `tsc` clean. Flutter: 31 tests green, `flutter analyze` "No issues found". |
 | Version + build scheme; release notes; screenshots from the E2E run | **fail** (screenshots) | `0.1.0+1`. The scheme is a semver name with the build number +1 per store upload (`tool/release.sh --bump`). Release notes live in `docs/release-notes.md`, one section per version, and the script checks them. Listing screenshots wait for the name and will be captured from `integration_test`. |
 
