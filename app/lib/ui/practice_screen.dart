@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../content/models.dart';
 import '../l10n/app_localizations.dart';
@@ -40,6 +41,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
   void _answer(String key, bool correct) {
     AppScope.read(context).state.reviewWord(key, correct: correct);
+    if (correct) HapticFeedback.selectionClick();
     setState(() {
       if (correct) _right++;
       _flipped = false;

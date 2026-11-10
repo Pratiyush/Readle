@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../config.dart';
 import '../content/models.dart';
@@ -43,6 +44,7 @@ class _QuizScreenState extends State<QuizScreen> {
       _chosen = i;
       if (right) _correct++;
     });
+    if (right) HapticFeedback.lightImpact(); // a wrong answer stays silent
     if (_index == total - 1) AppScope.read(context).state.recordQuiz(storyId, _correct / total);
   }
 
@@ -115,17 +117,21 @@ class _QuizScreenState extends State<QuizScreen> {
           for (var i = 0; i < q.options.length; i++)
             Padding(
               padding: const EdgeInsets.only(bottom: 10),
-              child: _Option(
-                key: Key('option-$i'),
-                text: q.options[i],
-                state: _chosen == null
-                    ? _OptionState.open
-                    : i == q.answer
-                    ? _OptionState.right
-                    : i == _chosen
-                    ? _OptionState.wrong
-                    : _OptionState.dimmed,
-                onTap: () => _choose(q, i, questions.length, story.id),
+              // The right option carries a key for the tests (keys never reach screen readers).
+              child: KeyedSubtree(
+                key: i == q.answer ? const Key('correct-option') : null,
+                child: _Option(
+                  key: Key('option-$i'),
+                  text: q.options[i],
+                  state: _chosen == null
+                      ? _OptionState.open
+                      : i == q.answer
+                      ? _OptionState.right
+                      : i == _chosen
+                      ? _OptionState.wrong
+                      : _OptionState.dimmed,
+                  onTap: () => _choose(q, i, questions.length, story.id),
+                ),
               ),
             ),
           if (_chosen != null) ...[
@@ -149,10 +155,14 @@ class _QuizScreenState extends State<QuizScreen> {
                   FilledButton(
                     key: const Key('continue'),
                     style: FilledButton.styleFrom(minimumSize: const Size(120, 44)),
-                    onPressed: () => setState(() {
-                      _chosen = null;
-                      _index++;
-                    }),
+                    onPressed: () {
+                      setState(() {
+                        _chosen = null;
+                        _index++;
+                      });
+                      // A story quiz finished well: one firmer tap as the results appear.
+                      if (_index == questions.length && _correct >= 0.8 * questions.length) HapticFeedback.mediumImpact();
+                    },
                     child: Text(_index == questions.length - 1 ? l.quizSeeResults : l.quizContinue),
                   ),
                 ],

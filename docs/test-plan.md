@@ -41,6 +41,7 @@ Web (`e2e/*.spec.ts`): library, reader, reading (Continue reading, tip, Listen f
 | One item / the last item (every story read) | ✓ `story_of_the_day_test` (offers a read story again) | ✓ `edges.spec` every story read; `screens.test` |
 | Max size (all 107 stories, 1,344 entries) | ✓ `content_test`, `linker_test` golden (10,870 tokens) | ✓ `content.test`, `library.spec` (107 cards) |
 | A bundled file that fails to load once | ✓ `edge_cases_test` (caller gets the error, nothing else escapes, the retry loads: BUG-40) | N/A |
+| Haptics on success: light tap on a right quiz answer, medium on a quiz finished at ≥ 80 %, selection click on "Knew it"; a wrong answer is silent | ✓ `haptics_test` (records `HapticFeedback.vibrate` on the platform channel) | device: felt on the sandbox |
 | Share a finished story: a 1080 × 1350 PNG card (picture, German title, level, streak, score, first sentence) and a line of text to the share sheet | ✓ flow `finish a story, quiz, progress` (RecordingSharer: PNG signature, size from IHDR, German title in the text) | device: Android share sheet |
 | iOS privacy manifest: every required-reason API a plugin calls is declared (App Store ITMS-91053) | ✓ `privacy_manifest_test` (scans each iOS plugin's native sources against its manifest and Readle's: BUG-41) | N/A |
 | Duplicate ids (CDN story = bundled story) | ✓ `content_client_test` (bundled `brot` skipped, 108 in library) | N/A: web has no CDN source |
