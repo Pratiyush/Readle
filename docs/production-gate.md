@@ -107,6 +107,7 @@ Re-check whenever an SDK or plugin changes.
 - The daily reminder is a local notification scheduled on the device. Nothing is sent.
 - Content updates (`CONTENT_CDN_ENABLED`, off until the privacy policy covers it) are HTTPS GETs of static files from `german-content.pratiyush1.workers.dev`. The only extra header is `If-None-Match`, the manifest's ETag, which is the same for everyone. There is no ID, account or cookie. The worker serves assets only and has no logging configured (`content/deploy/wrangler.jsonc`), so the IP address is used only to answer the request. That is not "collected" under either store's definition.
 - "Contact support" opens the learner's own mail app (`mailto:`). Nothing leaves the device unless they send the mail themselves.
+- "Share" on the quiz result paints an image card on the device and opens the system share sheet. Nothing leaves the device unless the learner picks a target.
 
 ### Google Play: Data safety form
 

@@ -14,6 +14,7 @@ import 'package:readle/content/content_repository.dart';
 import 'package:readle/content/layered_repository.dart';
 import 'package:readle/services/ads.dart';
 import 'package:readle/services/reminders.dart';
+import 'package:readle/services/share.dart';
 import 'package:readle/services/speech.dart';
 import 'package:readle/services/word_player.dart';
 import 'package:readle/state/app_state.dart';
@@ -23,11 +24,12 @@ import 'package:url_launcher_platform_interface/url_launcher_platform_interface.
 import 'support/cdn_fixture.dart';
 
 class Harness {
-  Harness(this.state, this.speech, this.player, this.reminders);
+  Harness(this.state, this.speech, this.player, this.reminders, this.sharer);
   final AppState state;
   final RecordingSpeech speech;
   final RecordingWordPlayer player;
   final RecordingReminders reminders;
+  final RecordingSharer sharer;
 }
 
 Future<Harness> pumpApp(
@@ -55,9 +57,12 @@ Future<Harness> pumpApp(
   final player = RecordingWordPlayer(works: clipsWork);
   final reminders = RecordingReminders();
   DailyReminder(state: state, reminders: reminders).start();
-  await tester.pumpWidget(ReadleApp(state: state, content: repo, speech: speech, player: player, ads: NoAds(), reminders: reminders));
+  final sharer = RecordingSharer();
+  await tester.pumpWidget(
+    ReadleApp(state: state, content: repo, speech: speech, player: player, ads: NoAds(), reminders: reminders, sharer: sharer),
+  );
   await tester.pumpAndSettle();
-  return Harness(state, speech, player, reminders);
+  return Harness(state, speech, player, reminders, sharer);
 }
 
 /// Pump until [finder] matches: on a real device, loading and route transitions take wall time.
@@ -186,6 +191,18 @@ Future<void> quizAndProgress(WidgetTester tester) async {
   expect(find.byKey(const Key('result-headline')), findsOneWidget);
   expect(h.state.read.keys, contains('brot'));
   expect(h.state.quiz.keys, contains('brot'));
+  // Share the finished story: one 1080 × 1350 PNG card and a line with the German title.
+  await tester.tap(find.byKey(const Key('share-result')));
+  for (var i = 0; i < 100 && h.sharer.shared.isEmpty; i++) {
+    await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 20)));
+    await tester.pump();
+  }
+  expect(h.sharer.shared, hasLength(1));
+  final card = h.sharer.shared.single;
+  expect(card.png.sublist(0, 8), [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A], reason: 'a PNG');
+  expect((_pngSize(card.png)), (1080, 1350));
+  expect(card.text, contains('„Brot ist hier wichtig“ (A1)'));
+  expect(card.fileName, endsWith('.png'));
   await tester.tap(find.byKey(const Key('next-story')));
   await tester.pumpAndSettle();
   await waitFor(tester, find.byKey(const Key('story-brot')));
@@ -540,3 +557,9 @@ final flows = <String, Future<void> Function(WidgetTester)>{
   'new stories on Wi-Fi, on their own once allowed': contentOnWifi,
   'a CDN that needs a newer app: say so, link to the store': contentAppTooOld,
 };
+
+/// Width and height from a PNG's IHDR chunk.
+(int, int) _pngSize(List<int> png) {
+  int u32(int o) => (png[o] << 24) | (png[o + 1] << 16) | (png[o + 2] << 8) | png[o + 3];
+  return (u32(16), u32(20));
+}

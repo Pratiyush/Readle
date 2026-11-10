@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
+import '../config.dart';
 import '../content/models.dart';
 import '../l10n/app_localizations.dart';
 import '../logic/quiz.dart';
 import 'app_scope.dart';
+import 'share_card.dart';
 import 'theme.dart';
 
 class QuizScreen extends StatefulWidget {
@@ -160,6 +164,45 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 
+  bool _sharing = false;
+
+  /// Paints the finished-story card and opens the share sheet.
+  Future<void> _share(BuildContext button, Story story, int pct) async {
+    final scope = AppScope.read(context);
+    final l = AppLocalizations.of(context);
+    final view = View.of(context);
+    final box = button.findRenderObject() as RenderBox?;
+    final origin = box == null ? null : box.localToGlobal(Offset.zero) & box.size;
+    setState(() => _sharing = true);
+    try {
+      final card = ShareCard(
+        ShareCardData(
+          eyebrow: l.shareCardEyebrow,
+          title: story.meta.title,
+          level: story.meta.level,
+          streak: l.shareCardStreak(scope.state.streakDays),
+          score: l.shareCardScore(pct),
+          footer: l.shareCardFooter(appName),
+          quote: story.sentences.firstOrNull?.de,
+          picture: await loadPicture(scope.content.image(story.meta.image)),
+        ),
+      );
+      final png = await renderShareCard(card, view);
+      // The store link only where the listing exists (Android); iOS has no App Store record yet.
+      final link = Platform.isAndroid ? '\n$playStoreUrl' : '';
+      await scope.sharer!.share(
+        png: png,
+        text: l.shareText(story.meta.title, story.meta.level, appName) + link,
+        fileName: 'readle-${story.meta.id}.png',
+        origin: origin,
+      );
+    } catch (e) {
+      debugPrint('share: $e');
+    } finally {
+      if (mounted) setState(() => _sharing = false);
+    }
+  }
+
   Widget _results(BuildContext context, Story story, int total) {
     final state = AppScope.of(context).state;
     final palette = Palette.of(context);
@@ -216,6 +259,18 @@ class _QuizScreenState extends State<QuizScreen> {
               },
               child: Text(l.quizNextStory),
             ),
+            if (AppScope.of(context).sharer != null) ...[
+              const SizedBox(height: 10),
+              Builder(
+                builder: (button) => OutlinedButton.icon(
+                  key: const Key('share-result'),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48), shape: const StadiumBorder()),
+                  icon: const Icon(Icons.ios_share),
+                  label: Text(l.shareResult),
+                  onPressed: _sharing ? null : () => _share(button, story, pct),
+                ),
+              ),
+            ],
             const SizedBox(height: 10),
             if (pct < 80)
               OutlinedButton(

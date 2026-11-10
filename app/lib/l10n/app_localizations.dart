@@ -565,6 +565,42 @@ abstract class AppLocalizations {
   /// **'You finished “{title}”.'**
   String quizFinished(String title);
 
+  /// Quiz results: button that shares an image card of the finished story.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get shareResult;
+
+  /// Share card (image): small line above the German story title.
+  ///
+  /// In en, this message translates to:
+  /// **'I read a German story'**
+  String get shareCardEyebrow;
+
+  /// Share card (image): streak chip.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{🔥 1 day streak} other{🔥 {count} day streak}}'**
+  String shareCardStreak(int count);
+
+  /// Share card (image): quiz score chip.
+  ///
+  /// In en, this message translates to:
+  /// **'{pct}% on the quiz'**
+  String shareCardScore(int pct);
+
+  /// Share card (image): bottom line with the app name.
+  ///
+  /// In en, this message translates to:
+  /// **'{app} · German stories you can tap'**
+  String shareCardFooter(String app);
+
+  /// Text sent with the share card; the title is the German story title, kept in German quotation marks.
+  ///
+  /// In en, this message translates to:
+  /// **'I just read „{title}“ ({level}) in German with {app}.'**
+  String shareText(String title, String level, String app);
+
   /// Quiz results: label under the percentage.
   ///
   /// In en, this message translates to:

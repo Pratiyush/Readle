@@ -5,6 +5,7 @@ import '../content/content_repository.dart';
 import '../content/models.dart';
 import '../services/ads.dart';
 import '../services/reminders.dart';
+import '../services/share.dart';
 import '../services/speech.dart';
 import '../services/word_player.dart';
 import '../state/app_state.dart';
@@ -21,6 +22,7 @@ class AppScope extends InheritedNotifier<Listenable> {
     required this.ads,
     this.updates,
     this.reminders,
+    this.sharer,
     required super.child,
   }) : super(notifier: Listenable.merge([state, ads, ?updates]));
 
@@ -32,6 +34,9 @@ class AppScope extends InheritedNotifier<Listenable> {
 
   /// The daily reminder's platform side; null where the app runs without notifications.
   final Reminders? reminders;
+
+  /// The system share sheet; null where the app runs without it (then nothing offers to share).
+  final Sharer? sharer;
 
   final ContentRepository content;
   final Speech speech;

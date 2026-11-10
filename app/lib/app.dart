@@ -5,6 +5,8 @@ import 'l10n/app_localizations.dart';
 import 'content/content_repository.dart';
 import 'services/ads.dart';
 import 'services/reminders.dart';
+import 'services/share.dart';
+import 'config.dart';
 import 'services/speech.dart';
 import 'services/word_player.dart';
 import 'state/app_state.dart';
@@ -28,6 +30,7 @@ class ReadleApp extends StatelessWidget {
     required this.ads,
     this.updates,
     this.reminders,
+    this.sharer,
   });
 
   final AppState state;
@@ -37,6 +40,7 @@ class ReadleApp extends StatelessWidget {
   final Ads ads;
   final ContentClient? updates;
   final Reminders? reminders;
+  final Sharer? sharer;
 
   @override
   Widget build(BuildContext context) {
@@ -48,10 +52,11 @@ class ReadleApp extends StatelessWidget {
       ads: ads,
       updates: updates,
       reminders: reminders,
+      sharer: sharer,
       child: ListenableBuilder(
         listenable: state,
         builder: (context, _) => MaterialApp(
-          title: 'Readle',
+          title: appName,
           debugShowCheckedModeBanner: false,
           // UI strings: lib/l10n/app_en.arb (English only for now).
           localizationsDelegates: AppLocalizations.localizationsDelegates,

@@ -222,6 +222,34 @@
     "description": "Quiz results: line under the German praise headline; the title is the German story title.",
     "placeholders": { "title": { "type": "String", "example": "Das Brot" } }
   },
+  "shareResult": "Share",
+  "@shareResult": { "description": "Quiz results: button that shares an image card of the finished story." },
+  "shareCardEyebrow": "I read a German story",
+  "@shareCardEyebrow": { "description": "Share card (image): small line above the German story title." },
+  "shareCardStreak": "{count, plural, =1{🔥 1 day streak} other{🔥 {count} day streak}}",
+  "@shareCardStreak": {
+    "description": "Share card (image): streak chip.",
+    "placeholders": { "count": { "type": "int", "example": "5" } }
+  },
+  "shareCardScore": "{pct}% on the quiz",
+  "@shareCardScore": {
+    "description": "Share card (image): quiz score chip.",
+    "placeholders": { "pct": { "type": "int", "example": "90" } }
+  },
+  "shareCardFooter": "{app} · German stories you can tap",
+  "@shareCardFooter": {
+    "description": "Share card (image): bottom line with the app name.",
+    "placeholders": { "app": { "type": "String", "example": "Readle" } }
+  },
+  "shareText": "I just read „{title}“ ({level}) in German with {app}.",
+  "@shareText": {
+    "description": "Text sent with the share card; the title is the German story title, kept in German quotation marks.",
+    "placeholders": {
+      "title": { "type": "String", "example": "Brot ist hier wichtig" },
+      "level": { "type": "String", "example": "A1" },
+      "app": { "type": "String", "example": "Readle" }
+    }
+  },
   "quizScore": "quiz score",
   "@quizScore": { "description": "Quiz results: label under the percentage." },
   "quizNextStory": "Next story",

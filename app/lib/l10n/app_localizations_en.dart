@@ -278,6 +278,33 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get shareResult => 'Share';
+
+  @override
+  String get shareCardEyebrow => 'I read a German story';
+
+  @override
+  String shareCardStreak(int count) {
+    String _temp0 = intl.Intl.pluralLogic(count, locale: localeName, other: '🔥 $count day streak', one: '🔥 1 day streak');
+    return '$_temp0';
+  }
+
+  @override
+  String shareCardScore(int pct) {
+    return '$pct% on the quiz';
+  }
+
+  @override
+  String shareCardFooter(String app) {
+    return '$app · German stories you can tap';
+  }
+
+  @override
+  String shareText(String title, String level, String app) {
+    return 'I just read „$title“ ($level) in German with $app.';
+  }
+
+  @override
   String get quizScore => 'quiz score';
 
   @override

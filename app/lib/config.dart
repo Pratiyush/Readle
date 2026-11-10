@@ -11,6 +11,9 @@ const legalBase = 'https://pratiyush.github.io/german-apps-legal';
 /// The page's URL, or null while no slug is set.
 Uri? legalPage(String page, {String slug = legalSlug}) => slug.isEmpty ? null : Uri.parse('$legalBase/$slug/$page.html');
 
+/// The app's name, in one place until the owner picks the original one ("Readle" is a working title).
+const appName = 'Readle';
+
 /// Readle's Play listing, for "Update app" when the content CDN needs a newer client. iOS shows the
 /// message without a link until the App Store record exists (Apple enrolment: January 2027).
 const playStoreUrl = 'https://play.google.com/store/apps/details?id=com.pratiyush.readle';

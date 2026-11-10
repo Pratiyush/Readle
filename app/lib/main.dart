@@ -18,6 +18,7 @@ import 'services/ads_config.dart';
 import 'services/error_log.dart';
 import 'services/interstitial_policy.dart';
 import 'services/reminders.dart';
+import 'services/share.dart';
 import 'services/speech.dart';
 import 'services/word_player.dart';
 import 'state/app_state.dart';
@@ -56,6 +57,7 @@ Future<void> main() async {
       ads: ads,
       updates: updates,
       reminders: reminders,
+      sharer: SystemSharer(),
     ),
   );
   // The daily reminder (off by default): with it on, every launch sets the next seven days again.
