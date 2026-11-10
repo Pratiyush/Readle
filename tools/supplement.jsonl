@@ -62,3 +62,12 @@
 {"id": "readle.bahnsteig.n", "headword": "Bahnsteig", "pos": "noun", "gender": "der", "plural": "Bahnsteige", "en": ["platform (railway)"], "cefr": "A2"}
 {"id": "readle.region.n", "headword": "Region", "pos": "noun", "gender": "die", "plural": "Regionen", "en": ["region"], "cefr": "B1"}
 {"id": "readle.gemütlichkeit.n", "headword": "Gemütlichkeit", "pos": "noun", "gender": "die", "en": ["cosiness", "comfort"], "cefr": "B1"}
+{"id": "readle.schiene.n", "headword": "Schiene", "pos": "noun", "en": ["rail", "track"], "cefr": "B1", "gender": "die", "plural": "Schienen"}
+{"id": "readle.hang.n", "headword": "Hang", "pos": "noun", "en": ["slope", "hillside"], "cefr": "B1", "gender": "der", "plural": "Hänge"}
+{"id": "readle.nähe.n", "headword": "Nähe", "pos": "noun", "en": ["closeness", "vicinity", "(in der Nähe) nearby"], "cefr": "A2", "gender": "die"}
+{"id": "readle.bügel.n", "headword": "Bügel", "pos": "noun", "en": ["hanger", "bracket", "bike stand"], "cefr": "B2", "gender": "der", "plural": "Bügel"}
+{"id": "readle.duft.n", "headword": "Duft", "pos": "noun", "en": ["scent", "fragrance"], "cefr": "B1", "gender": "der", "plural": "Düfte"}
+{"id": "readle.schluck.n", "headword": "Schluck", "pos": "noun", "en": ["sip", "mouthful"], "cefr": "B1", "gender": "der", "plural": "Schlucke"}
+{"id": "readle.band.n", "headword": "Band", "pos": "noun", "en": ["volume (of a book)"], "cefr": "B2", "gender": "der", "plural": "Bände"}
+{"id": "readle.strich.n", "headword": "Strich", "pos": "noun", "en": ["line", "stroke", "mark"], "cefr": "B1", "gender": "der", "plural": "Striche"}
+{"id": "readle.begriff.n", "headword": "Begriff", "pos": "noun", "en": ["term", "concept"], "cefr": "B1", "gender": "der", "plural": "Begriffe"}

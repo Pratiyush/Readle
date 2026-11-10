@@ -62,6 +62,13 @@ NOT_COMPOUNDS = {
     "südwesten", "vorliebe", "kaffeesatz", "rollläden", "charakterzug",  # head misleads
 }
 POS_RANK = {"noun": 0, "verb": 1, "adjective": 2}
+# A capitalised word right after these is a surname (Herr Klein, Frau Lang), not the adjective.
+NAME_TITLES = {"herr", "herrn", "frau"}
+# Words before a plural noun: after them "Hängen" is der Hang (auf den Hängen), not the infinitive.
+PLURAL_CUES = {"den", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun", "zehn",
+               "beiden", "allen", "vielen", "einigen", "mehreren"}
+# A word after these starts a sentence (direct speech, or a full sentence after a colon).
+SENTENCE_STARTS = "„»:.!?"
 
 
 def nfc(s: str) -> str:
@@ -172,7 +179,7 @@ class Resolver:
                 forms.add(head[: -len(link)])
         return any(f in self.index for f in forms)
 
-    def resolve(self, word: str, sentence_initial: bool) -> tuple[str | None, bool]:
+    def resolve(self, word: str, sentence_initial: bool, prev: str = "") -> tuple[str | None, bool]:
         """Returns (lemma id, is_compound_head)."""
         low = word.lower()
         capitalised = word[:1].isupper() and not sentence_initial
@@ -190,11 +197,29 @@ class Resolver:
         if low.startswith("ge") and low.endswith("t") and len(low) > 5:
             candidates.append(low[2:-1] + "en")
         lower_mid = not word[:1].isupper()
+        if capitalised:
+            # Capitalised mid-sentence: a noun from any candidate form wins over a look-alike
+            # verb or preposition (die Schienen ≠ schienen of scheinen, von den Wegen ≠ wegen),
+            # except an infinitive used as a noun (das Lüften), unless a plural cue comes first.
+            infinitive = prev.lower() not in PLURAL_CUES and any(
+                self.lex[lid].get("pos") == "verb" and nfc(self.lex[lid]["headword"]).lower() == low
+                for lid in self.index.get(low) or []
+            )
+            if not infinitive:
+                for cand in candidates:
+                    nouns = [lid for lid in self.index.get(cand) or [] if self.lex[lid].get("pos") == "noun"]
+                    if nouns:
+                        return self._pick(nouns, True), False
+            if prev.lower() in NAME_TITLES:
+                return None, False  # a surname: Herr Klein, Frau Lang
         for cand in candidates:
             ids = self.index.get(cand) or []
             if lower_mid:
                 # German nouns are always capitalised: "weg" is never "Weg".
                 ids = [lid for lid in ids if self.lex[lid].get("pos") != "noun"]
+            if capitalised:
+                # No noun: a verb only as its own infinitive used as a noun (das Essen, im Stehen).
+                ids = [lid for lid in ids if self.lex[lid].get("pos") != "verb" or nfc(self.lex[lid]["headword"]).lower() == low]
             if ids:
                 return self._pick(ids, capitalised), False
         # compound nouns: resolve the head (Haustür → Tür)
@@ -233,12 +258,18 @@ def linker_data(resolver: Resolver) -> dict:
     index = resolver.index
     ids = sorted({lid for lids in index.values() for lid in lids})
     return {
-        "schema": "readle/linker@1",
+        "schema": "readle/linker@2",
+        "nameTitles": sorted(NAME_TITLES),
+        "pluralCues": sorted(PLURAL_CUES),
+        "sentenceStarts": SENTENCE_STARTS,
         "adjEndings": list(ADJ_ENDINGS),
         "nounEndings": list(NOUN_ENDINGS),
         "notCompounds": sorted(NOT_COMPOUNDS),
         "posRank": POS_RANK,
-        "lex": {lid: [resolver.lex[lid].get("pos", "other"), resolver.lex[lid].get("freq_rank") or 99999] for lid in ids},
+        "lex": {
+            lid: [resolver.lex[lid].get("pos", "other"), resolver.lex[lid].get("freq_rank") or 99999, nfc(resolver.lex[lid]["headword"]).lower()]
+            for lid in ids
+        },
         "index": dict(sorted(index.items())),
         # Only aliases whose lemma the index knows can ever produce a link.
         "aliases": {form: lemma for form, lemma in sorted(resolver.aliases.items()) if lemma in index},
@@ -246,13 +277,15 @@ def linker_data(resolver: Resolver) -> dict:
 
 
 def tokenise(text: str, resolver: Resolver, used: set[str]):
-    tokens, pos, first = [], 0, True
+    tokens, pos, first, prev = [], 0, True, ""
     for m in TOKEN_RE.finditer(text):
         if m.start() > pos:
             tokens.append(text[pos : m.start()])
         word = m.group(0)
-        lid, compound = resolver.resolve(word, first)
-        first = False
+        if any(c in text[pos : m.start()] for c in SENTENCE_STARTS):
+            first = True
+        lid, compound = resolver.resolve(word, first, prev)
+        first, prev = False, word
         if lid:
             used.add(lid)
             # A third element marks a compound linked through its head noun.
