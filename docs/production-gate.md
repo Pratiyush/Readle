@@ -35,8 +35,9 @@ on a host whose load average was 300+, so treat timings as upper bounds.
 |---|---|---|
 | Play: targetSdk 36 | **pass** | Merged manifest: `targetSdkVersion=36`, `minSdkVersion=24`. |
 | Play: 16 KB page-size support | **pass** | `zipalign -c -P 16 -v 4 app-release.apk` → "Verification successful". |
-| Play: signed AAB | **fail** (owner) | The release uses debug signing until the upload key exists (`build.gradle.kts`; `key.properties`, `*.jks` and `*.keystore` are git-ignored). |
-| Flutter `--obfuscate --split-debug-info` | **pass** | The release build used both (`build/symbols`, kept out of git). Wrap into `tool/release.sh` with the signing step. |
+| App icon and splash | **pass** (name-independent) | `tools/app-icons.mjs` renders them from the web app's `public/icon.svg` (an open book with "DE" on teal #0F766E). Android gets the legacy mipmaps plus an adaptive icon (foreground in the 66 dp safe circle) and a monochrome layer for Android 13 themed icons. The splash uses the brand colour, set on Android 12+ through `windowSplashScreenBackground`. iOS gets all 15 AppIcon sizes, opaque (no alpha channel, which Apple rejects), and the launch screen on teal. If the icon changes with the name, edit the SVG and run the script again. |
+| Play: signed AAB | **fail** (owner: the upload key) | `app/tool/release.sh` builds the upload. It signs with the key in `android/key.properties` (or the file `READLE_KEY_PROPERTIES` names) and refuses to build without it, with `ADS_TEST` set, or from uncommitted code. `key.properties`, `*.jks` and `*.keystore` are git-ignored. `tool/check_release.py` then checks the bundle: upload-signed, Readle's AdMob id, not debuggable, target SDK ≥ 35, every `.so` 16 KB aligned, and release notes ≤ 500 characters (`docs/release-notes.md`). |
+| Flutter `--obfuscate --split-debug-info` | **pass** | `tool/release.sh` passes both and zips the symbols next to the bundle (`build/release/readle-<version>-symbols.zip`, kept out of git). `--bump` raises the build number. |
 | Play Data safety answers drafted | **pass** (draft, 10 Nov) | "Store answers (drafts)" below lists every form question and data type, checked against Google's SDK 25.5.0 disclosure and the merged release manifest. |
 | Content rating answers drafted; 13+, not Families | **pass** (draft) | See below. |
 | Apple: `PrivacyInfo.xcprivacy` | **pass** | `ios/Runner/PrivacyInfo.xcprivacy` is in the Runner target's resources. App code does no tracking or collection. It declares UserDefaults CA92.1, plus FileTimestamp C617.1 for `package_info_plus` (BUG-41). `test/privacy_manifest_test.dart` checks that every plugin's required-reason APIs are declared. The Google SDKs ship their own manifests. |
@@ -90,7 +91,7 @@ on a host whose load average was 300+, so treat timings as upper bounds.
 |---|---|---|
 | E2E on Android + iOS (or web), green in CI | **pass** (local) / **fail** (CI not run) | Web: Playwright 16 scenarios × 2 viewports = **32 green**. Flutter: 6 flows green headless and **6/6 on the Android emulator** (API 35 sandbox, debug build, incl. the clip-on-tap assertion). iOS simulator: wired in `.github/workflows/app.yml`, not run yet. CI has never run because nothing is pushed. |
 | Unit/widget tests green; analyze / lint clean | **pass** | Web: Vitest 23 green, `tsc` clean. Flutter: 31 tests green, `flutter analyze` "No issues found". |
-| Version + build scheme; release notes; screenshots from the E2E run | **fail** | `0.1.0+1`; scheme: semver name, build number +1 per store upload. Release notes and listing screenshots wait for the name. Screenshots will be captured from `integration_test` once the name and icon exist. |
+| Version + build scheme; release notes; screenshots from the E2E run | **fail** (screenshots) | `0.1.0+1`. The scheme is a semver name with the build number +1 per store upload (`tool/release.sh --bump`). Release notes live in `docs/release-notes.md`, one section per version, and the script checks them. Listing screenshots wait for the name and will be captured from `integration_test`. |
 
 ## Store answers (drafts)
 

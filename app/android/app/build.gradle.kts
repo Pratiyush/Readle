@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
@@ -33,12 +35,27 @@ android {
         manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
     }
 
+    // The upload key: android/key.properties (git-ignored; storeFile, storePassword, keyAlias,
+    // keyPassword), or the file READLE_KEY_PROPERTIES names. Without it a release build is
+    // debug-signed: fine on a test device, refused by tool/release.sh and by Play.
+    val keyFile = System.getenv("READLE_KEY_PROPERTIES")?.let(::file) ?: rootProject.file("key.properties")
+    val uploadKey = keyFile.takeIf { it.exists() }?.let { f -> Properties().apply { f.inputStream().use(::load) } }
+    signingConfigs {
+        if (uploadKey != null) {
+            create("upload") {
+                storeFile = keyFile.parentFile.resolve(uploadKey.getProperty("storeFile"))
+                storePassword = uploadKey.getProperty("storePassword")
+                keyAlias = uploadKey.getProperty("keyAlias")
+                keyPassword = uploadKey.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
             // Readle's AdMob app (hub German/docs/admob-ids.json, verified 2026-11-08).
             manifestPlaceholders["admobAppId"] = "ca-app-pub-5964569110696877~7982698610"
-            // Debug signing until the owner's upload key exists (status.json: H Release prep).
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("upload") ?: signingConfigs.getByName("debug")
             // R8: plugins reached through JNI are kept by proguard-rules.pro (google_mobile_ads pulls in
             // WorkManager/Room, whose known release-build crash those rules prevent).
             isMinifyEnabled = true

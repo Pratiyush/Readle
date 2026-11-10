@@ -29,6 +29,7 @@ app() {
     step "$log" "flutter pub get" flutter pub get &&
     step "$log" "dart format" dart format --output=none --set-exit-if-changed lib test integration_test &&
     step "$log" "flutter analyze" flutter analyze --no-pub &&
+    step "$log" "release checks (self-test)" python3 tool/check_release.py --self-test &&
     step "$log" "flutter test (unit, widget, headless flows)" flutter test --no-pub
 }
 
