@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../content/models.dart';
+import '../l10n/app_localizations.dart';
 import 'app_scope.dart';
 import 'theme.dart';
 
@@ -50,6 +51,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
   Widget build(BuildContext context) {
     final scope = AppScope.of(context);
     final palette = Palette.of(context);
+    final l = AppLocalizations.of(context);
     final current = _index < _queue.length ? scope.state.words[_queue[_index]] : null;
 
     if (current == null) {
@@ -62,20 +64,20 @@ class _PracticeScreenState extends State<PracticeScreen> {
               const Center(child: Text('✅', style: TextStyle(fontSize: 64))),
               Center(
                 child: Text(
-                  _queue.isEmpty ? 'Nothing to review' : 'Session complete',
+                  _queue.isEmpty ? l.practiceNothingToReview : l.practiceSessionComplete,
                   key: const Key('practice-done'),
                   style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
                 ),
               ),
               if (_queue.isNotEmpty)
                 Center(
-                  child: Text('$_right of ${_queue.length} remembered.', style: TextStyle(color: palette.muted)),
+                  child: Text(l.practiceScore(_right, _queue.length), style: TextStyle(color: palette.muted)),
                 ),
               const SizedBox(height: 24),
               FilledButton(
                 key: const Key('back-to-words'),
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Back to words'),
+                child: Text(l.practiceBackToWords),
               ),
             ],
           ),
@@ -89,7 +91,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
         final e = snap.data?[current.key];
         return Scaffold(
           appBar: AppBar(
-            leading: IconButton(tooltip: 'End practice', icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
+            leading: IconButton(tooltip: l.practiceEnd, icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
             title: Text('${_index + 1} / ${_queue.length}', style: TextStyle(color: palette.muted, fontSize: 15)),
             centerTitle: true,
           ),
@@ -121,15 +123,15 @@ class _PracticeScreenState extends State<PracticeScreen> {
                           ),
                           const SizedBox(height: 12),
                           if (!_flipped)
-                            Text('Do you remember it? Tap to reveal.', style: TextStyle(color: palette.muted))
+                            Text(l.practiceRevealHint, style: TextStyle(color: palette.muted))
                           else ...[
                             Text(
-                              e?.en.join(', ') ?? '(no dictionary entry)',
+                              e?.en.join(', ') ?? l.practiceNoEntry,
                               key: const Key('fc-gloss'),
                               textAlign: TextAlign.center,
                               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                             ),
-                            if (e?.plural != null) Text('plural: die ${e!.plural}', style: TextStyle(color: palette.muted)),
+                            if (e?.plural != null) Text(l.pluralDie(e!.plural!), style: TextStyle(color: palette.muted)),
                             const SizedBox(height: 12),
                             Text(
                               current.context,
@@ -148,14 +150,14 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48), shape: const StadiumBorder()),
                 onPressed: () => scope.sayWord(e, current.word),
                 icon: const Icon(Icons.volume_up_rounded),
-                label: const Text('Listen'),
+                label: Text(l.practiceListen),
               ),
               const SizedBox(height: 12),
               if (!_flipped)
                 FilledButton(
                   key: const Key('show-answer'),
                   onPressed: () => setState(() => _flipped = true),
-                  child: const Text('Show answer'),
+                  child: Text(l.practiceShowAnswer),
                 )
               else
                 Row(
@@ -165,7 +167,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                         key: const Key('didnt-know'),
                         style: FilledButton.styleFrom(backgroundColor: palette.bad, foregroundColor: palette.onBad),
                         onPressed: () => _answer(current.key, false),
-                        child: const Text("Didn't know"),
+                        child: Text(l.practiceDidntKnow),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -174,7 +176,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                         key: const Key('knew-it'),
                         style: FilledButton.styleFrom(backgroundColor: palette.good),
                         onPressed: () => _answer(current.key, true),
-                        child: const Text('Knew it'),
+                        child: Text(l.practiceKnewIt),
                       ),
                     ),
                   ],

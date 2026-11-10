@@ -1,0 +1,7 @@
+# gen-l10n: every user-facing UI string is a key in lib/l10n/app_en.arb (English only for now).
+# The generated classes land next to the ARB files and are imported as
+# package:readle/l10n/app_localizations.dart.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+nullable-getter: false

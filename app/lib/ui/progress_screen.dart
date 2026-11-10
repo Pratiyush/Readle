@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../config.dart';
 import '../content/cdn/content_client.dart';
 import '../content/models.dart';
+import '../l10n/app_localizations.dart';
 import '../logic/srs.dart';
 import '../state/app_state.dart';
 import 'app_scope.dart';
@@ -76,8 +77,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
     final goal = state.settings.dailyGoal;
     final readToday = state.readToday;
     final active = state.activeDays.toSet();
+    final mastered = state.words.values.where((w) => w.card.mastered).length;
     final week = [for (var i = -6; i <= 0; i++) addDays(today, i)];
-    const weekdays = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final l = AppLocalizations.of(context);
+    final weekdays = MaterialLocalizations.of(context).narrowWeekdays; // Sunday first: S M T W T F S
 
     Widget panel(List<Widget> children) => Card(
       child: Padding(
@@ -138,10 +141,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
         padding: const EdgeInsets.all(16),
         children: [
           Text(
-            'YOUR PROGRESS',
+            l.progressEyebrow,
             style: TextStyle(color: scheme.primary, fontWeight: FontWeight.w700, letterSpacing: 1, fontSize: 12),
           ),
-          Text('Progress', style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.w800)),
+          Text(l.progressTitle, style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.w800)),
           const SizedBox(height: 12),
           panel([
             Row(
@@ -169,11 +172,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        readToday >= goal ? 'Daily goal reached! 🎉' : "Today's goal",
+                        readToday >= goal ? l.progressGoalReached : l.progressTodaysGoal,
                         style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
                       Text(
-                        'Read $goal ${goal == 1 ? 'story' : 'stories'} a day.',
+                        l.progressGoalText(goal),
                         key: const Key('goal-text'),
                         style: TextStyle(color: palette.muted),
                       ),
@@ -200,7 +203,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         child: Text(active.contains(d) ? '🔥' : ''),
                       ),
                       const SizedBox(height: 4),
-                      Text(weekdays[DateTime.parse(d).weekday - 1], style: TextStyle(color: palette.muted, fontSize: 12)),
+                      Text(weekdays[DateTime.parse(d).weekday % 7], style: TextStyle(color: palette.muted, fontSize: 12)),
                     ],
                   ),
               ],
@@ -210,19 +213,17 @@ class _ProgressScreenState extends State<ProgressScreen> {
           // Two rows that size to their content (a fixed-ratio grid clipped the labels).
           Row(
             children: [
-              Expanded(child: stat('🔥 ${state.streakDays}', 'day streak', const Key('stat-streak'))),
+              Expanded(child: stat('🔥 ${state.streakDays}', l.statDayStreak(state.streakDays), const Key('stat-streak'))),
               const SizedBox(width: 12),
-              Expanded(child: stat('${state.read.length}', 'stories read', const Key('stat-read'))),
+              Expanded(child: stat('${state.read.length}', l.statStoriesRead(state.read.length), const Key('stat-read'))),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: stat('${state.words.length}', 'words saved', const Key('stat-saved'))),
+              Expanded(child: stat('${state.words.length}', l.statWordsSaved(state.words.length), const Key('stat-saved'))),
               const SizedBox(width: 12),
-              Expanded(
-                child: stat('${state.words.values.where((w) => w.card.mastered).length}', 'words mastered', const Key('stat-mastered')),
-              ),
+              Expanded(child: stat('$mastered', l.statWordsMastered(mastered), const Key('stat-mastered'))),
             ],
           ),
           const SizedBox(height: 12),
@@ -231,7 +232,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             builder: (context, snap) {
               final lib = snap.data ?? const [];
               return panel([
-                const Text('Stories by level', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                Text(l.progressByLevel, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 8),
                 for (final l in levels)
                   Builder(
@@ -267,45 +268,47 @@ class _ProgressScreenState extends State<ProgressScreen> {
           ),
           const SizedBox(height: 12),
           panel([
-            const Text('Settings', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            Text(l.settingsTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
             setting<String>(
-              'Story level',
+              l.settingsStoryLevel,
               state.settings.level,
               {
-                'all': 'All levels, A1 → B2',
-                'A1': 'A1 · beginner',
-                'A2': 'A2 · elementary',
-                'B1': 'B1 · intermediate',
-                'B2': 'B2 · upper intermediate',
+                'all': l.settingsLevelAll,
+                'A1': l.settingsLevelA1,
+                'A2': l.settingsLevelA2,
+                'B1': l.settingsLevelB1,
+                'B2': l.settingsLevelB2,
               },
               (v) => state.updateSettings(state.settings.copyWith(level: v)),
               const Key('story-level'),
             ),
             setting<int>(
-              'Daily goal',
+              l.settingsDailyGoal,
               goal,
-              {1: '1 story', 2: '2 stories', 3: '3 stories', 5: '5 stories'},
+              {
+                for (final n in const [1, 2, 3, 5]) n: l.settingsDailyGoalOption(n),
+              },
               (v) => state.updateSettings(state.settings.copyWith(dailyGoal: v)),
               const Key('daily-goal'),
             ),
             setting<ThemeChoice>(
-              'Theme',
+              l.settingsTheme,
               state.settings.theme,
-              {ThemeChoice.system: 'System', ThemeChoice.light: 'Light', ThemeChoice.dark: 'Dark'},
+              {ThemeChoice.system: l.themeSystem, ThemeChoice.light: l.themeLight, ThemeChoice.dark: l.themeDark},
               (v) => state.updateSettings(state.settings.copyWith(theme: v)),
               const Key('theme'),
             ),
             setting<double>(
-              'Speech speed',
+              l.settingsSpeechSpeed,
               state.settings.speechRate,
-              {0.7: 'Slow', 0.9: 'Normal', 1.05: 'Fast'},
+              {0.7: l.speechSlow, 0.9: l.speechNormal, 1.05: l.speechFast},
               (v) => state.updateSettings(state.settings.copyWith(speechRate: v)),
               const Key('speech-speed'),
             ),
             SwitchListTile(
               key: const Key('auto-play'),
               contentPadding: EdgeInsets.zero,
-              title: const Text('Say words when tapped'),
+              title: Text(l.settingsSayWords),
               value: state.settings.autoPlayWords,
               onChanged: (v) => state.updateSettings(state.settings.copyWith(autoPlayWords: v)),
             ),
@@ -313,19 +316,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
               SwitchListTile(
                 key: const Key('reminder'),
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Daily reminder'),
-                subtitle: const Text('One a day, skipped once you have read'),
+                title: Text(l.settingsReminder),
+                subtitle: Text(l.settingsReminderDetail),
                 value: state.settings.reminder,
                 onChanged: (on) async {
                   // Permission is asked here, when the learner wants the reminder, never at launch.
                   if (on && !await reminders.requestPermission()) {
                     if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        key: Key('reminder-denied'),
-                        content: Text('Notifications are off for Readle. Allow them in system settings to get the reminder.'),
-                      ),
-                    );
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(key: const Key('reminder-denied'), content: Text(l.settingsNotificationsDenied)));
                     return;
                   }
                   state.updateSettings(state.settings.copyWith(reminder: on));
@@ -337,15 +336,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   key: const Key('reminder-blocked'),
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.notifications_off_outlined),
-                  title: const Text('Notifications are off for Readle'),
-                  subtitle: const Text('The reminder can\'t show. Tap to allow notifications.'),
+                  title: Text(l.settingsNotificationsBlocked),
+                  subtitle: Text(l.settingsNotificationsBlockedDetail),
                   onTap: reminders.openSettings,
                 ),
               if (state.settings.reminder)
                 ListTile(
                   key: const Key('reminder-time'),
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Reminder time'),
+                  title: Text(l.settingsReminderTime),
                   trailing: Text(
                     _timeOf(state.settings.reminderMinutes).format(context),
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
@@ -360,7 +359,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ListTile(
                 key: const Key('privacy-options'),
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Privacy & ad choices'),
+                title: Text(l.settingsPrivacyChoices),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: scope.ads.showPrivacyOptions,
               ),
@@ -369,24 +368,24 @@ class _ProgressScreenState extends State<ProgressScreen> {
               SwitchListTile(
                 key: const Key('auto-update-wifi'),
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Download new stories on Wi-Fi'),
-                subtitle: const Text('Never on mobile data. Off: you tap Download.'),
+                title: Text(l.settingsAutoUpdate),
+                subtitle: Text(l.settingsAutoUpdateDetail),
                 value: state.settings.autoUpdateOnWifi,
                 onChanged: (v) => state.updateSettings(state.settings.copyWith(autoUpdateOnWifi: v)),
               ),
             ],
-            ...legalTiles(),
+            ...legalTiles(context),
             ListTile(
               key: const Key('licences'),
               contentPadding: EdgeInsets.zero,
-              title: const Text('Licences'),
+              title: Text(l.settingsLicences),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => showLicensePage(context: context, applicationName: 'Readle', applicationVersion: _version),
             ),
             ListTile(
               key: const Key('support'),
               contentPadding: EdgeInsets.zero,
-              title: const Text('Contact support'),
+              title: Text(l.settingsSupport),
               subtitle: const Text(supportEmail),
               trailing: const Icon(Icons.mail_outline),
               onTap: () => launchUrl(supportMail(_version ?? '')),
@@ -394,7 +393,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
             ListTile(
               key: const Key('version'),
               contentPadding: EdgeInsets.zero,
-              title: const Text('Version'),
+              title: Text(l.settingsVersion),
               trailing: Text(_version ?? '…'),
             ),
             const SizedBox(height: 8),
@@ -405,26 +404,26 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 final ok = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('Reset all progress?'),
-                    content: const Text("This deletes your streak, finished stories and saved words. It can't be undone."),
+                    title: Text(l.settingsResetQuestion),
+                    content: Text(l.settingsResetDetail),
                     actions: [
-                      TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+                      TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(l.settingsCancel)),
                       TextButton(
                         key: const Key('confirm-reset'),
                         onPressed: () => Navigator.of(context).pop(true),
-                        child: const Text('Delete'),
+                        child: Text(l.settingsDelete),
                       ),
                     ],
                   ),
                 );
                 if (ok == true) state.reset();
               },
-              child: const Text('Reset all progress'),
+              child: Text(l.settingsReset),
             ),
           ]),
           const SizedBox(height: 16),
           Text(
-            'Stories and dictionary from the Lernle project. German text is machine-assisted and awaiting native review.',
+            l.progressCredits,
             textAlign: TextAlign.center,
             style: TextStyle(color: palette.muted, fontSize: 12),
           ),
@@ -437,9 +436,10 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
 /// Privacy policy and Impressum (DDG §5), both from the one slug in config.dart; hidden while it is
 /// empty so no build links to a page that doesn't exist yet.
-List<Widget> legalTiles({String slug = legalSlug}) => [
+List<Widget> legalTiles(BuildContext context, {String slug = legalSlug}) => [
   for (final (key, label, page) in [
-    (const Key('privacy-policy'), 'Privacy policy', 'privacy'),
+    (const Key('privacy-policy'), AppLocalizations.of(context).settingsPrivacyPolicy, 'privacy'),
+    // l10n: German on purpose (Impressum is the German legal notice's own name, DDG §5)
     (const Key('impressum'), 'Impressum', 'impressum'),
   ])
     if (legalPage(page, slug: slug) case final url?)
@@ -461,23 +461,23 @@ class _ContentCheckTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final subtitle = switch (updates.kind) {
-      UpdateKind.available =>
-        updates.newStories == 1 ? '1 new story: download it from Stories' : '${updates.newStories} new stories: download them from Stories',
-      UpdateKind.appTooOld => 'Update the app to get new stories',
-      UpdateKind.none => 'Checked once a day when you open the app',
+      UpdateKind.available => l.contentCheckAvailable(updates.newStories),
+      UpdateKind.appTooOld => l.contentCheckAppTooOld,
+      UpdateKind.none => l.contentCheckNone,
     };
     return ListTile(
       key: const Key('content-check'),
       leading: const Icon(Icons.auto_stories_outlined),
-      title: const Text('New stories'),
+      title: Text(l.contentCheckTitle),
       subtitle: Text(subtitle),
       trailing: updates.busy ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2)) : null,
       onTap: () async {
         final messenger = ScaffoldMessenger.maybeOf(context);
         await updates.check(force: true);
         if (updates.kind == UpdateKind.none) {
-          messenger?.showSnackBar(const SnackBar(content: Text('You have every story. Check again tomorrow.')));
+          messenger?.showSnackBar(SnackBar(content: Text(l.contentCheckUpToDate)));
         }
       },
     );

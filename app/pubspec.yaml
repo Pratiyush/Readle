@@ -21,6 +21,9 @@ dependencies:
   timezone: ^0.11.1
   connectivity_plus: ^7.3.2
   package_info_plus: ^10.2.2
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
 dev_dependencies:
   flutter_test:
@@ -33,6 +36,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # UI strings live in lib/l10n/app_en.arb; gen-l10n writes lib/l10n/app_localizations*.dart (l10n.yaml).
+  generate: true
   # assets/content is a symlink to the web app's public/content, so both apps ship the same
   # compiled stories and dictionary (built by tools/build_content.py) without a second copy in git.
   assets:

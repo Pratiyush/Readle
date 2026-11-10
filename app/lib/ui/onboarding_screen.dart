@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
 import 'app_scope.dart';
 import 'theme.dart';
 
@@ -9,18 +10,18 @@ import 'theme.dart';
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 
-  static const options = [
-    ('A1', 'Beginner', 'I know a few words and phrases'),
-    ('A2', 'Elementary', 'I understand simple everyday sentences'),
-    ('B1', 'Intermediate', 'I can follow clear texts on familiar topics'),
-    ('B2', 'Upper intermediate', 'I read most everyday German'),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final state = AppScope.read(context).state;
     final palette = Palette.of(context);
     final scheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context);
+    final options = [
+      ('A1', l.onboardingA1Name, l.onboardingA1Blurb),
+      ('A2', l.onboardingA2Name, l.onboardingA2Blurb),
+      ('B1', l.onboardingB1Name, l.onboardingB1Blurb),
+      ('B2', l.onboardingB2Name, l.onboardingB2Blurb),
+    ];
     return Scaffold(
       key: const Key('onboarding'),
       body: SafeArea(
@@ -28,14 +29,12 @@ class OnboardingScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(20, 32, 20, 24),
           children: [
             const Text(
+              // l10n: German on purpose (the first German word the learner reads)
               'Willkommen!',
               style: TextStyle(fontFamily: serif, fontFamilyFallback: serifFallback, fontSize: 32, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Read short German stories and tap any word you don’t know. Which stories suit you?',
-              style: TextStyle(color: palette.muted, fontSize: 16, height: 1.4),
-            ),
+            Text(l.onboardingIntro, style: TextStyle(color: palette.muted, fontSize: 16, height: 1.4)),
             const SizedBox(height: 20),
             for (final (level, name, blurb) in options)
               Card(
@@ -66,7 +65,7 @@ class OnboardingScreen extends StatelessWidget {
                 ),
               ),
             Text(
-              'You can change this any time in Settings.',
+              l.onboardingChangeLater,
               textAlign: TextAlign.center,
               style: TextStyle(color: palette.muted, fontSize: 13),
             ),
@@ -84,15 +83,15 @@ class OnboardingScreen extends StatelessWidget {
             side: BorderSide(color: scheme.primary, width: 1.5),
           ),
           onPressed: () => state.finishOnboarding('all'),
-          child: const Column(
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Not sure? Start at A1',
+                l.onboardingNotSure,
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
-              Text('Every level in order, moving up as you read', textAlign: TextAlign.center, style: TextStyle(fontSize: 13)),
+              Text(l.onboardingNotSureDetail, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13)),
             ],
           ),
         ),

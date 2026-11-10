@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../content/models.dart';
+import '../l10n/app_localizations.dart';
 import '../logic/quiz.dart';
 import 'app_scope.dart';
 import 'theme.dart';
@@ -48,7 +49,7 @@ class _QuizScreenState extends State<QuizScreen> {
       if (snap.hasError) {
         return Scaffold(
           appBar: AppBar(),
-          body: const Center(child: Text("Couldn't load the quiz.")),
+          body: Center(child: Text(AppLocalizations.of(context).quizLoadError)),
         );
       }
       if (!snap.hasData) return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -61,10 +62,11 @@ class _QuizScreenState extends State<QuizScreen> {
   Widget _question(BuildContext context, Story story, List<Question> questions) {
     final q = questions[_index];
     final palette = Palette.of(context);
+    final l = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(tooltip: 'Close quiz', icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
+        leading: IconButton(tooltip: l.quizClose, icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -83,7 +85,7 @@ class _QuizScreenState extends State<QuizScreen> {
         padding: const EdgeInsets.all(20),
         children: [
           Text(
-            q.kind == QuestionKind.word ? 'WHAT DOES THIS WORD MEAN?' : 'WHAT DOES THIS SENTENCE MEAN?',
+            q.kind == QuestionKind.word ? l.quizWordQuestion : l.quizSentenceQuestion,
             key: const Key('quiz-eyebrow'),
             style: TextStyle(color: scheme.primary, fontWeight: FontWeight.w800, fontSize: 12, letterSpacing: 1),
           ),
@@ -134,7 +136,8 @@ class _QuizScreenState extends State<QuizScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      _chosen == q.answer ? 'Richtig!' : 'Not quite.',
+                      // l10n: German on purpose ("Richtig!" is praise the learner reads in German)
+                      _chosen == q.answer ? 'Richtig!' : l.quizNotQuite,
                       key: const Key('feedback'),
                       style: TextStyle(fontWeight: FontWeight.w800, color: _chosen == q.answer ? palette.good : palette.bad),
                     ),
@@ -146,7 +149,7 @@ class _QuizScreenState extends State<QuizScreen> {
                       _chosen = null;
                       _index++;
                     }),
-                    child: Text(_index == questions.length - 1 ? 'See results' : 'Continue'),
+                    child: Text(_index == questions.length - 1 ? l.quizSeeResults : l.quizContinue),
                   ),
                 ],
               ),
@@ -160,6 +163,7 @@ class _QuizScreenState extends State<QuizScreen> {
   Widget _results(BuildContext context, Story story, int total) {
     final state = AppScope.of(context).state;
     final palette = Palette.of(context);
+    final l = AppLocalizations.of(context);
     final pct = total == 0 ? 100 : (100 * _correct / total).round();
     final (emoji, headline) = praise(pct);
     Widget stat(String value, String label) => Expanded(
@@ -192,10 +196,16 @@ class _QuizScreenState extends State<QuizScreen> {
             ),
             const SizedBox(height: 6),
             Center(
-              child: Text('You finished “${story.meta.title}”.', style: TextStyle(color: palette.muted)),
+              child: Text(l.quizFinished(story.meta.title), style: TextStyle(color: palette.muted)),
             ),
             const SizedBox(height: 20),
-            Row(children: [stat('$pct%', 'quiz score'), const SizedBox(width: 12), stat('🔥 ${state.streakDays}', 'day streak')]),
+            Row(
+              children: [
+                stat('$pct%', l.quizScore),
+                const SizedBox(width: 12),
+                stat('🔥 ${state.streakDays}', l.statDayStreak(state.streakDays)),
+              ],
+            ),
             const SizedBox(height: 24),
             FilledButton(
               key: const Key('next-story'),
@@ -204,7 +214,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 await AppScope.read(context).ads.storyFinished();
                 if (context.mounted) Navigator.of(context).pop();
               },
-              child: const Text('Next story'),
+              child: Text(l.quizNextStory),
             ),
             const SizedBox(height: 10),
             if (pct < 80)
@@ -215,7 +225,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   _correct = 0;
                   _chosen = null;
                 }),
-                child: const Text('Try the quiz again'),
+                child: Text(l.quizTryAgain),
               ),
           ],
         ),

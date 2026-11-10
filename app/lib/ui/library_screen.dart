@@ -7,13 +7,23 @@ import 'package:url_launcher/url_launcher.dart';
 import '../config.dart' show playStoreUrl;
 import '../content/cdn/content_client.dart';
 import '../content/models.dart';
+import '../l10n/app_localizations.dart';
 import '../logic/quiz.dart' show seedOf;
 import 'app_scope.dart';
 import 'reader_screen.dart';
 import 'theme.dart';
 import 'whole_words_text.dart';
 
-const collections = {'all': 'All', 'fiction': 'Fiction', 'culture': 'Culture', 'facts': 'Facts'};
+/// Collection filters, in chip order; [collectionName] gives each its label.
+const collections = ['all', 'fiction', 'culture', 'facts'];
+
+String collectionName(AppLocalizations l, String id) => switch (id) {
+  'all' => l.collectionAll,
+  'fiction' => l.collectionFiction,
+  'culture' => l.collectionCulture,
+  'facts' => l.collectionFacts,
+  _ => id,
+};
 
 /// Same pick all day, preferring unread stories. "All levels" goes in sequence, A1 → B2: the pick
 /// comes from the lowest level that still has unread stories, so a beginner isn't handed B2 on day one.
@@ -57,6 +67,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     final scope = AppScope.of(context);
     final state = scope.state;
     final palette = Palette.of(context);
+    final l = AppLocalizations.of(context);
     return SafeArea(
       bottom: false,
       child: FutureBuilder<List<StoryMeta>>(
@@ -64,7 +75,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         builder: (context, snap) {
           if (snap.hasError) {
             return Center(
-              child: Text("Couldn't load stories.", style: TextStyle(color: palette.muted)),
+              child: Text(l.libraryLoadError, style: TextStyle(color: palette.muted)),
             );
           }
           if (!snap.hasData) return const Center(child: CircularProgressIndicator());
@@ -108,6 +119,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
+                                // l10n: German on purpose (the greeting is part of the reading practice)
                                 'GUTEN TAG!',
                                 style: TextStyle(
                                   color: Theme.of(context).colorScheme.primary,
@@ -121,7 +133,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                 fit: BoxFit.scaleDown,
                                 alignment: Alignment.centerLeft,
                                 child: Text(
-                                  'Stories',
+                                  l.libraryTitle,
                                   key: const Key('library-heading'),
                                   style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.w800),
                                 ),
@@ -142,22 +154,21 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     const SizedBox(height: 12),
                     _Chips(
                       children: [
-                        _chip('All levels', level == 'all', () => state.updateSettings(state.settings.copyWith(level: 'all'))),
+                        _chip(l.libraryAllLevels, level == 'all', () => state.updateSettings(state.settings.copyWith(level: 'all'))),
                         for (final l in levels) _chip(l, level == l, () => state.updateSettings(state.settings.copyWith(level: l))),
                       ],
                     ),
                     _Chips(
                       children: [
-                        for (final c in collections.entries)
-                          _chip(c.value, _collection == c.key, () => setState(() => _collection = c.key)),
-                        _chip('Unread', _unreadOnly, () => setState(() => _unreadOnly = !_unreadOnly)),
+                        for (final c in collections) _chip(collectionName(l, c), _collection == c, () => setState(() => _collection = c)),
+                        _chip(l.libraryUnread, _unreadOnly, () => setState(() => _unreadOnly = !_unreadOnly)),
                       ],
                     ),
                     const SizedBox(height: 8),
                     TextField(
                       key: const Key('search'),
                       decoration: InputDecoration(
-                        hintText: 'Search stories…',
+                        hintText: l.librarySearchHint,
                         prefixIcon: const Icon(Icons.search),
                         filled: true,
                         fillColor: Theme.of(context).colorScheme.surface,
@@ -177,7 +188,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       Padding(
                         padding: const EdgeInsets.all(24),
                         child: Text(
-                          'No stories match these filters.',
+                          l.libraryNoMatches,
                           textAlign: TextAlign.center,
                           style: TextStyle(color: palette.muted),
                         ),
@@ -227,6 +238,7 @@ class _ContinueCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = Palette.of(context);
     final scheme = Theme.of(context).colorScheme;
+    final l = AppLocalizations.of(context);
     final image = AppScope.read(context).content.image(story.thumb ?? story.image);
     return Card(
       key: const Key('continue-card'),
@@ -253,7 +265,7 @@ class _ContinueCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'CONTINUE READING',
+                      l.libraryContinueReading,
                       style: TextStyle(color: scheme.primary, fontSize: 12, fontWeight: FontWeight.w800, letterSpacing: 1),
                     ),
                     WholeWordsText(
@@ -284,6 +296,7 @@ class _DailyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final image = AppScope.read(context).content.image(story.image);
     return Card(
       key: const Key('daily'),
@@ -318,7 +331,7 @@ class _DailyCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      keepGoing ? 'KEEP GOING — NEXT UP' : 'STORY OF THE DAY',
+                      keepGoing ? l.libraryKeepGoing : l.libraryStoryOfTheDay,
                       style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1),
                     ),
                     WholeWordsText(
@@ -339,7 +352,7 @@ class _DailyCard extends StatelessWidget {
                       children: [
                         LevelBadge(story.level),
                         Text(
-                          '${story.minutes} min · ${collections[story.collection] ?? story.collection}',
+                          l.storyCardMeta(story.minutes, collectionName(l, story.collection)),
                           style: const TextStyle(color: Colors.white),
                         ),
                       ],
@@ -363,6 +376,7 @@ class _StoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = Palette.of(context);
+    final l = AppLocalizations.of(context);
     final image = AppScope.read(context).content.image(story.thumb ?? story.image);
     return Card(
       key: Key('story-${story.id}'),
@@ -418,12 +432,12 @@ class _StoryCard extends StatelessWidget {
                       children: [
                         LevelBadge(story.level),
                         Text(
-                          '${story.minutes} min · ${collections[story.collection] ?? story.collection}',
+                          l.storyCardMeta(story.minutes, collectionName(l, story.collection)),
                           style: TextStyle(color: palette.muted, fontSize: 13),
                         ),
                         if (read)
                           Text(
-                            '✓ Read',
+                            l.storyRead,
                             style: TextStyle(color: palette.good, fontSize: 13, fontWeight: FontWeight.w700),
                           ),
                       ],
@@ -449,6 +463,7 @@ class _UpdateBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final scope = AppScope.of(context);
     final updates = scope.updates!;
+    final l = AppLocalizations.of(context);
     if (updates.kind == UpdateKind.none) return const SizedBox.shrink();
     final tooOld = updates.kind == UpdateKind.appTooOld;
     final n = updates.newStories;
@@ -463,19 +478,12 @@ class _UpdateBanner extends StatelessWidget {
             spacing: 12,
             runSpacing: 8,
             children: [
-              Text(
-                tooOld
-                    ? 'Update the app to get new stories.'
-                    : n == 1
-                    ? '📚 1 new story to read'
-                    : '📚 $n new stories to read',
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
+              Text(tooOld ? l.updateBannerAppTooOld : l.updateBannerNewStories(n), style: const TextStyle(fontWeight: FontWeight.w700)),
               if (tooOld && defaultTargetPlatform == TargetPlatform.android)
                 OutlinedButton(
                   key: const Key('update-app'),
                   onPressed: () => launchUrl(Uri.parse(playStoreUrl), mode: LaunchMode.externalApplication),
-                  child: const Text('Update app'),
+                  child: Text(l.updateBannerUpdateApp),
                 ),
               if (!tooOld)
                 FilledButton(
@@ -486,12 +494,12 @@ class _UpdateBanner extends StatelessWidget {
                           final messenger = ScaffoldMessenger.maybeOf(context);
                           // On success the library follows on its own (the client reloads the content).
                           if (!await updates.update()) {
-                            messenger?.showSnackBar(const SnackBar(content: Text("Couldn't download the new stories. Try again later.")));
+                            messenger?.showSnackBar(SnackBar(content: Text(l.updateBannerDownloadFailed)));
                           }
                         },
                   child: updates.busy
                       ? const SizedBox.square(dimension: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Text('Download'),
+                      : Text(l.updateBannerDownload),
                 ),
             ],
           ),

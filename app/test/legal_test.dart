@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:readle/config.dart';
+import 'package:readle/l10n/app_localizations.dart';
 import 'package:readle/ui/progress_screen.dart';
 import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
@@ -17,8 +18,12 @@ void main() {
   testWidgets('Settings shows Privacy policy and Impressum once the slug is set, and hides them before', (tester) async {
     Future<void> pump(String slug) => tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: ListView(children: legalTiles(slug: slug)),
+          body: Builder(
+            builder: (context) => ListView(children: legalTiles(context, slug: slug)),
+          ),
         ),
       ),
     );

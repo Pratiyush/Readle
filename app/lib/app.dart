@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'content/cdn/content_client.dart';
+import 'l10n/app_localizations.dart';
 import 'content/content_repository.dart';
 import 'services/ads.dart';
 import 'services/reminders.dart';
@@ -52,6 +53,9 @@ class ReadleApp extends StatelessWidget {
         builder: (context, _) => MaterialApp(
           title: 'Readle',
           debugShowCheckedModeBanner: false,
+          // UI strings: lib/l10n/app_en.arb (English only for now).
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           theme: buildTheme(Brightness.light),
           darkTheme: buildTheme(Brightness.dark),
           themeMode: switch (state.settings.theme) {
@@ -91,6 +95,7 @@ class _ShellState extends State<Shell> {
   @override
   Widget build(BuildContext context) {
     final due = AppScope.of(context).state.dueCount;
+    final l = AppLocalizations.of(context);
     return Scaffold(
       body: IndexedStack(
         index: _tab,
@@ -104,23 +109,23 @@ class _ShellState extends State<Shell> {
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
         destinations: [
-          const NavigationDestination(
-            key: Key('tab-stories'),
-            icon: Icon(Icons.auto_stories_outlined),
-            selectedIcon: Icon(Icons.auto_stories),
-            label: 'Stories',
+          NavigationDestination(
+            key: const Key('tab-stories'),
+            icon: const Icon(Icons.auto_stories_outlined),
+            selectedIcon: const Icon(Icons.auto_stories),
+            label: l.tabStories,
           ),
           NavigationDestination(
             key: const Key('tab-words'),
             icon: Badge(isLabelVisible: due > 0, label: Text(due > 99 ? '99+' : '$due'), child: const Icon(Icons.style_outlined)),
             selectedIcon: Badge(isLabelVisible: due > 0, label: Text(due > 99 ? '99+' : '$due'), child: const Icon(Icons.style)),
-            label: 'Words',
+            label: l.tabWords,
           ),
-          const NavigationDestination(
-            key: Key('tab-progress'),
-            icon: Icon(Icons.local_fire_department_outlined),
-            selectedIcon: Icon(Icons.local_fire_department),
-            label: 'Progress',
+          NavigationDestination(
+            key: const Key('tab-progress'),
+            icon: const Icon(Icons.local_fire_department_outlined),
+            selectedIcon: const Icon(Icons.local_fire_department),
+            label: l.tabProgress,
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../content/models.dart';
+import '../l10n/app_localizations.dart';
 import '../state/app_state.dart';
 import 'app_scope.dart';
 import 'practice_screen.dart';
@@ -37,6 +38,7 @@ class _WordsScreenState extends State<WordsScreen> {
     final scope = AppScope.of(context);
     final state = scope.state;
     final palette = Palette.of(context);
+    final l = AppLocalizations.of(context);
     final today = state.today;
     final due = state.dueCount;
     final total = state.words.length;
@@ -56,10 +58,10 @@ class _WordsScreenState extends State<WordsScreen> {
             padding: const EdgeInsets.all(16),
             children: [
               Text(
-                'YOUR VOCABULARY',
+                l.wordsEyebrow,
                 style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700, letterSpacing: 1, fontSize: 12),
               ),
-              Text('Words', style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.w800)),
+              Text(l.wordsTitle, style: Theme.of(context).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.w800)),
               const SizedBox(height: 12),
               Card(
                 child: Padding(
@@ -69,23 +71,18 @@ class _WordsScreenState extends State<WordsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        due > 0 ? '$due word${due == 1 ? '' : 's'} to review' : (total > 0 ? 'All caught up!' : 'No words yet'),
+                        due > 0 ? l.wordsDue(due) : (total > 0 ? l.wordsAllCaughtUp : l.wordsNone),
                         key: const Key('words-summary'),
                         style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        total > 0
-                            ? "$total saved · spaced repetition brings each word back just before you'd forget it."
-                            : 'Tap words while reading and save them here.',
-                        style: TextStyle(color: palette.muted, fontSize: 13),
-                      ),
+                      Text(total > 0 ? l.wordsSavedSummary(total) : l.wordsEmptyHint, style: TextStyle(color: palette.muted, fontSize: 13)),
                       if (due > 0) ...[
                         const SizedBox(height: 12),
                         FilledButton(
                           key: const Key('practice'),
                           onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PracticeScreen())),
-                          child: const Text('Practice'),
+                          child: Text(l.wordsPractice),
                         ),
                       ],
                     ],
@@ -102,7 +99,12 @@ class _WordsScreenState extends State<WordsScreen> {
                         Padding(
                           padding: const EdgeInsets.only(right: 8, top: 8),
                           child: FilterChip(
-                            label: Text(f.name[0].toUpperCase() + f.name.substring(1)),
+                            label: Text(switch (f) {
+                              WordFilter.all => l.wordFilterAll,
+                              WordFilter.due => l.wordFilterDue,
+                              WordFilter.learning => l.wordFilterLearning,
+                              WordFilter.mastered => l.wordFilterMastered,
+                            }),
                             selected: _filter == f,
                             showCheckmark: false,
                             onSelected: (_) => setState(() => _filter = f),
@@ -129,6 +131,7 @@ class _WordRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final scope = AppScope.of(context);
     final palette = Palette.of(context);
+    final l = AppLocalizations.of(context);
     final e = entry;
     return Padding(
       key: Key('word-${word.key}'),
@@ -139,7 +142,7 @@ class _WordRow extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                tooltip: 'Pronounce ${word.word}',
+                tooltip: l.wordsPronounce(word.word),
                 icon: const Icon(Icons.volume_up_rounded),
                 onPressed: () => scope.sayWord(e, word.word),
               ),
@@ -153,7 +156,7 @@ class _WordRow extends StatelessWidget {
                 ),
               ),
               Tooltip(
-                message: 'Strength ${word.card.box} of 6',
+                message: l.wordsStrength(word.card.box),
                 child: Row(
                   children: [
                     for (var n = 1; n <= 5; n++)
@@ -170,7 +173,7 @@ class _WordRow extends StatelessWidget {
                 ),
               ),
               IconButton(
-                tooltip: 'Remove ${word.word}',
+                tooltip: l.wordsRemove(word.word),
                 icon: const Icon(Icons.delete_outline),
                 onPressed: () => scope.state.toggleWord(key: word.key, word: word.word, storyId: word.storyId, context: word.context),
               ),

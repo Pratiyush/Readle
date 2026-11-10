@@ -75,6 +75,7 @@ List<Question> buildQuiz(Story story, Dictionary dict, {String? seed}) {
 }
 
 /// Praise that matches the score ("Gut gemacht! 🎉" at 20 % read as a joke). Same tiers as the web.
+// l10n: German on purpose (the praise after a quiz is German the learner can already read)
 (String, String) praise(int pct) => switch (pct) {
   >= 80 => ('🎉', 'Gut gemacht!'),
   >= 50 => ('👍', 'Nicht schlecht!'),

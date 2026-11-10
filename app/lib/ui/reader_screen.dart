@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import '../content/models.dart';
+import '../l10n/app_localizations.dart';
 import 'app_scope.dart';
 import 'quiz_screen.dart';
 import 'theme.dart';
@@ -39,9 +40,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text("This story couldn't be loaded."),
+                Text(AppLocalizations.of(context).readerLoadError),
                 const SizedBox(height: 12),
-                OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Back to stories')),
+                OutlinedButton(onPressed: () => Navigator.of(context).pop(), child: Text(AppLocalizations.of(context).backToStories)),
               ],
             ),
           ),
@@ -194,6 +195,7 @@ class _ReaderViewState extends State<_ReaderView> {
     final scope = AppScope.of(context);
     final state = scope.state;
     final palette = Palette.of(context);
+    final l = AppLocalizations.of(context);
     final scheme = Theme.of(context).colorScheme;
     final image = scope.content.image(story.meta.image);
     final isRead = state.read.containsKey(story.id);
@@ -202,7 +204,7 @@ class _ReaderViewState extends State<_ReaderView> {
       appBar: AppBar(
         leading: IconButton(
           key: const Key('reader-back'),
-          tooltip: 'Back to stories',
+          tooltip: l.backToStories,
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).maybePop(),
         ),
@@ -210,7 +212,7 @@ class _ReaderViewState extends State<_ReaderView> {
           if (_canSpeak)
             IconButton(
               key: const Key('listen'),
-              tooltip: _playing == null ? 'Listen' : 'Stop',
+              tooltip: _playing == null ? l.readerListen : l.readerStop,
               icon: Icon(_playing == null ? Icons.play_arrow_rounded : Icons.stop_rounded),
               onPressed: () => _playing == null ? _play(0) : _stop(),
             ),
@@ -218,13 +220,13 @@ class _ReaderViewState extends State<_ReaderView> {
             key: const Key('show-all-translations'),
             onPressed: () => setState(() => _allShown = !_allShown),
             style: TextButton.styleFrom(backgroundColor: _allShown ? palette.accentSoft : null, foregroundColor: scheme.onSurface),
-            child: const Text('EN', style: TextStyle(fontWeight: FontWeight.w800)),
+            child: Text(l.readerTranslations, style: const TextStyle(fontWeight: FontWeight.w800)),
           ),
           TextButton(
             key: const Key('text-size'),
             onPressed: _cycleFont,
             style: TextButton.styleFrom(foregroundColor: scheme.onSurface),
-            child: const Text('Aa', style: TextStyle(fontWeight: FontWeight.w800)),
+            child: Text(l.readerTextSize, style: const TextStyle(fontWeight: FontWeight.w800)),
           ),
         ],
         bottom: PreferredSize(
@@ -252,10 +254,7 @@ class _ReaderViewState extends State<_ReaderView> {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         LevelBadge(story.meta.level),
-                        Text(
-                          '${story.meta.minutes} min read · ${story.meta.words} words',
-                          style: TextStyle(color: palette.muted, fontSize: 13),
-                        ),
+                        Text(l.readerStoryMeta(story.meta.minutes, story.meta.words), style: TextStyle(color: palette.muted, fontSize: 13)),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -271,10 +270,7 @@ class _ReaderViewState extends State<_ReaderView> {
                     ),
                     const SizedBox(height: 6),
                     if (state.wordTipSeen)
-                      Text(
-                        'Tap any word for its meaning. Tap ⇄ for a sentence translation.',
-                        style: TextStyle(color: palette.muted, fontSize: 13),
-                      )
+                      Text(l.readerTip, style: TextStyle(color: palette.muted, fontSize: 13))
                     else
                       // First run: the one thing to learn about this app, until the first tap.
                       Container(
@@ -288,7 +284,7 @@ class _ReaderViewState extends State<_ReaderView> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Tap any word to hear it and see what it means. Tap ⇄ to translate a sentence.',
+                                l.readerFirstTip,
                                 style: TextStyle(color: scheme.onSurface, fontWeight: FontWeight.w600),
                               ),
                             ),
@@ -298,16 +294,12 @@ class _ReaderViewState extends State<_ReaderView> {
                     const SizedBox(height: 14),
                     ..._storyText(context, state.words.keys.toSet(), state.settings.fontScale),
                     const SizedBox(height: 28),
-                    FilledButton(
-                      key: const Key('finish'),
-                      onPressed: _finish,
-                      child: Text(isRead ? 'Take the quiz again' : 'Finish & take the quiz'),
-                    ),
+                    FilledButton(key: const Key('finish'), onPressed: _finish, child: Text(isRead ? l.readerQuizAgain : l.readerFinish)),
                     const SizedBox(height: 10),
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48), shape: const StadiumBorder()),
                       onPressed: () => Navigator.of(context).maybePop(),
-                      child: const Text('Back to stories'),
+                      child: Text(l.backToStories),
                     ),
                   ],
                 ),
@@ -323,6 +315,7 @@ class _ReaderViewState extends State<_ReaderView> {
   /// flow with a block under its sentence. Plain text spans keep punctuation with its word.
   List<Widget> _storyText(BuildContext context, Set<String> saved, double scale) {
     final palette = Palette.of(context);
+    final l = AppLocalizations.of(context);
     final base = TextStyle(
       fontFamily: serif,
       fontFamilyFallback: serifFallback,
@@ -367,7 +360,7 @@ class _ReaderViewState extends State<_ReaderView> {
         TextSpan(
           text: '⇄',
           recognizer: _translateTaps[i],
-          semanticsLabel: 'Translate sentence ${i + 1}',
+          semanticsLabel: l.readerTranslateSentence(i + 1),
           style: TextStyle(color: palette.muted, fontSize: 15 * scale, fontFamily: null),
         ),
       );
@@ -405,7 +398,7 @@ class _ReaderViewState extends State<_ReaderView> {
                 if (_canSpeak)
                   IconButton(
                     key: Key('listen-from-$i'),
-                    tooltip: 'Listen from here',
+                    tooltip: l.readerListenFromHere,
                     visualDensity: VisualDensity.compact,
                     icon: Icon(
                       _playing == i ? Icons.graphic_eq_rounded : Icons.volume_up_rounded,
