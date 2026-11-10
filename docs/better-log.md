@@ -8,7 +8,7 @@ measure → the 3 highest-value fixes → build → prove on a device → record
 The hub's todo order came first: store privacy answers, i18n plumbing, the release shell and the
 growth item. Then the better loop: gate failures (CI, jank), then feel (haptics). Proof device:
 private sandbox emulator `claude-readle` (API 35), profile and debug builds, deleted after. Heavy
-lock held 03:12–03:27.
+lock held 03:12–03:27 (Android) and 03:38–03:43 (iOS simulator).
 
 | # | Area (loop step) | Before | After | Proof |
 |---|---|---|---|---|
@@ -18,6 +18,7 @@ lock held 03:12–03:27.
 | 4 | Gate: jank | Not measured (gfxinfo can't see Flutter frames) | Measured in profile mode (`app/perf`, `flutter drive --profile --no-dds`), see below | `build/perf/*.json` |
 | 5 | Gate: release | Debug-signed, no script | `tool/release.sh` + `tool/check_release.py`: upload-key signing, obfuscation, symbols zip, signer, AdMob id, target SDK, 16 KB pages, stripping, R8 mapping, notes | A full run with a throwaway key: every check passed. The bundle and key were deleted after, so a test-signed bundle can never reach Play |
 | 6 | Gate: iOS privacy | `package_info_plus` reads file dates that no manifest declares (ITMS-91053) | Runner declares FileTimestamp C617.1; a test scans every plugin | `privacy_manifest_test` (BUG-41) |
+| 7 | Gate: iOS ads | Consent flow never seen on iOS | The UMP SDK shows Google's IDFA explainer at first launch, before ATT (test units, sample app id) | Sandbox iPhone simulator, screenshot (`loop5-ios-ump-idfa-message.jpg`); the tap-through to ATT and the banner needs simulator access the owner approves |
 
 **Frame timing** (profile mode, sandbox emulator, ads off):
 
