@@ -37,10 +37,10 @@ on a host whose load average was 300+, so treat timings as upper bounds.
 | Play: 16 KB page-size support | **pass** | `zipalign -c -P 16 -v 4 app-release.apk` → "Verification successful". |
 | Play: signed AAB | **fail** (owner) | The release uses debug signing until the upload key exists (`build.gradle.kts`; `key.properties`, `*.jks` and `*.keystore` are git-ignored). |
 | Flutter `--obfuscate --split-debug-info` | **pass** | The release build used both (`build/symbols`, kept out of git). Wrap into `tool/release.sh` with the signing step. |
-| Play Data safety answers drafted | **pass** (draft) | See "Store answers (drafts)" below. |
+| Play Data safety answers drafted | **pass** (draft, 10 Nov) | "Store answers (drafts)" below lists every form question and data type, checked against Google's SDK 25.5.0 disclosure and the merged release manifest. |
 | Content rating answers drafted; 13+, not Families | **pass** (draft) | See below. |
-| Apple: `PrivacyInfo.xcprivacy` | **pass** | `ios/Runner/PrivacyInfo.xcprivacy` (UserDefaults CA92.1; no tracking or collection by app code), added to the Runner target's resources. The Google SDK ships its own manifest. |
-| App Privacy answers; 4.2 / 4.3 note | **pass** (draft) | See below. |
+| Apple: `PrivacyInfo.xcprivacy` | **pass** | `ios/Runner/PrivacyInfo.xcprivacy` is in the Runner target's resources. App code does no tracking or collection. It declares UserDefaults CA92.1, plus FileTimestamp C617.1 for `package_info_plus` (BUG-41). `test/privacy_manifest_test.dart` checks that every plugin's required-reason APIs are declared. The Google SDKs ship their own manifests. |
+| App Privacy answers; 4.2 / 4.3 note | **pass** (draft, 10 Nov) | Taken from the GoogleMobileAds and UMP manifests in the build. Four types are linked to the user, and the device ID is used to track. |
 | Original app name and listing text | **fail** (owner) | "Readle" is the reference app's brand. Suggestions: Erzählbar, Satzweise, Leselicht. Listing text is drafted below with `<NAME>` placeholders. |
 
 ## 3. Privacy and German law
@@ -94,22 +94,78 @@ on a host whose load average was 300+, so treat timings as upper bounds.
 
 ## Store answers (drafts)
 
-**Play Data safety.** Data is collected and shared, by the Google Mobile Ads SDK only:
-- Device or other IDs (advertising ID): collected and shared, for advertising.
-- App interactions and diagnostics (ad events, crash data): collected, for advertising, analytics
-  and fraud prevention.
-- Approximate location (derived from IP): collected by the SDK, for advertising.
-- Everything Readle itself stores (progress, saved words, settings) stays on the device and is not
-  collected. Data is encrypted in transit. Deletion: "Reset all progress" in Settings deletes it.
+Checked on 10 Nov 2026 against:
+- the privacy manifests inside the iOS build (Google Mobile Ads, UMP, Flutter and the plugins);
+- Google's [Play data disclosure](https://developers.google.com/admob/android/privacy/play-data-disclosure) for Mobile Ads SDK 25.5.0, which is the version in the release build;
+- the merged release Android manifest.
 
-**Apple App Privacy.**
-- Data used to track you: Device ID (advertising), only with ATT permission.
-- Data linked to you: none.
-- Data not linked to you: Product interaction, Advertising data, Diagnostics (from the Google SDK).
+Re-check whenever an SDK or plugin changes.
 
-**Content rating** (IARC questionnaire): reference / education app; no violence, sexual content,
-gambling, drugs or user-generated content; no user chat; ads present. Expected: PEGI 3 / USK 0 /
-Everyone; target audience **13+**, not Families (personalised ads).
+**What Readle itself sends off the device: nothing that identifies the learner.** Every data type below comes from Google's ad SDKs.
+- Progress, saved words, settings and the reminder time stay on the device (shared_preferences). "Reset all progress" deletes them.
+- The daily reminder is a local notification scheduled on the device. Nothing is sent.
+- Content updates (`CONTENT_CDN_ENABLED`, off until the privacy policy covers it) are HTTPS GETs of static files from `german-content.pratiyush1.workers.dev`. The only extra header is `If-None-Match`, the manifest's ETag, which is the same for everyone. There is no ID, account or cookie. The worker serves assets only and has no logging configured (`content/deploy/wrangler.jsonc`), so the IP address is used only to answer the request. That is not "collected" under either store's definition.
+- "Contact support" opens the learner's own mail app (`mailto:`). Nothing leaves the device unless they send the mail themselves.
+
+### Google Play: Data safety form
+
+| Question | Answer |
+|---|---|
+| Does your app collect or share any of the required user data types? | **Yes** |
+| Is all of the user data collected by your app encrypted in transit? | **Yes.** Google: TLS. Readle's own downloads are HTTPS only. |
+| Which methods of account creation does your app support? | **None.** There are no accounts, so no deletion URL is needed. |
+| Do you provide a way for users to request that their data is deleted? | **No.** Google holds the ad data. The learner can reset or delete the advertising ID in Android settings, and Readle's own data never leaves the device. |
+
+The data types to tick. For each one: collected **and** shared, **not** processed ephemerally, collection **required**.
+
+| Category → type | What it is | Purposes |
+|---|---|---|
+| Location → **Approximate location** | Estimated from the IP address | Advertising or marketing; Analytics; Fraud prevention, security and compliance |
+| App activity → **App interactions** | App launches, taps, ad views | Same three |
+| App info and performance → **Diagnostics** | Launch time, hang rate, energy use | Same three |
+| Device or other IDs → **Device or other IDs** | Android advertising ID, app set ID | Same three |
+
+Leave everything else unticked: personal info, financial info, health, messages, photos and videos, audio, files, calendar, contacts, web browsing, precise location and crash logs. Google's Android disclosure doesn't list crash logs.
+
+Other App content declarations:
+- **Advertising ID: yes.** `com.google.android.gms.permission.AD_ID` is in the merged release manifest, from `play-services-ads-api` 25.5.0. Purposes: advertising or marketing, analytics, fraud prevention.
+- **Ads: yes.**
+- **App access:** everything works without signing in.
+- **Target audience:** 13+, not Families (the ads are personalised).
+- **Foreground service: no declaration.** `FOREGROUND_SERVICE` comes from `androidx.work` 2.7.0, but no service declares a foreground-service type. `POST_NOTIFICATIONS` is asked only when the learner turns the reminder on. No exact alarms are used.
+
+### Apple: App Privacy (App Store Connect)
+
+"Do you or your third-party partners collect data from this app?" **Yes.** All of it comes from the Google Mobile Ads SDK and Google's consent SDK (UMP). The answers are the union of their bundled manifests. The earlier draft's "Data linked to you: none" was wrong: Google's manifest marks four types as linked.
+
+| Data type | Linked to the user | Used to track | Purposes |
+|---|---|---|---|
+| Identifiers → **Device ID** (the IDFA, only after ATT "Allow") | Yes | **Yes** | Third-party advertising; Developer's advertising or marketing; Analytics |
+| Location → **Coarse location** | Yes | No | Third-party advertising; Developer's advertising or marketing; Analytics; App functionality (UMP: which privacy rules apply) |
+| Usage data → **Product interaction** | Yes | No | Third-party advertising; Developer's advertising or marketing; Analytics; App functionality (UMP) |
+| Usage data → **Advertising data** | Yes | No | Third-party advertising; Developer's advertising or marketing; Analytics |
+| Diagnostics → **Crash data** | No | No | Analytics |
+| Diagnostics → **Performance data** | No | No | Third-party advertising; Developer's advertising or marketing; Analytics; App functionality (UMP) |
+| Diagnostics → **Other diagnostic data** | No | No | Third-party advertising; Developer's advertising or marketing; Analytics |
+
+Before the first TestFlight upload, check that these answers match the bundled manifests. In Xcode: Product → Archive, then Generate Privacy Report on the archive. The report must show this same set.
+
+**`PrivacyInfo.xcprivacy`** (Runner):
+- **Tracking and collection:** no tracking and no collected data by app code.
+- **UserDefaults (CA92.1):** Readle's settings.
+- **FileTimestamp (C617.1):** for `package_info_plus`, whose own manifest leaves it out (BUG-41).
+- **Bundled manifests found in the build:** Flutter, GoogleMobileAds, UserMessagingPlatform, shared_preferences, url_launcher, webview_flutter, app_tracking_transparency, connectivity_plus, package_info_plus and flutter_local_notifications.
+- **Plugins with no manifest:** audioplayers_darwin, flutter_tts, the google_mobile_ads wrapper, and integration_test (debug only). None of them calls a required-reason API.
+- **Test:** `test/privacy_manifest_test.dart` scans every iOS plugin's native sources. It fails when a required-reason API isn't declared in the plugin's manifest or Readle's.
+
+### Content rating
+
+IARC questionnaire answers:
+- A reference / education app.
+- No violence, sexual content, gambling, drugs or user-generated content, and no user chat.
+- Ads present.
+
+Expected rating: PEGI 3 / USK 0 / Everyone. Target audience **13+**, not Families (personalised ads).
 
 **Apple 4.2 (minimum functionality).** Fully native Flutter UI, no web view. Offline reading of 107
 graded stories, recorded pronunciation on every tap, German TTS story playback with highlighting,

@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!-- Readle's own code: no tracking and no collection; progress stays on the device (UserDefaults via
-     shared_preferences). The Google Mobile Ads SDK ships its own privacy manifest declaring what it
-     collects and its tracking domains; the App Store Connect App Privacy answers cover both. -->
+     shared_preferences). The Google Mobile Ads and UMP SDKs ship their own privacy manifests with
+     what they collect; the App Store Connect App Privacy answers (docs/production-gate.md) cover both.
+
+     Required-reason APIs declared here are the ones the plugins compiled into this binary call
+     without declaring them themselves (test/privacy_manifest_test.dart checks every plugin):
+     - FileTimestamp C617.1: package_info_plus reads the creation date of the app's Documents folder
+       and the modification date of the app bundle (install and update time), both in the app's own
+       container; its own manifest declares no API types (BUG-41). -->
 <plist version="1.0">
 <dict>
 	<key>NSPrivacyTracking</key>
@@ -19,6 +25,14 @@
 			<key>NSPrivacyAccessedAPITypeReasons</key>
 			<array>
 				<string>CA92.1</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
 			</array>
 		</dict>
 	</array>
