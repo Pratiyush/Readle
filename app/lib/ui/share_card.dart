@@ -5,6 +5,10 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../config.dart';
+import '../content/models.dart';
+import '../l10n/app_localizations.dart';
+
 /// What a finished-story card shows. Every string is already localized by the caller: the card
 /// is painted outside the widget tree, where there are no Localizations.
 class ShareCardData {
@@ -13,18 +17,37 @@ class ShareCardData {
     required this.title,
     required this.level,
     required this.streak,
-    required this.score,
+    this.score,
     required this.footer,
     this.quote,
     this.picture,
   });
 
-  final String eyebrow, title, level, streak, score, footer;
+  final String eyebrow, title, level, streak, footer;
+
+  /// The quiz score chip, only for a result worth showing ([shareScoreFrom] % or more).
+  final String? score;
 
   /// The story's first German sentence, shown as a quote.
   final String? quote;
   final ui.Image? picture;
 }
+
+/// The lowest quiz score the card shows; below it the card leaves the score off (people share wins).
+const shareScoreFrom = 80;
+
+/// The card for [story] finished with [pct] % on the quiz and a [streak]-day streak.
+ShareCardData finishedStoryCard(AppLocalizations l, Story story, {required int pct, required int streak, ui.Image? picture}) =>
+    ShareCardData(
+      eyebrow: l.shareCardEyebrow,
+      title: story.meta.title,
+      level: story.meta.level,
+      streak: l.shareCardStreak(streak),
+      score: pct >= shareScoreFrom ? l.shareCardScore(pct) : null,
+      footer: l.shareCardFooter(appName),
+      quote: story.sentences.firstOrNull?.de,
+      picture: picture,
+    );
 
 /// The card's size in logical pixels; [renderShareCard] paints it at 3×: 1080 × 1350 (4:5, what
 /// chat apps and Instagram show without cropping).
@@ -90,7 +113,7 @@ class ShareCard extends StatelessWidget {
             children: [
               chip(data.level, fill: _gold, ink: _teal),
               chip(data.streak),
-              chip(data.score),
+              if (data.score != null) chip(data.score!),
             ],
           ),
           const SizedBox(height: 16),

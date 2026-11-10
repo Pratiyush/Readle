@@ -185,18 +185,8 @@ class _QuizScreenState extends State<QuizScreen> {
     final origin = box == null ? null : box.localToGlobal(Offset.zero) & box.size;
     setState(() => _sharing = true);
     try {
-      final card = ShareCard(
-        ShareCardData(
-          eyebrow: l.shareCardEyebrow,
-          title: story.meta.title,
-          level: story.meta.level,
-          streak: l.shareCardStreak(scope.state.streakDays),
-          score: l.shareCardScore(pct),
-          footer: l.shareCardFooter(appName),
-          quote: story.sentences.firstOrNull?.de,
-          picture: await loadPicture(scope.content.image(story.meta.image)),
-        ),
-      );
+      final picture = await loadPicture(scope.content.image(story.meta.image));
+      final card = ShareCard(finishedStoryCard(l, story, pct: pct, streak: scope.state.streakDays, picture: picture));
       final png = await renderShareCard(card, view);
       // The store link only where the listing exists (Android); iOS has no App Store record yet.
       final link = Platform.isAndroid ? '\n$playStoreUrl' : '';

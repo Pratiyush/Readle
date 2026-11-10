@@ -3,6 +3,44 @@
 One entry per loop of the hub's standing order (`German/docs/better-loop.md`):
 measure → the 3 highest-value fixes → build → prove on a device → record. Newest first.
 
+## Loop 5 (2026-11-10): sharing, haptics, release shell, frame timing measured
+
+The hub's todo order came first: store privacy answers, i18n plumbing, the release shell and the
+growth item. Then the better loop: gate failures (CI, jank), then feel (haptics). Proof device:
+private sandbox emulator `claude-readle` (API 35), profile and debug builds, deleted after. Heavy
+lock held 03:12–03:27.
+
+| # | Area (loop step) | Before | After | Proof |
+|---|---|---|---|---|
+| 1 | Growth | Nothing to share | **Share** on the quiz result: a 1080 × 1350 card with the story picture, German title, level, streak and first sentence, plus the score at 80 % or more, sent to the system share sheet with one line of text (Play link on Android) | Device: the Android share sheet ("Sharing image", text with the link); the card pulled from the app cache, rendered with the real emoji font (`loop5-android-share-card.jpg`, `loop5-android-share-sheet.jpg`); flow + `share_card_test` |
+| 2 | Feel | No haptics anywhere | Light tap on a right answer, medium on a quiz finished at ≥ 80 %, click on "Knew it"; wrong answers silent | `haptics_test` (platform channel) |
+| 3 | Gate: icon | Flutter's default icon | Book-and-"DE" icon from the web app: legacy, adaptive, monochrome; 15 opaque iOS sizes; splash on teal | Device: launcher dock and the Android 15 splash (`loop5-android-icon-dock.jpg`, `loop5-android-splash.jpg`) |
+| 4 | Gate: jank | Not measured (gfxinfo can't see Flutter frames) | Measured in profile mode (`app/perf`, `flutter drive --profile --no-dds`), see below | `build/perf/*.json` |
+| 5 | Gate: release | Debug-signed, no script | `tool/release.sh` + `tool/check_release.py`: upload-key signing, obfuscation, symbols zip, signer, AdMob id, target SDK, 16 KB pages, stripping, R8 mapping, notes | A full run with a throwaway key: every check passed. The bundle and key were deleted after, so a test-signed bundle can never reach Play |
+| 6 | Gate: iOS privacy | `package_info_plus` reads file dates that no manifest declares (ITMS-91053) | Runner declares FileTimestamp C617.1; a test scans every plugin | `privacy_manifest_test` (BUG-41) |
+
+**Frame timing** (profile mode, sandbox emulator, ads off):
+
+| Scenario | Frames | Build avg / p90 / p99 / worst (ms) | Build misses | Raster avg / p90 / p99 / worst (ms) | Raster misses |
+|---|---|---|---|---|---|
+| Library scroll (4 flings each way) | 353 | 1.0 / 2.6 / 4.6 / 8.2 | 0 | 5.7 / 10.7 / 17.9 / 26.2 | 25 (7 %) |
+| Reader open + scroll (longest story) | 181 | 1.7 / 4.7 / 13.4 / 17.4 | 1 | 6.6 / 16.3 / 20.5 / 48.9 | 23 (13 %) |
+| Word sheet (3 opens) | 20 | 1.8 / 3.6 / 5.1 / 5.1 | 0 | 8.0 / 6.8 / 71.1 / 71.1 | 1 |
+
+The UI thread has plenty of headroom: one missed build budget in 554 frames. The raster misses
+come from the emulator's GPU, which translates to the host's. App-side causes were ruled out:
+every picture is decoded at display size (`ResizeImage` at all four call sites), and there is no
+blur, `saveLayer` clip or shader mask. The worst frames are first opens, typical of shader
+warm-up. The raster side needs a real phone before anything changes. Not optimised blind.
+
+**Found on the device:** a share card saying "20 % on the quiz" is nothing to brag about, so the
+score now shows only at 80 % or more (`share_card_test`).
+
+**Tests:** Flutter 129 headless (+1 live), Vitest 52, Playwright 60; fast gate 33–56 s.
+
+**Next:** raster timing on a real phone; the iOS simulator pass (UMP form and ATT prompt in a
+release-like build); UI languages once the owner answers the localization question.
+
 ## Loop 4 (2026-11-09): a daily reminder that stays gentle, new stories on Wi-Fi
 
 Daily habit was the better-loop step left open: a learner needs a reason to come back tomorrow, and

@@ -1,13 +1,15 @@
 // Frame timing in profile mode (production gate §5: gfxinfo can't see Flutter's own frames).
 // Run on a device in profile mode; kept out of integration_test/, which CI runs in debug:
 //
-//   flutter drive --profile -d <device> --driver=test_driver/perf_driver.dart --target=perf/frame_timing_test.dart
+//   flutter drive --profile --no-dds -d <device> --driver=test_driver/perf_driver.dart --target=perf/frame_timing_test.dart
 //
 // Writes build/perf/<scenario>.json (FrameTimingSummarizer: average / 90th / 99th percentile /
 // worst build and raster times, missed frame budgets). Ads off, so it measures Readle's own UI.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+
+import 'package:readle/ui/library_screen.dart' show openStory;
 
 import '../test/flows.dart';
 
@@ -29,12 +31,14 @@ void main() {
       }
     }, reportKey: 'library_scroll');
 
-    // The longest story (B2, 173 words): open, scroll through, back to the top.
-    await search(tester, 'Die Wohnung ohne');
-    await waitFor(tester, find.byKey(const Key('story-die-wohnung-ohne-kueche')));
+    // The longest story (B2, 173 words): open, scroll through, back to the top. Opened the way a
+    // story card does (on a device, typing into the search after the flings didn't arrive).
+    tester.state<ScrollableState>(library).position.jumpTo(0); // the heading is built again
+    await tester.pumpAndSettle();
     await binding.watchPerformance(() async {
-      await tester.tap(find.byKey(const Key('story-die-wohnung-ohne-kueche')));
+      openStory(tester.element(find.byKey(const Key('library-heading'))), 'die-wohnung-ohne-kueche');
       await tester.pumpAndSettle();
+      await waitFor(tester, find.byKey(const Key('reader-list')));
       final reader = find.descendant(of: find.byKey(const Key('reader-list')), matching: find.byType(Scrollable)).first;
       for (var i = 0; i < 3; i++) {
         await tester.fling(reader, const Offset(0, -500), 2000);
